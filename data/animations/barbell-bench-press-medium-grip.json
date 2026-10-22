@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "barbell-bench-press-medium-grip",
+  "durationSec": 2.6,
+  "camera": {"position": [2.75, 2.05, -1.85], "target": [0, 0.62, 0.22]},
+  "props": [
+    {"type": "bench", "attach": "none", "position": [0, 0, 0]},
+    {"type": "barbell", "attach": "hands"}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0.3], "rotation": [-90, 0, 0]},
+        "spine": [-4, 0, 0],
+        "leftHand": {"target": [0.31, 1.12, -0.13], "pole": [0.75, 0.3, 0.05]},
+        "rightHand": {"target": [-0.31, 1.12, -0.13], "pole": [-0.75, 0.3, 0.05]},
+        "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1.0, 0.75]},
+        "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1.0, 0.75]}
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0.3], "rotation": [-90, 0, 0]},
+        "spine": [-4, 0, 0],
+        "leftHand": {"target": [0.31, 0.695, -0.03], "pole": [0.75, 0.3, 0.05]},
+        "rightHand": {"target": [-0.31, 0.695, -0.03], "pole": [-0.75, 0.3, 0.05]},
+        "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1.0, 0.75]},
+        "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1.0, 0.75]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0.3], "rotation": [-90, 0, 0]},
+        "spine": [-4, 0, 0],
+        "leftHand": {"target": [0.31, 1.12, -0.13], "pole": [0.75, 0.3, 0.05]},
+        "rightHand": {"target": [-0.31, 1.12, -0.13], "pole": [-0.75, 0.3, 0.05]},
+        "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1.0, 0.75]},
+        "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1.0, 0.75]}
+      }
+    }
+  ]
+}
