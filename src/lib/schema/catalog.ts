@@ -21,7 +21,11 @@ export const catalogSchema = z
         description:
           'SHA-256 (hex) of the canonical JSON of formatVersion, exercises, animations and schedules.',
       }),
-    generatedAt: timestampSchema,
+    generatedAt: timestampSchema.meta({
+      description:
+        'When the data last changed: the commit time of the last commit that changed data/. ' +
+        'Of two catalogs, the one with the later generatedAt (then the greater revision) is newer.',
+    }),
     exercises: z.array(exerciseSchema),
     animations: z.array(animationSchema),
     schedules: z.array(scheduleSchema),

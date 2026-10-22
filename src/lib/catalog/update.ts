@@ -73,7 +73,7 @@ export function parseCatalog(text: string): Catalog {
 export type CatalogUpdateResult =
   /** A newer catalog was saved and is now in use. */
   | { kind: 'updated'; newExercises: number }
-  /** The remote catalog has the same revision as the one in use. */
+  /** The remote catalog is the one in use, or older than it (see `compareCatalogs`). */
   | { kind: 'up-to-date' }
   /** The remote catalog needs a newer app; the current one stays. */
   | { kind: 'unsupported' }
@@ -92,8 +92,26 @@ export type CatalogDecision =
   | { kind: 'invalid' };
 
 /**
+ * Orders two catalogs from older to newer: by `generatedAt`, the time their
+ * data last changed (the commit time of the last commit touching `data/`, the
+ * same for every build of a commit), then by revision, so two different
+ * catalogs never tie. Negative when `a` is older, positive when newer, 0 for
+ * the same catalog.
+ *
+ * The update check and the launch-time choice both use this order, so the
+ * app only ever moves to a newer catalog and never back to an older one.
+ */
+export function compareCatalogs(a: Catalog, b: Catalog): number {
+  const age = Date.parse(a.generatedAt) - Date.parse(b.generatedAt);
+  if (age > 0) return 1;
+  if (age < 0) return -1;
+  return a.revision < b.revision ? -1 : a.revision > b.revision ? 1 : 0;
+}
+
+/**
  * Accepts a downloaded catalog only when it parses, validates, has a
- * supported `formatVersion` and a revision different from `current`.
+ * supported `formatVersion`, has other content than `current` and is newer
+ * than it (`compareCatalogs`). An older one is reported as up to date.
  */
 export function evaluateDownloadedCatalog(text: string, current: Catalog | null): CatalogDecision {
   let catalog: Catalog;
@@ -107,7 +125,12 @@ export function evaluateDownloadedCatalog(text: string, current: Catalog | null)
     }
     throw error;
   }
-  if (current !== null && catalog.revision === current.revision) return { kind: 'up-to-date' };
+  if (
+    current !== null &&
+    (catalog.revision === current.revision || compareCatalogs(catalog, current) < 0)
+  ) {
+    return { kind: 'up-to-date' };
+  }
   const known = new Set(current?.exercises.map((exercise) => exercise.id));
   const newExercises = catalog.exercises.filter((exercise) => !known.has(exercise.id)).length;
   return { kind: 'accept', catalog, newExercises };
@@ -135,14 +158,14 @@ export function describeUpdateResult(result: CatalogUpdateResult): string {
 
 /**
  * Of the catalog saved by an earlier update and the one bundled with the app,
- * the one to use: the saved one, unless the bundled one was generated later
- * (the app was updated since the last catalog download).
+ * the one to use: the newer one by `compareCatalogs` (the bundled one wins
+ * when the app was updated with newer data than the last download).
  */
 export function chooseCatalog(
   saved: Catalog | null,
   bundled: Catalog | null,
 ): { catalog: Catalog; source: 'saved' | 'bundled' } | null {
-  if (saved && (!bundled || saved.generatedAt >= bundled.generatedAt)) {
+  if (saved && (!bundled || compareCatalogs(saved, bundled) >= 0)) {
     return { catalog: saved, source: 'saved' };
   }
   return bundled ? { catalog: bundled, source: 'bundled' } : null;

@@ -306,7 +306,7 @@ the only file of the `catalog` branch.
 | --------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `formatVersion` | `1`         |                                                                                                                                                                 |
 | `revision`      | string      | Lowercase hex SHA-256 of the canonical JSON (keys sorted) of `formatVersion`, `exercises`, `animations` and `schedules`. Changes exactly when the content does. |
-| `generatedAt`   | timestamp   | ISO 8601 UTC time of the build (not part of the revision).                                                                                                      |
+| `generatedAt`   | timestamp   | ISO 8601 UTC time the data last changed: the commit time of the last commit that changed `data/` (`SOURCE_DATE_EPOCH` when set). Not part of the revision.      |
 | `exercises`     | exercise[]  | Sorted by `id`.                                                                                                                                                 |
 | `animations`    | animation[] | Sorted by `exerciseId`.                                                                                                                                         |
 | `schedules`     | schedule[]  | Sorted by `id`.                                                                                                                                                 |
@@ -316,8 +316,11 @@ Image paths stay relative to `data/exercises/`, so `images/pushups/0.webp` is at
 The catalog file on the `catalog` branch does not contain images.
 
 The app accepts a downloaded catalog only when it parses, validates, has a
-`formatVersion` the app supports and a `revision` different from the one it
-has; otherwise it keeps its current catalog.
+`formatVersion` the app supports, a `revision` different from the one it has
+and is newer: a later `generatedAt`, or the same `generatedAt` and a greater
+`revision`. Otherwise it keeps its current catalog. At launch it uses the newer,
+by the same rule, of the catalog it downloaded and the one bundled with it, so
+it never goes back to older data.
 
 ## Validation
 

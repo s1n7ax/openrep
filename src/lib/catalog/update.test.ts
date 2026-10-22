@@ -6,6 +6,7 @@ import type { Catalog } from '../schema/catalog.ts';
 import { exerciseImageUrl, loadSavedCatalog, saveCatalog } from './source.ts';
 import {
   chooseCatalog,
+  compareCatalogs,
   describeUpdateResult,
   evaluateDownloadedCatalog,
   InvalidCatalogError,
@@ -61,6 +62,18 @@ describe('evaluateDownloadedCatalog', () => {
     expect(evaluateDownloadedCatalog(JSON.stringify(current), current)).toEqual({
       kind: 'up-to-date',
     });
+    const rebuilt = { ...current, generatedAt: '2026-06-01T00:00:00.000Z' };
+    expect(evaluateDownloadedCatalog(JSON.stringify(rebuilt), current)).toEqual({
+      kind: 'up-to-date',
+    });
+  });
+
+  it('never accepts a catalog older than the one in use', () => {
+    // The app was built from newer data than the published catalog.
+    const older = { ...withExtraExercise(), generatedAt: '2025-12-01T00:00:00.000Z' };
+    expect(evaluateDownloadedCatalog(JSON.stringify(older), current)).toEqual({
+      kind: 'up-to-date',
+    });
   });
 
   it('rejects unsupported format versions', () => {
@@ -93,6 +106,72 @@ describe('chooseCatalog', () => {
     expect(chooseCatalog(null, current)?.source).toBe('bundled');
     expect(chooseCatalog(saved, null)?.source).toBe('saved');
     expect(chooseCatalog(null, null)).toBeNull();
+  });
+});
+
+describe('compareCatalogs', () => {
+  it('orders by data time, then by revision, the same both ways', () => {
+    const newer = withExtraExercise();
+    expect(compareCatalogs(newer, current)).toBe(1);
+    expect(compareCatalogs(current, newer)).toBe(-1);
+    expect(compareCatalogs(current, current)).toBe(0);
+    // Same time written differently: still equal in time, so the revision decides.
+    const sameTime = { ...newer, generatedAt: '2026-01-01T00:00:00Z' };
+    expect(Math.sign(compareCatalogs(sameTime, current))).toBe(
+      -Math.sign(compareCatalogs(current, sameTime)),
+    );
+    expect(compareCatalogs(sameTime, current)).not.toBe(0);
+  });
+});
+
+/**
+ * One launch-and-update cycle: the launch picks between the saved and the
+ * bundled catalog, then the update check sees `remote`. Returns the catalog
+ * in use afterwards and what is saved for the next launch.
+ */
+function launchAndUpdate(
+  saved: Catalog | null,
+  bundled: Catalog,
+  remote: Catalog,
+): { inUse: Catalog; saved: Catalog | null } {
+  const inUse = chooseCatalog(saved, bundled)!.catalog;
+  const decision = evaluateDownloadedCatalog(JSON.stringify(remote), inUse);
+  return decision.kind === 'accept'
+    ? { inUse: decision.catalog, saved: decision.catalog }
+    : { inUse, saved };
+}
+
+describe('update check and launch agree on the newer catalog', () => {
+  const published = (generatedAt: string) => ({ ...withExtraExercise(), generatedAt });
+
+  it('switches to a published catalog with newer data and keeps it on every later launch', () => {
+    // The release bundles data from 2026-01-01; main has newer data.
+    const remote = published('2026-02-01T00:00:00.000Z');
+    let state = launchAndUpdate(null, current, remote);
+    for (let launch = 0; launch < 3; launch++) {
+      expect(state.inUse.revision).toBe(remote.revision);
+      expect(chooseCatalog(state.saved, current)?.catalog.revision).toBe(remote.revision);
+      state = launchAndUpdate(state.saved, current, remote);
+    }
+  });
+
+  it('keeps the bundled catalog when the published one has older data', () => {
+    // The release bundles newer data than main has published.
+    const remote = published('2025-12-01T00:00:00.000Z');
+    let state = launchAndUpdate(null, current, remote);
+    for (let launch = 0; launch < 3; launch++) {
+      expect(state.inUse.revision).toBe(current.revision);
+      expect(state.saved).toBeNull();
+      state = launchAndUpdate(state.saved, current, remote);
+    }
+  });
+
+  it('prefers an app update with newer data over an older download', () => {
+    const download = published('2026-02-01T00:00:00.000Z');
+    const newBundle = { ...current, generatedAt: '2026-03-01T00:00:00.000Z' };
+    const state = launchAndUpdate(download, newBundle, download);
+    expect(state.inUse).toBe(newBundle);
+    expect(chooseCatalog(state.saved, newBundle)?.source).toBe('bundled');
   });
 });
 

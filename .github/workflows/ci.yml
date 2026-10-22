@@ -22,6 +22,10 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The full history: the bundled catalog's generatedAt is the time of
+          # the last commit that changed data/.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
@@ -91,6 +95,10 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The full history: the bundled catalog's generatedAt is the time of
+          # the last commit that changed data/.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:

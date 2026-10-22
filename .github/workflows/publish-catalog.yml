@@ -22,6 +22,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The full history: generatedAt is the time of the last commit that changed data/.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v7
         with:
@@ -32,10 +35,10 @@ jobs:
         run: npm ci
 
       - name: Build catalog.json
-        # generatedAt is the commit time, so the same commit builds the same file.
-        run: |
-          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
-          npm run build:catalog -- --out "$RUNNER_TEMP/catalog" --json-only
+        # generatedAt is the time of the last commit that changed data/, the
+        # same rule the app build uses for its bundled catalog, so the app can
+        # tell which of the two is newer.
+        run: npm run build:catalog -- --out "$RUNNER_TEMP/catalog" --json-only
 
       - name: Force-push catalog.json to the catalog branch
         working-directory: ${{ runner.temp }}/catalog
