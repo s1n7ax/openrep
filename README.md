@@ -38,7 +38,9 @@ works offline.
 
 - No account, no login, no analytics, no ads, no tracking.
 - Your plans, custom exercises, workouts and settings are stored only on your
-  device. Back them up with Settings → Backup.
+  device. Phone backups (Google, iCloud) do not include them. To move to a new
+  phone, use Settings → Backup: Export backup on the old phone, then Import
+  backup on the new one.
 - The app goes online only to download catalog updates from GitHub
   (`raw.githubusercontent.com`) and when you open GitHub yourself with Submit
   or the repository link. A Content-Security-Policy in the app allows no other
