@@ -12,6 +12,8 @@
   import { catalog } from './lib/stores/catalog.svelte.ts';
   import { userData } from './lib/stores/userData.svelte.ts';
   import ComingSoon from './routes/ComingSoon.svelte';
+  import CustomExerciseDetail from './routes/CustomExerciseDetail.svelte';
+  import CustomExerciseForm from './routes/CustomExerciseForm.svelte';
   import DevPose from './routes/DevPose.svelte';
   import ExerciseDetail from './routes/ExerciseDetail.svelte';
   import Exercises from './routes/Exercises.svelte';
@@ -73,6 +75,17 @@
             <Exercises />
           {:else if route.name === 'exercise'}
             <ExerciseDetail exerciseId={route.exerciseId} />
+          {:else if route.name === 'custom-new'}
+            <CustomExerciseForm
+              mode="new"
+              initialName={route.initialName}
+              planId={route.planId}
+              dayId={route.dayId}
+            />
+          {:else if route.name === 'custom'}
+            <CustomExerciseDetail customId={route.customId} />
+          {:else if route.name === 'custom-edit'}
+            <CustomExerciseForm mode="edit" customId={route.customId} />
           {:else if route.name === 'schedules'}
             <ComingSoon title="Schedules" icon="calendar" />
           {:else if route.name === 'schedule'}
