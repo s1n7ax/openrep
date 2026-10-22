@@ -189,13 +189,39 @@ function limbGrid(spec: LimbSpec, side: Side, cols = 48): SurfaceGrid {
 
 // ── Torso ────────────────────────────────────────────────────────────────────
 
+/**
+ * Rows closing a loft with an elliptical dome from `start` (radii `base`) to
+ * the apex at `end`; `[zc, n]` of the apex row.
+ */
+function domeRows(
+  start: number,
+  end: number,
+  base: readonly number[],
+  apex: readonly [number, number],
+  count: number,
+): number[][] {
+  const [w = 0, front = 0, back = 0, zc = 0, n = 2] = base;
+  return Array.from({ length: count + 1 }, (_, i) => {
+    const angle = (i / count) * (Math.PI / 2);
+    const k = Math.cos(angle);
+    const blend = 1 - k;
+    return [
+      start + (end - start) * Math.sin(angle),
+      w * k,
+      front * k,
+      back * k,
+      zc + (apex[0] - zc) * blend,
+      n + (apex[1] - n) * blend,
+    ];
+  });
+}
+
+const TORSO_BOTTOM = 0.8;
+
 /** [height, half-width, front depth, back depth, centre z, superellipse n]. */
 const TORSO_ROWS = [
-  [0.805, 0.0, 0.0, 0.0, -0.016, 2.0],
-  [0.809, 0.05, 0.03, 0.045, -0.016, 2.2],
-  [0.818, 0.088, 0.05, 0.072, -0.015, 2.4],
-  [0.832, 0.118, 0.064, 0.088, -0.014, 2.6],
-  [0.852, 0.142, 0.076, 0.098, -0.012, 2.8],
+  // Rounded underside between the thighs.
+  ...domeRows(0.852, TORSO_BOTTOM, [0.142, 0.076, 0.098, -0.012, 2.8], [-0.016, 2.2], 8),
   [0.88, 0.158, 0.084, 0.102, -0.01, 2.8],
   [0.925, 0.168, 0.09, 0.1, -0.006, 2.8],
   [0.975, 0.166, 0.094, 0.098, -0.002, 2.7],
@@ -214,7 +240,6 @@ const TORSO_ROWS = [
   [1.55, 0.05, 0.042, 0.046, -0.018, 2.0],
   [1.565, 0.0, 0.0, 0.0, -0.018, 2.0],
 ];
-const TORSO_BOTTOM = 0.805;
 const TORSO_TOP = 1.565;
 
 const torsoProfile = new Profile(TORSO_ROWS);
@@ -279,33 +304,6 @@ const HEAD_ROWS = [
   [0.09, 0.075, 0.08, 0.098, 0.012, 2.15],
   ...domeRows(0.125, HEAD_TOP, [0.076, 0.082, 0.1, 0.006, 2.1], [0.0, 2.0], 8),
 ];
-
-/**
- * Rows closing a loft with an elliptical dome from `start` (radii `base`) to
- * the apex at `end`; `[zc, n]` of the apex row.
- */
-function domeRows(
-  start: number,
-  end: number,
-  base: readonly number[],
-  apex: readonly [number, number],
-  count: number,
-): number[][] {
-  const [w = 0, front = 0, back = 0, zc = 0, n = 2] = base;
-  return Array.from({ length: count + 1 }, (_, i) => {
-    const angle = (i / count) * (Math.PI / 2);
-    const k = Math.cos(angle);
-    const blend = 1 - k;
-    return [
-      start + (end - start) * Math.sin(angle),
-      w * k,
-      front * k,
-      back * k,
-      zc + (apex[0] - zc) * blend,
-      n + (apex[1] - n) * blend,
-    ];
-  });
-}
 
 const headProfile = new Profile(HEAD_ROWS);
 const _headValues: number[] = [];
@@ -658,7 +656,7 @@ export function createFigure(): Figure {
     part: 'upperArm',
     length: UPPER_ARM_LENGTH,
     rows: UPPER_ARM_ROWS,
-    startApex: -0.2,
+    startApex: -0.17,
     endApex: 1 + ELBOW_RADIUS / UPPER_ARM_LENGTH,
     rings: 40,
   };

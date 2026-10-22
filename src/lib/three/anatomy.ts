@@ -160,21 +160,21 @@ export const MUSCLE_REGIONS: readonly MuscleRegion[] = [
     muscle: 'abdominals',
     part: 'torso',
     symmetric: true,
-    u: [0.9, 1.275],
+    u: [0.9, 1.29],
     theta: edges(
       [[0.9, 0]],
       [
         [0.9, 8],
         [0.96, 20],
         [1.05, 24],
-        [1.275, 28],
+        [1.29, 27],
       ],
     ),
     height: 0.0098,
     peak: [0.55, 0.45],
     soft: [0.02, 4],
   }),
-  // Obliques: from the iliac crest (the "V" lines) up the flanks.
+  // Obliques: from the iliac crest (the "V" lines) up the flanks to the ribs.
   region({
     muscle: 'abdominals',
     part: 'torso',
@@ -188,9 +188,10 @@ export const MUSCLE_REGIONS: readonly MuscleRegion[] = [
         [1.01, 56],
         [1.05, 72],
         [1.09, 82],
-        [1.17, 84],
-        [1.21, 70],
-        [1.25, 40],
+        [1.15, 82],
+        [1.19, 66],
+        [1.22, 48],
+        [1.25, 30],
       ],
     ),
     height: 0.0084,
