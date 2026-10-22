@@ -1,0 +1,733 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/s1n7ax/openrep/main/data/schema/animation.v1.json",
+  "type": "object",
+  "properties": {
+    "formatVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "exerciseId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Kebab-case identifier, e.g. \"barbell-bench-press-medium-grip\"."
+    },
+    "durationSec": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 60,
+      "description": "Length of one repetition (one loop), in seconds."
+    },
+    "camera": {
+      "description": "Initial camera; default is a 3/4 front view.",
+      "type": "object",
+      "properties": {
+        "position": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3,
+          "description": "[x, y, z] in metres."
+        },
+        "target": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "items": false,
+          "minItems": 3,
+          "maxItems": 3,
+          "description": "[x, y, z] in metres."
+        }
+      },
+      "required": [
+        "position",
+        "target"
+      ],
+      "additionalProperties": false
+    },
+    "props": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "barbell",
+              "ez-bar",
+              "dumbbell",
+              "kettlebell",
+              "bench",
+              "incline-bench",
+              "cable-handle",
+              "rope-handle",
+              "lat-bar",
+              "pull-up-bar",
+              "dip-bars",
+              "leg-press",
+              "leg-extension",
+              "leg-curl",
+              "mat"
+            ]
+          },
+          "attach": {
+            "type": "string",
+            "enum": [
+              "none",
+              "hands",
+              "leftHand",
+              "rightHand",
+              "feet",
+              "leftFoot",
+              "rightFoot"
+            ],
+            "description": "\"none\" places the prop in the world; otherwise it follows the hand(s) or foot/feet. \"hands\"/\"feet\" centre the prop between both hands/feet."
+          },
+          "position": {
+            "description": "World position (attach \"none\") or offset from the attachment point.",
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "rotation": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3,
+            "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+          },
+          "cableFrom": {
+            "description": "World point a cable is drawn from to this prop (cable machines).",
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "items": false,
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "required": [
+          "type",
+          "attach"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "keyframes": {
+      "minItems": 2,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Time in the loop, from 0 to 1."
+          },
+          "ease": {
+            "description": "Easing from this keyframe to the next one. Default \"easeInOut\".",
+            "type": "string",
+            "enum": [
+              "linear",
+              "easeIn",
+              "easeOut",
+              "easeInOut"
+            ]
+          },
+          "pose": {
+            "type": "object",
+            "properties": {
+              "pelvis": {
+                "type": "object",
+                "properties": {
+                  "position": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "description": "[x, y, z] in metres."
+                  },
+                  "rotation": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                  }
+                },
+                "required": [
+                  "position",
+                  "rotation"
+                ],
+                "additionalProperties": false
+              },
+              "spine": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "chest": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "neck": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "head": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "leftHand": {
+                "type": "object",
+                "properties": {
+                  "target": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "description": "Where the hand or foot should be."
+                  },
+                  "pole": {
+                    "description": "Point the elbow or knee bends towards.",
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "target"
+                ],
+                "additionalProperties": false
+              },
+              "rightHand": {
+                "type": "object",
+                "properties": {
+                  "target": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "description": "Where the hand or foot should be."
+                  },
+                  "pole": {
+                    "description": "Point the elbow or knee bends towards.",
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "target"
+                ],
+                "additionalProperties": false
+              },
+              "leftFoot": {
+                "type": "object",
+                "properties": {
+                  "target": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "description": "Where the hand or foot should be."
+                  },
+                  "pole": {
+                    "description": "Point the elbow or knee bends towards.",
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "target"
+                ],
+                "additionalProperties": false
+              },
+              "rightFoot": {
+                "type": "object",
+                "properties": {
+                  "target": {
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "description": "Where the hand or foot should be."
+                  },
+                  "pole": {
+                    "description": "Point the elbow or knee bends towards.",
+                    "type": "array",
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "items": false,
+                    "minItems": 3,
+                    "maxItems": 3
+                  }
+                },
+                "required": [
+                  "target"
+                ],
+                "additionalProperties": false
+              },
+              "leftShoulder": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "leftElbow": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "leftWrist": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "rightShoulder": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "rightElbow": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "rightWrist": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "leftHip": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "leftKnee": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "leftAnkle": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "rightHip": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "rightKnee": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              },
+              "rightAnkle": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+              }
+            },
+            "required": [
+              "pelvis"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "t",
+          "pose"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Poses over one loop; \"t\" increases strictly from 0 (first) to 1 (last). The pose at t = 1 should equal the pose at t = 0 for a smooth loop."
+    }
+  },
+  "required": [
+    "formatVersion",
+    "exerciseId",
+    "durationSec",
+    "props",
+    "keyframes"
+  ],
+  "additionalProperties": false,
+  "title": "OpenRep animation (v1)",
+  "description": "One looping movement: data/animations/<exerciseId>.json. Metres, y up, the figure faces +z with its feet on y = 0. Also checked by `npm run validate:data`: the file name equals exerciseId, the exercise exists, keyframe t runs strictly from 0 to 1, and each limb uses either an IK target (in every keyframe) or FK angles."
+}

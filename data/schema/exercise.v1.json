@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/s1n7ax/openrep/main/data/schema/exercise.v1.json",
+  "type": "object",
+  "properties": {
+    "formatVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Kebab-case identifier, e.g. \"barbell-bench-press-medium-grip\"."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\S"
+      },
+      "description": "Other names people use for this exercise, e.g. \"skull crusher\"."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "cardio",
+        "olympic weightlifting",
+        "plyometrics",
+        "powerlifting",
+        "strength",
+        "stretching",
+        "strongman"
+      ]
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "expert"
+      ]
+    },
+    "force": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "pull",
+            "push",
+            "static"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "mechanic": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "compound",
+            "isolation"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "equipment": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "bands",
+            "barbell",
+            "body only",
+            "cable",
+            "dumbbell",
+            "e-z curl bar",
+            "exercise ball",
+            "foam roll",
+            "kettlebells",
+            "machine",
+            "medicine ball",
+            "other"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "primaryMuscles": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "abdominals",
+          "abductors",
+          "adductors",
+          "biceps",
+          "calves",
+          "chest",
+          "forearms",
+          "glutes",
+          "hamstrings",
+          "lats",
+          "lower back",
+          "middle back",
+          "neck",
+          "quadriceps",
+          "shoulders",
+          "traps",
+          "triceps"
+        ]
+      }
+    },
+    "secondaryMuscles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "abdominals",
+          "abductors",
+          "adductors",
+          "biceps",
+          "calves",
+          "chest",
+          "forearms",
+          "glutes",
+          "hamstrings",
+          "lats",
+          "lower back",
+          "middle back",
+          "neck",
+          "quadriceps",
+          "shoulders",
+          "traps",
+          "triceps"
+        ]
+      }
+    },
+    "instructions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\S"
+      },
+      "description": "Step-by-step instructions, in order."
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^images\\/[a-z0-9]+(-[a-z0-9]+)*\\/[a-z0-9][a-z0-9_-]*\\.(webp|png|jpg|jpeg)$",
+        "description": "Path relative to data/exercises/, e.g. \"images/pushups/0.webp\"."
+      }
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "const": "free-exercise-db"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "\\S",
+              "description": "The exercise id in free-exercise-db."
+            }
+          },
+          "required": [
+            "name",
+            "id"
+          ],
+          "additionalProperties": false,
+          "description": "Imported from yuhonas/free-exercise-db (Unlicense)."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "const": "community"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "additionalProperties": false,
+          "description": "Contributed to OpenRep by the community."
+        }
+      ]
+    }
+  },
+  "required": [
+    "formatVersion",
+    "id",
+    "name",
+    "aliases",
+    "category",
+    "level",
+    "force",
+    "mechanic",
+    "equipment",
+    "primaryMuscles",
+    "secondaryMuscles",
+    "instructions",
+    "images",
+    "source"
+  ],
+  "additionalProperties": false,
+  "title": "OpenRep exercise (v1)",
+  "description": "One exercise: data/exercises/<id>.json. Also checked by `npm run validate:data`: the file name equals the id, image files exist, muscles and aliases are not repeated, and no muscle is both primary and secondary."
+}
