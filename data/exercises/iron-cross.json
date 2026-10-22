@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "iron-cross",
+  "name": "Iron Cross",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "dumbbell",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "chest",
+    "glutes",
+    "hamstrings",
+    "lower back",
+    "quadriceps",
+    "traps"
+  ],
+  "instructions": [],
+  "images": [
+    "images/iron-cross/0.webp",
+    "images/iron-cross/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Iron_Cross"
+  }
+}

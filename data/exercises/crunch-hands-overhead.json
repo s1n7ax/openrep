@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "crunch-hands-overhead",
+  "name": "Crunch - Hands Overhead",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "pull",
+  "mechanic": "isolation",
+  "equipment": "body only",
+  "primaryMuscles": [
+    "abdominals"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Lie on the floor with your back flat and knees bent with around a 60-degree angle between the hamstrings and the calves.",
+    "Keep your feet flat on the floor and stretch your arms overhead with your palms crossed. This will be your starting position.",
+    "Curl your upper body forward and bring your shoulder blades just off the floor. At all times, keep your arms aligned with your head, neck and shoulder. Don't move them forward from that position. Exhale as you perform this portion of the movement and hold the contraction for a second.",
+    "Slowly lower down to the starting position as you inhale.",
+    "Repeat for the recommended amount of repetitions."
+  ],
+  "images": [
+    "images/crunch-hands-overhead/0.webp",
+    "images/crunch-hands-overhead/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Crunch_-_Hands_Overhead"
+  }
+}

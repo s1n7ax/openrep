@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "standing-biceps-stretch",
+  "name": "Standing Biceps Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": "isolation",
+  "equipment": "other",
+  "primaryMuscles": [
+    "biceps"
+  ],
+  "secondaryMuscles": [
+    "chest",
+    "shoulders"
+  ],
+  "instructions": [
+    "Clasp your hands behind your back with your palms together, straighten arms and then rotate them so your palms face downward.",
+    "Raise your arms up and hold until you feel a stretch in your biceps."
+  ],
+  "images": [
+    "images/standing-biceps-stretch/0.webp",
+    "images/standing-biceps-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Standing_Biceps_Stretch"
+  }
+}

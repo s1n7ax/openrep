@@ -1,0 +1,28 @@
+{
+  "formatVersion": 1,
+  "id": "all-fours-quad-stretch",
+  "name": "All Fours Quad Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "intermediate",
+  "force": "static",
+  "mechanic": null,
+  "equipment": "body only",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Start off on your hands and knees, then lift your leg off the floor and hold the foot with your hand.",
+    "Use your hand to hold the foot or ankle, keeping the knee fully flexed, stretching the quadriceps and hip flexors.",
+    "Focus on extending your hips, thrusting them towards the floor. Hold for 10-20 seconds and then switch sides."
+  ],
+  "images": [
+    "images/all-fours-quad-stretch/0.webp",
+    "images/all-fours-quad-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "All_Fours_Quad_Stretch"
+  }
+}

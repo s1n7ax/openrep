@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "frog-hops",
+  "name": "Frog Hops",
+  "aliases": [],
+  "category": "stretching",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": null,
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "glutes",
+    "hamstrings"
+  ],
+  "instructions": [
+    "Stand with your hands behind your head, and squat down keeping your torso upright and your head up. This will be your starting position.",
+    "Jump forward several feet, avoiding jumping unnecessarily high. As your feet contact the ground, absorb the impact through your legs, and jump again. Repeat this action 5-10 times."
+  ],
+  "images": [
+    "images/frog-hops/0.webp",
+    "images/frog-hops/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Frog_Hops"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "id": "one-arm-against-wall",
+  "name": "One Arm Against Wall",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": "isolation",
+  "equipment": null,
+  "primaryMuscles": [
+    "lats"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "From a standing position, place a bent arm against a wall or doorway.",
+    "Slowly lean toward your arm until you feel a stretch in your lats."
+  ],
+  "images": [
+    "images/one-arm-against-wall/0.webp",
+    "images/one-arm-against-wall/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "One_Arm_Against_Wall"
+  }
+}

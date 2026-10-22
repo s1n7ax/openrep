@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!--
+    OpenRep app mark (original artwork, CC0 1.0): a dumbbell inside an open
+    "repeat" ring, white on a transparent background. The app icons and
+    splash screens are generated from it by `npm run generate:app-assets`
+    (scripts/generate-app-assets.ts), which also sets their background colours.
+  -->
+  <path d="M 732.8 266.8 A 330 330 0 1 1 367.3 215.4" fill="none" stroke="#ffffff" stroke-width="64" stroke-linecap="round" />
+  <path d="M 446.9 176.6 L 288.1 147.2 L 372.3 319.8 Z" fill="#ffffff" stroke="#ffffff" stroke-width="24" stroke-linejoin="round" />
+  <g fill="#ffffff">
+    <rect x="372" y="490" width="280" height="44" rx="22" />
+    <rect x="318" y="392" width="72" height="240" rx="26" />
+    <rect x="634" y="392" width="72" height="240" rx="26" />
+    <rect x="262" y="430" width="64" height="164" rx="22" />
+    <rect x="698" y="430" width="64" height="164" rx="22" />
+  </g>
+</svg>

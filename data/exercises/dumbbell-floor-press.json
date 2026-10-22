@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "dumbbell-floor-press",
+  "name": "Dumbbell Floor Press",
+  "aliases": [],
+  "category": "powerlifting",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "dumbbell",
+  "primaryMuscles": [
+    "triceps"
+  ],
+  "secondaryMuscles": [
+    "chest",
+    "shoulders"
+  ],
+  "instructions": [
+    "Lay on the floor holding dumbbells in your hands. Your knees can be bent. Begin with the weights fully extended above you.",
+    "Lower the weights until your upper arm comes in contact with the floor. You can tuck your elbows to emphasize triceps size and strength, or to focus on your chest angle your arms to the side.",
+    "Pause at the bottom, and then bring the weight together at the top by extending through the elbows."
+  ],
+  "images": [
+    "images/dumbbell-floor-press/0.webp",
+    "images/dumbbell-floor-press/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Dumbbell_Floor_Press"
+  }
+}

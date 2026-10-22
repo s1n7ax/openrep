@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "upward-stretch",
+  "name": "Upward Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "chest",
+    "lats"
+  ],
+  "instructions": [
+    "Extend both hands straight above your head, palms touching.",
+    "Slowly push your hands up and back, keeping your back straight."
+  ],
+  "images": [
+    "images/upward-stretch/0.webp",
+    "images/upward-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Upward_Stretch"
+  }
+}

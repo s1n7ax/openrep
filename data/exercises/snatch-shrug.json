@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "snatch-shrug",
+  "name": "Snatch Shrug",
+  "aliases": [],
+  "category": "olympic weightlifting",
+  "level": "intermediate",
+  "force": "pull",
+  "mechanic": "compound",
+  "equipment": "barbell",
+  "primaryMuscles": [
+    "traps"
+  ],
+  "secondaryMuscles": [
+    "forearms",
+    "shoulders"
+  ],
+  "instructions": [
+    "Begin with a wide grip, with the bar hanging at the mid thigh position. You can use a hook or overhand grip. Your back should be straight and inclined slightly forward.",
+    "Shrug your shoulders towards your ears. While this exercise can usually by loaded with heavier weight than a snatch, avoid overloading to the point that the execution slows down."
+  ],
+  "images": [
+    "images/snatch-shrug/0.webp",
+    "images/snatch-shrug/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Snatch_Shrug"
+  }
+}

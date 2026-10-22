@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "step-up-with-knee-raise",
+  "name": "Step-up with Knee Raise",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+    "glutes"
+  ],
+  "secondaryMuscles": [
+    "hamstrings",
+    "quadriceps"
+  ],
+  "instructions": [
+    "Stand facing a box or bench of an appropriate height with your feet together. This will be your starting position.",
+    "Begin the movement by stepping up, putting your left foot on the top of the bench. Extend through the hip and knee of your front leg to stand up on the box. As you stand on the box with your left leg, flex your right knee and hip, bringing your knee as high as you can.",
+    "Reverse this motion to step down off the box, and then repeat the sequence on the opposite leg."
+  ],
+  "images": [
+    "images/step-up-with-knee-raise/0.webp",
+    "images/step-up-with-knee-raise/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Step-up_with_Knee_Raise"
+  }
+}

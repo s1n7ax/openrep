@@ -1,0 +1,28 @@
+{
+  "formatVersion": 1,
+  "id": "standing-elevated-quad-stretch",
+  "name": "Standing Elevated Quad Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": "other",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Start by standing with your back about two to three feet away from a bench or step.",
+    "Lift one leg behind you and rest your foot on the step,either on your instep or the ball of your foot, whichever you find most comfortable.",
+    "Keep your supporting knee slightly bent and avoid letting that knee extend out beyond your toes. Switch sides."
+  ],
+  "images": [
+    "images/standing-elevated-quad-stretch/0.webp",
+    "images/standing-elevated-quad-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Standing_Elevated_Quad_Stretch"
+  }
+}

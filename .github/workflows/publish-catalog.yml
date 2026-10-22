@@ -1,0 +1,54 @@
+# Publishes the exercise catalog the app downloads updates from: on every push
+# to main, catalog.json is rebuilt from data/ and force-pushed as the only file
+# of the `catalog` branch, served at
+# https://raw.githubusercontent.com/s1n7ax/openrep/catalog/catalog.json
+name: Publish catalog
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-catalog
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Build and publish catalog.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The full history: generatedAt is the time of the last commit that changed data/.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build catalog.json
+        # generatedAt is the time of the last commit that changed data/, the
+        # same rule the app build uses for its bundled catalog, so the app can
+        # tell which of the two is newer.
+        run: npm run build:catalog -- --out "$RUNNER_TEMP/catalog" --json-only
+
+      - name: Force-push catalog.json to the catalog branch
+        working-directory: ${{ runner.temp }}/catalog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git init --quiet --initial-branch=catalog
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add catalog.json
+          git commit --quiet --message "Publish the catalog built from ${GITHUB_SHA}"
+          git push --force --quiet \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" catalog

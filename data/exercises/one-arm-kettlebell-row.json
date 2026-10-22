@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "id": "one-arm-kettlebell-row",
+  "name": "One-Arm Kettlebell Row",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "pull",
+  "mechanic": "compound",
+  "equipment": "kettlebells",
+  "primaryMuscles": [
+    "middle back"
+  ],
+  "secondaryMuscles": [
+    "biceps",
+    "lats"
+  ],
+  "instructions": [
+    "Place a kettlebell in front of your feet. Bend your knees slightly and then push your butt out as much as possible as you bend over to get in the starting position. Grab the kettlebell and pull it to your stomach, retracting your shoulder blade and flexing the elbow. Keep your back straight. Lower and repeat."
+  ],
+  "images": [
+    "images/one-arm-kettlebell-row/0.webp",
+    "images/one-arm-kettlebell-row/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "One-Arm_Kettlebell_Row"
+  }
+}

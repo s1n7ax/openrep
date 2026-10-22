@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "chest-and-front-of-shoulder-stretch",
+  "name": "Chest And Front Of Shoulder Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": "isolation",
+  "equipment": "other",
+  "primaryMuscles": [
+    "chest"
+  ],
+  "secondaryMuscles": [
+    "shoulders"
+  ],
+  "instructions": [
+    "Start off by standing with your legs together, holding a bodybar or a broomstick.",
+    "Take a slightly wider than shoulder width grip on the pole and hold it in front of you with your palms facing down.",
+    "Carefully lift the pole up and behind your head."
+  ],
+  "images": [
+    "images/chest-and-front-of-shoulder-stretch/0.webp",
+    "images/chest-and-front-of-shoulder-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Chest_And_Front_Of_Shoulder_Stretch"
+  }
+}

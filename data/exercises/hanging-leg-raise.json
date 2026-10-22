@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "id": "hanging-leg-raise",
+  "name": "Hanging Leg Raise",
+  "aliases": [],
+  "category": "strength",
+  "level": "expert",
+  "force": "pull",
+  "mechanic": "isolation",
+  "equipment": "body only",
+  "primaryMuscles": [
+    "abdominals"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Hang from a chin-up bar with both arms extended at arms length in top of you using either a wide grip or a medium grip. The legs should be straight down with the pelvis rolled slightly backwards. This will be your starting position.",
+    "Raise your legs until the torso makes a 90-degree angle with the legs. Exhale as you perform this movement and hold the contraction for a second or so.",
+    "Go back slowly to the starting position as you breathe in.",
+    "Repeat for the recommended amount of repetitions."
+  ],
+  "images": [
+    "images/hanging-leg-raise/0.webp",
+    "images/hanging-leg-raise/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Hanging_Leg_Raise"
+  }
+}

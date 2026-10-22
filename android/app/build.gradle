@@ -1,0 +1,119 @@
+apply plugin: 'com.android.application'
+
+/**
+ * The app version is package.json's version, which release-please bumps on
+ * every release: versionName is that version and versionCode is
+ * major * 10000 + minor * 100 + patch (0.1.0 → 100, 1.2.3 → 10203). minor and
+ * patch must stay below 100 so that every release gets a higher versionCode.
+ */
+def appVersion = {
+    def packageJson = rootProject.file('../package.json')
+    if (!packageJson.isFile()) {
+        throw new GradleException("Cannot read the app version: ${packageJson} does not exist.")
+    }
+    def version = new groovy.json.JsonSlurper().parse(packageJson).version
+    def match = version instanceof String ? version =~ /^(0|[1-9]\d*)\.(0|[1-9]\d?)\.(0|[1-9]\d?)$/ : null
+    if (match == null || !match.matches()) {
+        throw new GradleException(
+            "Cannot derive the app version from ${packageJson}: \"version\" is ${version}, " +
+            "expected MAJOR.MINOR.PATCH with MINOR and PATCH below 100 " +
+            "(versionCode is major * 10000 + minor * 100 + patch).")
+    }
+    def (major, minor, patch) = (1..3).collect { match.group(it) as BigInteger }
+    def code = major * 10000 + minor * 100 + patch
+    if (code > 2100000000) {
+        throw new GradleException("Version ${version} gives versionCode ${code}, above Android's limit of 2100000000.")
+    }
+    return [name: version, code: code as int]
+}()
+
+/**
+ * Release signing. The release workflow passes the keystore and its passwords
+ * in these environment variables (a relative ANDROID_KEYSTORE_FILE is resolved
+ * from android/app/). With none of them set, a release build is unsigned
+ * (app-release-unsigned.apk) as before; with only some, it fails. Debug builds
+ * ignore them.
+ */
+def releaseSigningEnv = ['ANDROID_KEYSTORE_FILE', 'ANDROID_KEYSTORE_PASSWORD', 'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']
+    .collectEntries { [(it): providers.environmentVariable(it).getOrElse('')] }
+def releaseSigned = releaseSigningEnv.every { name, value -> !value.isEmpty() }
+
+def checkReleaseSigning = tasks.register('checkReleaseSigning') {
+    description = 'Fails a release build that has only some of the signing environment variables.'
+    def all = releaseSigningEnv.keySet().toList()
+    def missing = releaseSigningEnv.findAll { name, value -> value.isEmpty() }.keySet().toList()
+    doLast {
+        if (missing.size() == all.size()) {
+            logger.warn("Release signing: ${all.join(', ')} are not set, so the release APK is unsigned (app-release-unsigned.apk).")
+        } else if (!missing.isEmpty()) {
+            throw new GradleException("Release signing: set all of ${all.join(', ')} or none of them. Missing: ${missing.join(', ')}.")
+        }
+    }
+}
+tasks.named { it == 'preReleaseBuild' }.configureEach { dependsOn checkReleaseSigning }
+
+android {
+    namespace = "io.github.s1n7ax.openrep"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "io.github.s1n7ax.openrep"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode appVersion.code
+        versionName appVersion.name
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (releaseSigned) {
+            release {
+                storeFile file(releaseSigningEnv.ANDROID_KEYSTORE_FILE)
+                storePassword releaseSigningEnv.ANDROID_KEYSTORE_PASSWORD
+                keyAlias releaseSigningEnv.ANDROID_KEY_ALIAS
+                keyPassword releaseSigningEnv.ANDROID_KEY_PASSWORD
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (releaseSigned) {
+                signingConfig signingConfigs.release
+            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

@@ -1,0 +1,138 @@
+{
+  "formatVersion": 1,
+  "id": "push-pull-legs",
+  "name": "Push/Pull/Legs",
+  "description": "A three-day split: chest, shoulders and triceps; back and biceps; then legs. Run it once a week, or twice (six days) for more volume.",
+  "level": "intermediate",
+  "days": [
+    {
+      "name": "Push",
+      "exercises": [
+        {
+          "exerciseId": "barbell-bench-press-medium-grip",
+          "sets": 4,
+          "reps": "6-8",
+          "restSec": 150
+        },
+        {
+          "exerciseId": "standing-military-press",
+          "sets": 3,
+          "reps": "6-8",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "incline-dumbbell-press",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "dumbbell-flyes",
+          "sets": 2,
+          "reps": "10-12",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "side-lateral-raise",
+          "sets": 3,
+          "reps": "12-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "triceps-pushdown",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "dips-triceps-version",
+          "sets": 2,
+          "reps": "8-12",
+          "restSec": 90
+        }
+      ]
+    },
+    {
+      "name": "Pull",
+      "exercises": [
+        {
+          "exerciseId": "barbell-deadlift",
+          "sets": 3,
+          "reps": "5",
+          "restSec": 180
+        },
+        {
+          "exerciseId": "pullups",
+          "sets": 3,
+          "reps": "6-10",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "bent-over-barbell-row",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "face-pull",
+          "sets": 3,
+          "reps": "12-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "barbell-curl",
+          "sets": 3,
+          "reps": "8-12",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "hammer-curls",
+          "sets": 2,
+          "reps": "10-12",
+          "restSec": 60
+        }
+      ]
+    },
+    {
+      "name": "Legs",
+      "exercises": [
+        {
+          "exerciseId": "barbell-squat",
+          "sets": 4,
+          "reps": "6-8",
+          "restSec": 180
+        },
+        {
+          "exerciseId": "romanian-deadlift",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "leg-press",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "leg-extensions",
+          "sets": 3,
+          "reps": "12-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "lying-leg-curls",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "standing-calf-raises",
+          "sets": 4,
+          "reps": "12-15",
+          "restSec": 60
+        }
+      ]
+    }
+  ]
+}

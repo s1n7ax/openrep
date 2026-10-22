@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "id": "dancers-stretch",
+  "name": "Dancer's Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "lower back"
+  ],
+  "secondaryMuscles": [
+    "abductors",
+    "glutes"
+  ],
+  "instructions": [
+    "Sit up on the floor.",
+    "Cross your right leg over your left, keeping the knee bent. Your left leg is straight and down on the floor.",
+    "Place your left arm on your right leg and your right hand on the floor.",
+    "Rotate your upper body to the right, and hold for 10-20 seconds. Switch sides."
+  ],
+  "images": [
+    "images/dancers-stretch/0.webp",
+    "images/dancers-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Dancers_Stretch"
+  }
+}

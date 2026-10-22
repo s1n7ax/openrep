@@ -1,0 +1,60 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "goblet-squat",
+  "durationSec": 3.2,
+  "props": [
+    {"type": "kettlebell", "attach": "hands", "position": [0, 0.065, 0], "rotation": [0, 90, 0]}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.955, 0.03], "rotation": [6, 0, 0]},
+        "spine": [-2, 0, 0],
+        "chest": [-2, 0, 0],
+        "leftShoulder": [0.9, -32.4, 18.7],
+        "leftElbow": [-131.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [0.9, 32.4, -18.7],
+        "rightElbow": [-131.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.2, 0, 0.14], "pole": [0.45, 0.5, 1]},
+        "rightFoot": {"target": [-0.2, 0, 0.14], "pole": [-0.45, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "pelvis": {"position": [0, 0.43, -0.12], "rotation": [30, 0, 0]},
+        "spine": [-4, 0, 0],
+        "chest": [-6, 0, 0],
+        "neck": [-8, 0, 0],
+        "head": [-6, 0, 0],
+        "leftShoulder": [0.9, -32.4, 18.7],
+        "leftElbow": [-131.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [0.9, 32.4, -18.7],
+        "rightElbow": [-131.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.2, 0, 0.14], "pole": [0.45, 0.5, 1]},
+        "rightFoot": {"target": [-0.2, 0, 0.14], "pole": [-0.45, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.955, 0.03], "rotation": [6, 0, 0]},
+        "spine": [-2, 0, 0],
+        "chest": [-2, 0, 0],
+        "leftShoulder": [0.9, -32.4, 18.7],
+        "leftElbow": [-131.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [0.9, 32.4, -18.7],
+        "rightElbow": [-131.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.2, 0, 0.14], "pole": [0.45, 0.5, 1]},
+        "rightFoot": {"target": [-0.2, 0, 0.14], "pole": [-0.45, 0.5, 1]}
+      }
+    }
+  ]
+}

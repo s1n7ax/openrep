@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "plank",
+  "name": "Plank",
+  "aliases": [
+    "front plank",
+    "forearm plank"
+  ],
+  "category": "strength",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": "isolation",
+  "equipment": "body only",
+  "primaryMuscles": [
+    "abdominals"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Get into a prone position on the floor, supporting your weight on your toes and your forearms. Your arms are bent and directly below the shoulder.",
+    "Keep your body straight at all times, and hold this position as long as possible. To increase difficulty, an arm or leg can be raised."
+  ],
+  "images": [
+    "images/plank/0.webp",
+    "images/plank/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Plank"
+  }
+}

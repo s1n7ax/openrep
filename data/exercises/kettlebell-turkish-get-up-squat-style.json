@@ -1,0 +1,34 @@
+{
+  "formatVersion": 1,
+  "id": "kettlebell-turkish-get-up-squat-style",
+  "name": "Kettlebell Turkish Get-Up (Squat style)",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "kettlebells",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "abdominals",
+    "calves",
+    "hamstrings",
+    "quadriceps",
+    "triceps"
+  ],
+  "instructions": [
+    "Lie on your back on the floor and press a kettlebell to the top position by extending the elbow. Bend the knee on the same side as the kettlebell.",
+    "Keeping the kettlebell locked out at all times, pivot to the opposite side and use your non- working arm to assist you in driving forward to the lunge position.",
+    "Using your free hand, push yourself to a seated position, then progressing to your feet. While looking up at the kettlebell, slowly stand up. Reverse the motion back to the starting position and repeat."
+  ],
+  "images": [
+    "images/kettlebell-turkish-get-up-squat-style/0.webp",
+    "images/kettlebell-turkish-get-up-squat-style/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Kettlebell_Turkish_Get-Up_Squat_style"
+  }
+}

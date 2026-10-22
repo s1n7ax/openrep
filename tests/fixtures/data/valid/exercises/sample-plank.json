@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "id": "sample-plank",
+  "name": "Sample Plank",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": ["abdominals"],
+  "secondaryMuscles": [],
+  "instructions": ["Hold a straight line from head to heels."],
+  "images": [],
+  "source": { "name": "community" }
+}

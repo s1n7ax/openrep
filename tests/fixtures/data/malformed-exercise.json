@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "id": "Malformed Exercise",
+  "name": "",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "spaceship",
+  "primaryMuscles": [],
+  "secondaryMuscles": ["toes"],
+  "instructions": ["Do it."],
+  "images": ["images/malformed-exercise/0.webp"],
+  "source": { "name": "community" }
+}

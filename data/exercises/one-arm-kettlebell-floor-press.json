@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "one-arm-kettlebell-floor-press",
+  "name": "One-Arm Kettlebell Floor Press",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "kettlebells",
+  "primaryMuscles": [
+    "chest"
+  ],
+  "secondaryMuscles": [
+    "triceps"
+  ],
+  "instructions": [
+    "Lie on the floor holding a kettlebell with one hand, with your upper arm supported by the floor. The palm should be facing in.",
+    "Press the kettlebell straight up toward the ceiling, rotating your wrist.",
+    "Lower the kettlebell back to the starting position and repeat."
+  ],
+  "images": [
+    "images/one-arm-kettlebell-floor-press/0.webp",
+    "images/one-arm-kettlebell-floor-press/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "One-Arm_Kettlebell_Floor_Press"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "hug-a-ball",
+  "name": "Hug A Ball",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": "isolation",
+  "equipment": "exercise ball",
+  "primaryMuscles": [
+    "lower back"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "glutes"
+  ],
+  "instructions": [
+    "Seat yourself on the floor.",
+    "Straddle an exercise ball between both legs and lower your hips down toward the floor.",
+    "Hug your arms around the ball to support your body. Adjust your legs so that your feet are flat on the floor and your knees line up over your ankles. Keep a good grip on the ball so it doesn't roll away from you and send you back onto your buttocks."
+  ],
+  "images": [
+    "images/hug-a-ball/0.webp",
+    "images/hug-a-ball/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Hug_A_Ball"
+  }
+}

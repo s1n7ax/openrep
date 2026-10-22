@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "id": "intermediate-hip-flexor-and-quad-stretch",
+  "name": "Intermediate Hip Flexor and Quad Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "intermediate",
+  "force": "static",
+  "mechanic": "compound",
+  "equipment": "other",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Lie face down on the floor, with a rope, belt, or band looped around one foot.",
+    "Flex the knee and extend the hip of the leg to be stretched, using both hands to pull on the belt. Your knee and your hip should come off of the floor, creating tension in the hip flexors and quadriceps. Hold the stretch for 10-20 seconds, and repeat on the other leg."
+  ],
+  "images": [
+    "images/intermediate-hip-flexor-and-quad-stretch/0.webp",
+    "images/intermediate-hip-flexor-and-quad-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Intermediate_Hip_Flexor_and_Quad_Stretch"
+  }
+}

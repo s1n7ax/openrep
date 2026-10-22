@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "id": "sample-push-up",
+  "name": "Sample Push-Up",
+  "aliases": ["sample press-up"],
+  "category": "strength",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": ["chest"],
+  "secondaryMuscles": ["shoulders", "triceps"],
+  "instructions": ["Start in a high plank.", "Lower your chest to the floor.", "Push back up."],
+  "images": ["images/sample-push-up/0.webp"],
+  "source": { "name": "community" }
+}

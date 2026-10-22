@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "id": "shoulder-stretch",
+  "name": "Shoulder Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "pull",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Reach your left arm across your body and hold it straight."
+  ],
+  "images": [
+    "images/shoulder-stretch/0.webp",
+    "images/shoulder-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Shoulder_Stretch"
+  }
+}

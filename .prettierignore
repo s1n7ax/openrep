@@ -1,0 +1,20 @@
+# Generated or vendored output
+dist/
+dist-e2e/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+android/
+ios/
+package-lock.json
+# Written by release-please (see release-please-config.json).
+CHANGELOG.md
+
+# Data files are validated by `npm run validate:data`, not formatted: files
+# submitted from the app (JSON.stringify output) must pass CI unchanged.
+data/
+
+# Local working state
+.goals/
+.playwright-mcp/

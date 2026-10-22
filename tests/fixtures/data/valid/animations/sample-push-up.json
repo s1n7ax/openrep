@@ -1,0 +1,40 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "sample-push-up",
+  "durationSec": 2.5,
+  "camera": { "position": [2, 1.2, 2], "target": [0, 0.3, 0] },
+  "props": [{ "type": "mat", "attach": "none", "position": [0, 0, 0] }],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": { "position": [0, 0.45, 0], "rotation": [-75, 0, 0] },
+        "leftHand": { "target": [-0.2, 0, 0.75], "pole": [-0.6, 0.3, 0.6] },
+        "rightHand": { "target": [0.2, 0, 0.75], "pole": [0.6, 0.3, 0.6] },
+        "leftFoot": { "target": [-0.1, 0, -0.95] },
+        "rightFoot": { "target": [0.1, 0, -0.95] }
+      }
+    },
+    {
+      "t": 0.5,
+      "ease": "easeInOut",
+      "pose": {
+        "pelvis": { "position": [0, 0.2, 0], "rotation": [-85, 0, 0] },
+        "leftHand": { "target": [-0.2, 0, 0.75], "pole": [-0.6, 0.3, 0.6] },
+        "rightHand": { "target": [0.2, 0, 0.75], "pole": [0.6, 0.3, 0.6] },
+        "leftFoot": { "target": [-0.1, 0, -0.95] },
+        "rightFoot": { "target": [0.1, 0, -0.95] }
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": { "position": [0, 0.45, 0], "rotation": [-75, 0, 0] },
+        "leftHand": { "target": [-0.2, 0, 0.75], "pole": [-0.6, 0.3, 0.6] },
+        "rightHand": { "target": [0.2, 0, 0.75], "pole": [0.6, 0.3, 0.6] },
+        "leftFoot": { "target": [-0.1, 0, -0.95] },
+        "rightFoot": { "target": [0.1, 0, -0.95] }
+      }
+    }
+  ]
+}

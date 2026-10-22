@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "id": "kneeling-jump-squat",
+  "name": "Kneeling Jump Squat",
+  "aliases": [],
+  "category": "olympic weightlifting",
+  "level": "expert",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "barbell",
+  "primaryMuscles": [
+    "glutes"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "hamstrings",
+    "quadriceps"
+  ],
+  "instructions": [
+    "Begin kneeling on the floor with a barbell racked across the back of your shoulders, or you can use your body weight for this exercise. This can be done inside of a power rack to make unracking easier.",
+    "Sit back with your hips until your glutes touch your feet, keeping your head and chest up.",
+    "Explode up with your hips, generating enough power to land with your feet flat on the floor.",
+    "Continue with the squat by driving through your heels and extending the knees to come to a standing position."
+  ],
+  "images": [
+    "images/kneeling-jump-squat/0.webp",
+    "images/kneeling-jump-squat/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Kneeling_Jump_Squat"
+  }
+}

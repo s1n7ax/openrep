@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "id": "side-bridge",
+  "name": "Side Bridge",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": "body only",
+  "primaryMuscles": [
+    "abdominals"
+  ],
+  "secondaryMuscles": [
+    "shoulders"
+  ],
+  "instructions": [],
+  "images": [
+    "images/side-bridge/0.webp",
+    "images/side-bridge/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Side_Bridge"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "formatVersion": 1,
+  "id": "beginner-full-body",
+  "name": "Beginner Full Body",
+  "description": "Two alternating full-body workouts, three times a week (A, B, A, then B, A, B). Start light, keep good form, and add a little weight when you reach the top of the rep range on every set.",
+  "level": "beginner",
+  "days": [
+    {
+      "name": "Day A",
+      "exercises": [
+        {
+          "exerciseId": "goblet-squat",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "barbell-bench-press-medium-grip",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "seated-cable-rows",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "side-lateral-raise",
+          "sets": 2,
+          "reps": "12-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "plank",
+          "sets": 3,
+          "durationSec": 30,
+          "restSec": 60
+        }
+      ]
+    },
+    {
+      "name": "Day B",
+      "exercises": [
+        {
+          "exerciseId": "romanian-deadlift",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "seated-dumbbell-press",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "wide-grip-lat-pulldown",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "bodyweight-walking-lunge",
+          "sets": 2,
+          "reps": "10-12",
+          "restSec": 90,
+          "notes": "Reps per leg."
+        },
+        {
+          "exerciseId": "pushups",
+          "sets": 2,
+          "reps": "8-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "crunches",
+          "sets": 3,
+          "reps": "15",
+          "restSec": 60
+        }
+      ]
+    }
+  ]
+}

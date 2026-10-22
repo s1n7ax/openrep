@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "id": "kneeling-cable-triceps-extension",
+  "name": "Kneeling Cable Triceps Extension",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "isolation",
+  "equipment": "cable",
+  "primaryMuscles": [
+    "triceps"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Place a bench sideways in front of a high pulley machine.",
+    "Hold a straight bar attachment above your head with your hands about 6 inches apart with your palms facing down.",
+    "Face away from the machine and kneel.",
+    "Place your head and the back of your upper arms on the bench. Your elbows should be bent with the forearms pointing towards the high pulley. This will be your starting position.",
+    "While keeping your upper arms close to your head at all times with the elbows in, press the bar out in a semicircular motion until the elbows are locked and your arms are parallel to the floor. Contract the triceps hard and keep this position for a second. Exhale as you perform this movement.",
+    "Slowly return to the starting position as you breathe in.",
+    "Repeat for the recommended amount of repetitions."
+  ],
+  "images": [
+    "images/kneeling-cable-triceps-extension/0.webp",
+    "images/kneeling-cable-triceps-extension/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Kneeling_Cable_Triceps_Extension"
+  }
+}

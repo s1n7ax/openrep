@@ -1,0 +1,123 @@
+# Checks every pull request and every push to main: formatting, lint, types,
+# unit tests, the data files, the web build, the end-to-end tests, and the
+# Android (debug APK) and iOS (simulator, unsigned) builds.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Checks, tests and Android build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The full history: the bundled catalog's generatedAt is the time of
+          # the last commit that changed data/.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: JSON Schema files are up to date
+        run: npm run generate:schema -- --check
+
+      - name: Validate exercise, animation and schedule data
+        run: npm run validate:data
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload the Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build the Android debug APK
+        run: npm run android:build
+
+      - name: The APK's version comes from package.json
+        run: npm run check:apk-version -- android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload the Android debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: openrep-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS simulator build
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The full history: the bundled catalog's generatedAt is the time of
+          # the last commit that changed data/.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Copy the web build into the iOS project
+        run: npx cap sync ios
+
+      - name: Build for the iOS simulator (unsigned)
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -sdk iphonesimulator
+          -configuration Debug CODE_SIGNING_ALLOWED=NO build

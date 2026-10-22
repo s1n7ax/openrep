@@ -1,0 +1,53 @@
+{
+  "barbell-bench-press-medium-grip": ["bench press", "flat bench press", "barbell bench press"],
+  "incline-dumbbell-press": ["incline dumbbell bench press", "incline db press"],
+  "dumbbell-flyes": ["dumbbell fly", "dumbbell flye", "chest fly", "db fly"],
+  "pushups": ["push-up", "push up", "push-ups", "press-up"],
+  "barbell-squat": ["back squat", "squat", "barbell back squat"],
+  "goblet-squat": ["dumbbell goblet squat", "kettlebell goblet squat"],
+  "leg-press": ["machine leg press", "sled leg press"],
+  "romanian-deadlift": ["rdl", "barbell romanian deadlift"],
+  "barbell-deadlift": ["deadlift", "conventional deadlift"],
+  "bodyweight-walking-lunge": ["walking lunge", "walking lunges", "lunges"],
+  "leg-extensions": ["leg extension", "machine leg extension", "quad extension"],
+  "lying-leg-curls": ["lying leg curl", "leg curl", "hamstring curl", "prone leg curl"],
+  "standing-calf-raises": ["standing calf raise", "calf raise", "machine calf raise"],
+  "barbell-hip-thrust": ["hip thrust", "hip thrusts", "barbell glute thrust"],
+  "pullups": ["pull-up", "pull up", "pull-ups"],
+  "wide-grip-lat-pulldown": ["lat pulldown", "lat pull-down", "pulldown"],
+  "seated-cable-rows": ["seated cable row", "cable row", "seated row", "low row"],
+  "bent-over-barbell-row": ["barbell row", "bent-over row", "bent over row"],
+  "one-arm-dumbbell-row": ["dumbbell row", "single-arm dumbbell row", "one-arm row"],
+  "standing-military-press": [
+    "overhead press",
+    "ohp",
+    "shoulder press",
+    "military press",
+    "barbell overhead press"
+  ],
+  "seated-dumbbell-press": [
+    "seated dumbbell shoulder press",
+    "dumbbell shoulder press",
+    "seated db press"
+  ],
+  "side-lateral-raise": ["lateral raise", "side raise", "dumbbell lateral raise"],
+  "face-pull": ["face pulls", "cable face pull", "rope face pull"],
+  "barbell-curl": ["biceps curl", "bicep curl", "barbell biceps curl"],
+  "hammer-curls": ["hammer curl", "dumbbell hammer curl"],
+  "triceps-pushdown": [
+    "cable pushdown",
+    "tricep pushdown",
+    "triceps pressdown",
+    "cable triceps pushdown"
+  ],
+  "lying-triceps-press": [
+    "skull crusher",
+    "skullcrusher",
+    "skull crushers",
+    "lying triceps extension",
+    "lying tricep extension"
+  ],
+  "dips-triceps-version": ["dips", "dip", "triceps dips", "tricep dips"],
+  "plank": ["front plank", "forearm plank"],
+  "crunches": ["crunch", "ab crunch"]
+}
