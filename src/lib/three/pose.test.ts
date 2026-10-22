@@ -53,6 +53,28 @@ describe('applyPose: feet', () => {
     expect(ankle.y).toBeGreaterThan(ANKLE_HEIGHT + 0.05);
   });
 
+  it('lifts the heel when a flat foot would fold the ankle too far (rear leg of a lunge)', () => {
+    const rig = createRig();
+    const pose = standingPose();
+    // Low hips far in front of the left foot, the knee bending down towards the floor.
+    pose.pelvisPosition.set(0, 0.57, 0.42);
+    pose.legs.left = {
+      mode: 'ik',
+      target: new Vector3(0.11, 0, -0.06),
+      pole: new Vector3(0.15, -1, 0.7),
+      poleWeight: 1,
+    };
+    const result = applyPose(rig, pose);
+    expect(result.errors.legs.left).toBeLessThan(1e-4);
+    expect(result.toeBend.left).toBeGreaterThan(0.5);
+    const knee = rig.joints.leftKnee.getWorldPosition(new Vector3());
+    const ankle = rig.joints.leftAnkle.getWorldPosition(new Vector3());
+    const shin = knee.sub(ankle).normalize();
+    const toes = axis(rig, 'leftAnkle', new Vector3(0, 0, 1));
+    // At most 45° past the neutral right angle between foot and shin.
+    expect(toes.dot(shin)).toBeLessThan(Math.SQRT1_2 + 1e-3);
+  });
+
   it('keeps a neutral ankle for a foot in the air', () => {
     const rig = createRig();
     const pose = standingPose();

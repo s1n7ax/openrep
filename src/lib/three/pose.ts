@@ -15,7 +15,9 @@
  * - A foot target is the ball of the foot. On the floor (target below
  *   `FLOOR_CONTACT_HEIGHT`) or on a foot plate (leg press) the sole rests flat
  *   when the leg can reach, otherwise the heel lifts just enough (calf raise,
- *   plank). Feet in the air keep a neutral ankle.
+ *   plank). On the floor the heel also lifts when a flat foot would fold the
+ *   ankle more than 45° (rear foot of a lunge). Feet in the air keep a
+ *   neutral ankle.
  * - The pole is a world point the elbow / knee bends towards. Without one,
  *   elbows point back and slightly out, knees point forward.
  */
@@ -85,6 +87,8 @@ export function createPoseResult(): PoseResult {
 
 /** Grasp lines closer than this to a hand target are grabbed. */
 const GRASP_DISTANCE = 0.04;
+/** A foot on the floor folds up towards the shin at most this far past neutral (radians). */
+const MAX_DORSIFLEXION = (45 * Math.PI) / 180;
 /** The toes bend up at most this far (radians). */
 const MAX_TOE_BEND = (80 * Math.PI) / 180;
 /** Pronation range preferred when turning a hand onto a bar, in radians. */
@@ -294,6 +298,27 @@ function plantedAnkle(target: Vector3, normal: Vector3, fwd: Vector3, lift: numb
   return out.applyAxisAngle(_axis, lift).add(target);
 }
 
+/**
+ * Whether the leg reaches a foot planted with the heel lifted by `lift`, and
+ * (with `limitAnkle`) the ankle stays within `MAX_DORSIFLEXION`.
+ */
+function plantedLegFits(
+  target: Vector3,
+  normal: Vector3,
+  fwd: Vector3,
+  lift: number,
+  pole: Vector3,
+  reach: number,
+  limitAnkle: boolean,
+): boolean {
+  if (plantedAnkle(target, normal, fwd, lift, _wrist).distanceTo(_root) > reach) return false;
+  if (!limitAnkle) return true;
+  solveTwoBone(_root, _wrist, pole, THIGH_LENGTH, SHIN_LENGTH, _solution);
+  const shin = _c.subVectors(_solution.mid, _wrist).normalize();
+  const toes = _dir.copy(fwd).applyAxisAngle(_axis.crossVectors(normal, fwd).normalize(), lift);
+  return toes.dot(shin) <= Math.sin(MAX_DORSIFLEXION);
+}
+
 function solveLeg(
   rig: Rig,
   side: Side,
@@ -340,11 +365,16 @@ function solveLeg(
     if (_fwd.lengthSq() < 1e-8) _fwd.set(0, 0, 1).applyQuaternion(_parentQuat);
     _fwd.addScaledVector(_normal, -_fwd.dot(_normal)).normalize();
 
+    // On the floor the ankle cannot fold past its range either (rear foot of a lunge).
+    const limitAnkle = plate === null;
+    const fits = (angle: number) =>
+      plantedLegFits(_target, _normal, _fwd, angle, pole, reach, limitAnkle);
     let lift = 0;
-    if (plantedAnkle(_target, _normal, _fwd, 0, _wrist).distanceTo(_root) > reach) {
-      // Lift the heel until the ankle comes within reach (or as close as it gets).
+    if (!fits(0)) {
+      // Lift the heel until the ankle comes within reach and range (or as close as it gets).
       let best = 0;
       let bestDistance = Infinity;
+      let reachable = -1;
       const step = Math.PI / 72;
       for (let angle = step; angle <= Math.PI * 0.6; angle += step) {
         const distance = plantedAnkle(_target, _normal, _fwd, angle, _wrist).distanceTo(_root);
@@ -352,22 +382,21 @@ function solveLeg(
           bestDistance = distance;
           best = angle;
         }
-        if (distance <= reach) {
+        if (reachable < 0 && distance <= reach) reachable = angle;
+        if (fits(angle)) {
           let low = angle - step;
           let high = angle;
           for (let i = 0; i < 20; i++) {
             const middle = (low + high) / 2;
-            if (plantedAnkle(_target, _normal, _fwd, middle, _wrist).distanceTo(_root) <= reach) {
-              high = middle;
-            } else {
-              low = middle;
-            }
+            if (fits(middle)) high = middle;
+            else low = middle;
           }
           best = high;
+          reachable = -1;
           break;
         }
       }
-      lift = best;
+      lift = reachable >= 0 ? reachable : best;
     }
     // The toes stay on the surface while the heel lifts.
     result.toeBend[side] = Math.min(lift, MAX_TOE_BEND);
