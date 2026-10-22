@@ -31,8 +31,11 @@ export const exerciseRefSchema = z.discriminatedUnion('kind', [
 ]);
 export type ExerciseRef = z.infer<typeof exerciseRefSchema>;
 
+/** Heaviest weight user data accepts, in kilograms. */
+export const MAX_WEIGHT_KG = 2000;
+
 /** Weight in kilograms, stored at full precision. */
-export const weightKgSchema = z.number().min(0).max(2000);
+export const weightKgSchema = z.number().min(0).max(MAX_WEIGHT_KG);
 
 const targetFields = {
   sets: setsSchema,
@@ -81,12 +84,17 @@ export const customExerciseSchema = z.object({
 });
 export type CustomExercise = z.infer<typeof customExerciseSchema>;
 
+/** Most repetitions a logged set accepts. */
+export const MAX_LOGGED_REPS = 999;
+/** Longest time a logged set accepts, in seconds. */
+export const MAX_LOGGED_SECONDS = 36_000;
+
 /** One logged set. `null` means the value was not entered. */
 export const loggedSetSchema = z.object({
   id: localIdSchema,
   weightKg: weightKgSchema.nullable(),
-  reps: z.int().min(0).max(999).nullable(),
-  durationSec: z.int().min(0).max(36_000).nullable(),
+  reps: z.int().min(0).max(MAX_LOGGED_REPS).nullable(),
+  durationSec: z.int().min(0).max(MAX_LOGGED_SECONDS).nullable(),
   done: z.boolean(),
 });
 export type LoggedSet = z.infer<typeof loggedSetSchema>;

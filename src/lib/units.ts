@@ -2,13 +2,10 @@
  * Weight units. Weights are stored in kilograms at full precision; they are
  * converted only for display and input, so switching units never drifts.
  */
-import type { Unit } from './schema/userData.ts';
+import { MAX_WEIGHT_KG, type Unit } from './schema/userData.ts';
 
 /** Pounds in one kilogram. */
 export const LB_PER_KG = 2.20462;
-
-/** Heaviest weight user data accepts, in kilograms (see `weightKgSchema`). */
-export const MAX_WEIGHT_KG = 2000;
 
 /** A weight in kilograms expressed in `unit`. */
 export function fromKg(kg: number, unit: Unit): number {

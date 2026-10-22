@@ -5,7 +5,12 @@
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import type { LoggedSet, Unit } from '../lib/schema/userData.ts';
+  import {
+    MAX_LOGGED_REPS,
+    MAX_LOGGED_SECONDS,
+    type LoggedSet,
+    type Unit,
+  } from '../lib/schema/userData.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { formatWeight, parseWeight } from '../lib/units.ts';
   import { removeLoggedSet, setLoggedSetDone, updateLoggedSet } from '../lib/userData/sessions.ts';
@@ -35,9 +40,6 @@
     canRemove,
   }: Props = $props();
 
-  const MAX_REPS = 999;
-  const MAX_SECONDS = 36_000;
-
   /** A whole number typed in a field: null when empty, undefined when not valid. */
   function parseCount(text: string, max: number): number | null | undefined {
     const trimmed = text.trim();
@@ -47,7 +49,7 @@
     return value <= max ? value : undefined;
   }
 
-  const amountMax = $derived(mode === 'time' ? MAX_SECONDS : MAX_REPS);
+  const amountMax = $derived(mode === 'time' ? MAX_LOGGED_SECONDS : MAX_LOGGED_REPS);
   const storedAmount = $derived(mode === 'time' ? set.durationSec : set.reps);
 
   let weightText = $state(
