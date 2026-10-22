@@ -25,6 +25,8 @@
     "validate:data": "tsx scripts/validate-data.ts",
     "build:catalog": "tsx scripts/build-catalog.ts",
     "generate:schema": "tsx scripts/generate-json-schema.ts",
+    "contact-sheet": "tsx scripts/animation-contact-sheet.ts",
+    "animation:fk-arms": "tsx scripts/animation-fk-arms.ts",
     "import:free-exercise-db": "tsx scripts/import-free-exercise-db.ts",
     "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
   },
