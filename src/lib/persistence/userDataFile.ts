@@ -3,12 +3,16 @@
  * app's private data directory).
  */
 import { userDataSchema, emptyUserData, type UserData } from '../schema/userData.ts';
-import { readWithFallback, writeFileAtomically, type TextFiles } from './files.ts';
+import { readWithFallback, tmpName, writeFileAtomically, type TextFiles } from './files.ts';
 
 export const USER_DATA_DIR = 'openrep';
 export const USER_DATA_FILE = 'userdata.json';
 
-/** A saved user data file could not be read, and could not be moved aside either. */
+/**
+ * Saved user data cannot be safely saved over: a copy that could not be read
+ * could not be moved aside, or the only valid copy (the temporary file of an
+ * interrupted save) could not be made the main file.
+ */
 export class UserDataUnreadableError extends Error {
   override name = 'UserDataUnreadableError';
 }
@@ -34,13 +38,16 @@ export function corruptFileName(now: Date, suffix = ''): string {
 
 /**
  * Loads user data, preferring `userdata.json` and falling back to the
- * temporary file of an interrupted save. Copies that cannot be read or
- * validated are renamed to `userdata.corrupt-<timestamp>.json` so nothing is
- * lost; when no valid copy remains, it starts from empty data. A first launch
- * (no file) gives empty data.
+ * temporary file of an interrupted save, which is then renamed to
+ * `userdata.json` (the next save writes the temporary file, so it must not be
+ * the only copy). Copies that cannot be read or validated are renamed to
+ * `userdata.corrupt-<timestamp>.json` so nothing is lost; when no valid copy
+ * remains, it starts from empty data. A first launch (no file) gives empty
+ * data.
  *
  * @throws {UserDataUnreadableError} when an unreadable copy cannot be moved
- *   aside: saving would then overwrite it, so the caller must not save.
+ *   aside, or the temporary file cannot be renamed: saving would then
+ *   overwrite it, so the caller must not save.
  * Also rejects with the file system's error when the directory cannot be
  * listed; the caller must not save then either.
  */
@@ -60,6 +67,21 @@ export async function loadUserDataFile(files: TextFiles, now: Date): Promise<Loa
       );
     }
     corruptFile ??= kept;
+  }
+  if (result.source === 'tmp') {
+    // The main file is missing or was just moved aside, so the rename cannot clash.
+    try {
+      await files.rename(
+        `${USER_DATA_DIR}/${tmpName(USER_DATA_FILE)}`,
+        `${USER_DATA_DIR}/${USER_DATA_FILE}`,
+      );
+    } catch (renameError) {
+      console.error('Could not restore the interrupted save as the user data file:', renameError);
+      throw new UserDataUnreadableError(
+        `Saved user data "${tmpName(USER_DATA_FILE)}" could not be renamed to "${USER_DATA_FILE}"`,
+        { cause: renameError },
+      );
+    }
   }
   return { data: result.value ?? emptyUserData(), corruptFile };
 }

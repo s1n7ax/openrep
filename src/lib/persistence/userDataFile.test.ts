@@ -76,9 +76,28 @@ describe('loadUserDataFile', () => {
       data: dataWithUnit('lb'),
       corruptFile: null,
     });
-    // The next save replaces the temporary file and completes normally.
-    await saveUserDataFile(files, dataWithUnit('lb'));
+    // The temporary file becomes the main file, so the next save does not write over the only copy.
+    expect(Object.fromEntries(files.files)).toEqual({ [MAIN]: JSON.stringify(dataWithUnit('lb')) });
+    await saveUserDataFile(files, dataWithUnit('kg'));
     expect([...files.files.keys()]).toEqual([MAIN]);
+  });
+
+  it('keeps the loaded copy when the next save is interrupted while writing', async () => {
+    const files = new MemoryFiles({ [TMP]: JSON.stringify(dataWithUnit('lb')) });
+    await loadUserDataFile(files, NOW);
+    // The save dies while writing the temporary file, leaving it broken.
+    files.fail.write = () => true;
+    await expect(saveUserDataFile(files, dataWithUnit('kg'))).rejects.toThrow();
+    files.files.set(TMP, '{"broken');
+    files.fail.write = undefined;
+    expect((await loadUserDataFile(files, NOW)).data).toEqual(dataWithUnit('lb'));
+  });
+
+  it('refuses to continue when the temporary file cannot be renamed', async () => {
+    const files = new MemoryFiles({ [TMP]: JSON.stringify(dataWithUnit('lb')) });
+    files.fail.rename = () => true;
+    await expect(loadUserDataFile(files, NOW)).rejects.toBeInstanceOf(UserDataUnreadableError);
+    expect(files.files.get(TMP)).toBe(JSON.stringify(dataWithUnit('lb')));
   });
 
   it('keeps a file that is not JSON as a corrupt copy and starts empty', async () => {
@@ -95,7 +114,10 @@ describe('loadUserDataFile', () => {
     const files = new MemoryFiles({ [MAIN]: invalid, [TMP]: JSON.stringify(dataWithUnit('lb')) });
     const loaded = await loadUserDataFile(files, NOW);
     expect(loaded).toEqual({ data: dataWithUnit('lb'), corruptFile: corruptFileName(NOW) });
-    expect(files.files.get(CORRUPT)).toBe(invalid);
+    expect(Object.fromEntries(files.files)).toEqual({
+      [CORRUPT]: invalid,
+      [MAIN]: JSON.stringify(dataWithUnit('lb')),
+    });
   });
 
   it('keeps both copies when both are corrupt', async () => {
