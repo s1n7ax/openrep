@@ -415,7 +415,7 @@ function mergeCapsules(points: Vector3[], radius: number): BufferGeometry {
   for (let i = 1; i < points.length; i++) {
     const a = points[i - 1];
     const b = points[i];
-    if (a && b) parts.push(capsuleBetween(a, b, radius * (1 - 0.08 * (i - 1))));
+    if (a && b) parts.push(capsuleBetween(a, b, radius));
   }
   const merged = mergeGeometries(parts.map((part) => part.toNonIndexed()));
   for (const part of parts) part.dispose();
@@ -547,8 +547,13 @@ function footLoft(rows: number[][], origin: Vector3): BufferGeometry {
 function mirrorX(geometry: BufferGeometry): BufferGeometry {
   const mirrored = geometry.clone();
   mirrored.scale(-1, 1, 1);
+  if (!mirrored.getIndex()) {
+    const count = mirrored.getAttribute('position').count;
+    mirrored.setIndex(Array.from({ length: count }, (_, i) => i));
+  }
   const index = mirrored.getIndex();
   if (index) {
+    // Mirroring turns faces inside out: reverse the winding of every triangle.
     const array = index.array;
     for (let i = 0; i < array.length; i += 3) {
       const tmp = array[i + 1] ?? 0;
