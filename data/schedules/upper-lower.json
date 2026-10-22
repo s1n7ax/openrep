@@ -1,0 +1,181 @@
+{
+  "formatVersion": 1,
+  "id": "upper-lower",
+  "name": "Upper/Lower",
+  "description": "Four days a week, alternating upper-body and lower-body workouts (for example Monday, Tuesday, Thursday, Friday). The A days are heavier, the B days add variety.",
+  "level": "intermediate",
+  "days": [
+    {
+      "name": "Upper A",
+      "exercises": [
+        {
+          "exerciseId": "barbell-bench-press-medium-grip",
+          "sets": 4,
+          "reps": "6-8",
+          "restSec": 150
+        },
+        {
+          "exerciseId": "bent-over-barbell-row",
+          "sets": 4,
+          "reps": "6-8",
+          "restSec": 150
+        },
+        {
+          "exerciseId": "seated-dumbbell-press",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "wide-grip-lat-pulldown",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "barbell-curl",
+          "sets": 2,
+          "reps": "10-12",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "triceps-pushdown",
+          "sets": 2,
+          "reps": "10-12",
+          "restSec": 60
+        }
+      ]
+    },
+    {
+      "name": "Lower A",
+      "exercises": [
+        {
+          "exerciseId": "barbell-squat",
+          "sets": 4,
+          "reps": "6-8",
+          "restSec": 180
+        },
+        {
+          "exerciseId": "romanian-deadlift",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "bodyweight-walking-lunge",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 90,
+          "notes": "Reps per leg."
+        },
+        {
+          "exerciseId": "lying-leg-curls",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "standing-calf-raises",
+          "sets": 4,
+          "reps": "10-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "crunches",
+          "sets": 3,
+          "reps": "15-20",
+          "restSec": 60
+        }
+      ]
+    },
+    {
+      "name": "Upper B",
+      "exercises": [
+        {
+          "exerciseId": "standing-military-press",
+          "sets": 4,
+          "reps": "6-8",
+          "restSec": 150
+        },
+        {
+          "exerciseId": "pullups",
+          "sets": 4,
+          "reps": "6-10",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "incline-dumbbell-press",
+          "sets": 3,
+          "reps": "8-10",
+          "restSec": 90
+        },
+        {
+          "exerciseId": "one-arm-dumbbell-row",
+          "sets": 3,
+          "reps": "8-12",
+          "restSec": 90,
+          "notes": "Reps per arm."
+        },
+        {
+          "exerciseId": "side-lateral-raise",
+          "sets": 3,
+          "reps": "12-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "hammer-curls",
+          "sets": 2,
+          "reps": "10-12",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "lying-triceps-press",
+          "sets": 2,
+          "reps": "10-12",
+          "restSec": 60
+        }
+      ]
+    },
+    {
+      "name": "Lower B",
+      "exercises": [
+        {
+          "exerciseId": "barbell-deadlift",
+          "sets": 3,
+          "reps": "5",
+          "restSec": 180
+        },
+        {
+          "exerciseId": "barbell-hip-thrust",
+          "sets": 3,
+          "reps": "8-12",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "leg-press",
+          "sets": 3,
+          "reps": "10-12",
+          "restSec": 120
+        },
+        {
+          "exerciseId": "leg-extensions",
+          "sets": 3,
+          "reps": "12-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "standing-calf-raises",
+          "sets": 3,
+          "reps": "12-15",
+          "restSec": 60
+        },
+        {
+          "exerciseId": "plank",
+          "sets": 3,
+          "durationSec": 45,
+          "restSec": 60
+        }
+      ]
+    }
+  ]
+}
