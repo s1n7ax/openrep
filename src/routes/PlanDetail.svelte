@@ -7,13 +7,21 @@
   import EmptyState from '../components/EmptyState.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import SubmitDialog from '../components/SubmitDialog.svelte';
+  import {
+    planToSchedule,
+    randomSuffix,
+    scheduleContribution,
+    type Contribution,
+  } from '../lib/contribute.ts';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { newId, nowIso } from '../lib/ids.ts';
   import { paths, router } from '../lib/router.ts';
   import type { PlanDay } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
+  import { submitContribution, type SubmitResult } from '../lib/submit.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { activeSession, findPlan } from '../lib/userData/selectors.ts';
+  import { activeSession, findPlan, planStats } from '../lib/userData/selectors.ts';
   import { deleteSession, startSession } from '../lib/userData/sessions.ts';
   import { formatDuration, formatTarget } from '../lib/userData/targets.ts';
 
@@ -52,8 +60,39 @@
     begin(day);
   }
 
-  /** Opens the GitHub pull request flow; wired by the Submit flow (plan step 12). */
-  function submit() {}
+  const canSubmit = $derived(!!plan && planStats(plan).exercises > 0);
+  let submitting = $state(false);
+  let submitted = $state<{ contribution: Contribution; result: SubmitResult } | null>(null);
+  let submitError = $state<string | null>(null);
+
+  /** Opens GitHub with the plan as a new schedule file, ready to propose as a pull request. */
+  async function submit() {
+    if (!plan || submitting) return;
+    submitError = null;
+    let contribution: Contribution;
+    try {
+      contribution = scheduleContribution(
+        planToSchedule(plan, {
+          customExercises: userData.data.customExercises,
+          findExercise: (id) => catalog.exercise(id),
+          suffix: randomSuffix(),
+        }),
+      );
+    } catch (error) {
+      console.error('The plan cannot be submitted:', error);
+      submitError = 'This plan cannot be submitted as a schedule.';
+      return;
+    }
+    submitting = true;
+    try {
+      submitted = { contribution, result: await submitContribution(contribution) };
+    } catch (error) {
+      console.error('Opening GitHub failed:', error);
+      submitError = 'GitHub could not be opened. Check that a web browser is installed.';
+    } finally {
+      submitting = false;
+    }
+  }
 
   function dayName(day: PlanDay, index: number): string {
     return day.name.trim() || `Day ${index + 1}`;
@@ -191,14 +230,24 @@
       <button
         type="button"
         class="btn btn-outline btn-block"
+        disabled={!canSubmit || submitting}
+        aria-describedby={canSubmit ? undefined : 'plan-submit-hint'}
         data-testid="plan-submit"
         onclick={submit}
       >
         <Icon name="send" size={20} /> Submit to OpenRep
       </button>
+      {#if !canSubmit}
+        <p id="plan-submit-hint" class="field-hint">Add exercises to submit this plan.</p>
+      {/if}
+      {#if submitError}
+        <p class="field-error" role="alert" data-testid="submit-error">{submitError}</p>
+      {/if}
     </section>
   {/if}
 </div>
+
+<SubmitDialog {submitted} onclose={() => (submitted = null)} />
 
 <Dialog
   open={pendingDay !== null}

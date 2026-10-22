@@ -10,18 +10,26 @@
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import StepList from '../components/StepList.svelte';
+  import SubmitDialog from '../components/SubmitDialog.svelte';
+  import {
+    canSubmitCustomExercise,
+    customExerciseToExercise,
+    exerciseContribution,
+    randomSuffix,
+    type Contribution,
+  } from '../lib/contribute.ts';
   import { equipmentLabel, muscleList } from '../lib/labels.ts';
   import { paths, router } from '../lib/router.ts';
+  import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
+  import { submitContribution, type SubmitResult } from '../lib/submit.ts';
   import { deleteCustomExercise } from '../lib/userData/customExercises.ts';
   import { findCustomExercise } from '../lib/userData/selectors.ts';
 
   let { customId }: { customId: string } = $props();
 
   const exercise = $derived(findCustomExercise(userData.data, customId));
-  const canSubmit = $derived(
-    !!exercise && exercise.primaryMuscles.length > 0 && exercise.instructions.length > 0,
-  );
+  const canSubmit = $derived(!!exercise && canSubmitCustomExercise(exercise));
   const facts = $derived(
     exercise
       ? [
@@ -48,8 +56,37 @@
     router.navigate(paths.exercises(), { replace: true });
   }
 
-  /** Opens the GitHub pull request flow; wired by the Submit flow (plan step 12). */
-  function submit() {}
+  let submitting = $state(false);
+  let submitted = $state<{ contribution: Contribution; result: SubmitResult } | null>(null);
+  let submitError = $state<string | null>(null);
+
+  /** Opens GitHub with the exercise as a new catalog file, ready to propose as a pull request. */
+  async function submit() {
+    if (!exercise || submitting) return;
+    submitError = null;
+    let contribution: Contribution;
+    try {
+      contribution = exerciseContribution(
+        customExerciseToExercise(exercise, {
+          findExercise: (id) => catalog.exercise(id),
+          suffix: randomSuffix(),
+        }),
+      );
+    } catch (error) {
+      console.error('The exercise cannot be submitted:', error);
+      submitError = 'This exercise cannot be submitted. Check its name, muscles and steps.';
+      return;
+    }
+    submitting = true;
+    try {
+      submitted = { contribution, result: await submitContribution(contribution) };
+    } catch (error) {
+      console.error('Opening GitHub failed:', error);
+      submitError = 'GitHub could not be opened. Check that a web browser is installed.';
+    } finally {
+      submitting = false;
+    }
+  }
 </script>
 
 <PageHeader title={exercise?.name ?? 'Custom exercise'} back={paths.exercises()}>
@@ -113,7 +150,7 @@
       <button
         type="button"
         class="btn btn-outline btn-block"
-        disabled={!canSubmit}
+        disabled={!canSubmit || submitting}
         aria-describedby={canSubmit ? undefined : 'submit-hint'}
         data-testid="custom-submit"
         onclick={submit}
@@ -121,9 +158,12 @@
         <Icon name="send" size={20} /> Submit to OpenRep
       </button>
       {#if !canSubmit}
-        <p id="submit-hint" class="field-hint">
+        <p id="submit-hint" class="field-hint" data-testid="custom-submit-hint">
           Add at least one primary muscle and one step to submit.
         </p>
+      {/if}
+      {#if submitError}
+        <p class="field-error" role="alert" data-testid="submit-error">{submitError}</p>
       {/if}
     </section>
 
@@ -135,6 +175,8 @@
     >
       <Icon name="trash" size={20} /> Delete exercise
     </button>
+
+    <SubmitDialog {submitted} onclose={() => (submitted = null)} />
 
     <ConfirmDialog
       open={confirmDelete}
