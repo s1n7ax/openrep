@@ -31,6 +31,9 @@
     "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.5",
     "three": "0.186.1",
     "zod": "^4.6.7"
   },
