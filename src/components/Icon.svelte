@@ -22,8 +22,7 @@
     | 'settings'
     | 'alert'
     | 'cube'
-    | 'send'
-    | 'reorder';
+    | 'send';
 </script>
 
 <script lang="ts">
@@ -99,8 +98,6 @@
     <path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3ZM4 7.5l8 4.5 8-4.5M12 12v9" />
   {:else if name === 'send'}
     <path d="M20.5 3.5 3.5 10.25l6.75 3 3 6.75L20.5 3.5ZM20.5 3.5l-10.25 9.75" />
-  {:else if name === 'reorder'}
-    <path d="m8 9.5 4-4 4 4M8 14.5l4 4 4-4" />
   {/if}
 </svg>
 

@@ -180,12 +180,6 @@ img {
     calc(var(--page-gutter) + var(--safe-left));
 }
 
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
 .section-title {
   font-size: var(--text-xs);
   font-weight: 700;
