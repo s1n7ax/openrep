@@ -243,7 +243,6 @@ export class ExerciseViewer {
       : null;
     this.time = 0;
     this.lastTimestamp = null;
-    this.frame();
     this.frameContent();
     this.resetView();
     this.updateLoop();
