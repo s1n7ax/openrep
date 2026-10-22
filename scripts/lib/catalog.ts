@@ -50,16 +50,18 @@ export function catalogImages(catalog: Catalog): string[] {
 }
 
 /**
- * Writes `<outDir>/catalog.json` and copies the referenced images from
- * `<dataDir>/exercises/` to `<outDir>/images/`.
+ * Writes `<outDir>/catalog.json` and, unless `images` is false, copies the
+ * referenced images from `<dataDir>/exercises/` to `<outDir>/images/`.
  */
 export async function writeCatalog(
   catalog: Catalog,
   dataDir: string,
   outDir: string,
+  { images: copyImages = true }: { images?: boolean } = {},
 ): Promise<void> {
   await mkdir(outDir, { recursive: true });
   await writeFile(path.join(outDir, 'catalog.json'), JSON.stringify(catalog));
+  if (!copyImages) return;
   const images = catalogImages(catalog);
   const dirs = new Set(images.map((image) => path.dirname(path.join(outDir, image))));
   await Promise.all([...dirs].map((dir) => mkdir(dir, { recursive: true })));

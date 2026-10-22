@@ -1,4 +1,4 @@
-import { cp, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -30,6 +30,15 @@ describe('loadCatalog and writeCatalog', () => {
     expect(catalogSchema.parse(written)).toEqual(catalog);
     const image = await stat(path.join(outDir, 'images/sample-push-up/0.webp'));
     expect(image.isFile()).toBe(true);
+  });
+
+  it('writes only catalog.json when images are not wanted', async () => {
+    const dataDir = path.join(work, 'data');
+    const outDir = path.join(work, 'out');
+    const catalog = await loadCatalog(dataDir, '2026-10-22T10:00:00.000Z');
+    await writeCatalog(catalog, dataDir, outDir, { images: false });
+
+    expect(await readdir(outDir)).toEqual(['catalog.json']);
   });
 
   it('refuses invalid data with every issue', async () => {
