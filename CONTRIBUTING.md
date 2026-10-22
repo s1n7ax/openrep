@@ -206,5 +206,8 @@ Other scripts:
   `src/app.css`.
 - The data formats are defined once, in `src/lib/schema/`. After changing one,
   run `npm run generate:schema` and update `docs/data-format.md`.
-- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org)
-  (`feat(ui): …`, `fix(data): …`).
+- Pull request titles and commit messages follow
+  [Conventional Commits](https://www.conventionalcommits.org) (`feat(ui): …`,
+  `fix(data): …`). Pull requests are squash-merged, and release-please builds
+  the changelog and the next version from these messages (`feat` → minor,
+  `fix` → patch).
