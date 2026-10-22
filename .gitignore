@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+.vite/
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Android build outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+*.apk
+*.aab
+
+# iOS build outputs
+ios/App/build/
+ios/App/Pods/
+ios/DerivedData/
+xcuserdata/
+
+# Editors and OS
+.DS_Store
+.idea/
+*.local
+
+# Local working state
+.goals/
+.playwright-mcp/

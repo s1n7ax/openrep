@@ -1,0 +1,17 @@
+# Generated or vendored output
+dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+android/
+ios/
+package-lock.json
+
+# Data files are validated by `npm run validate:data`, not formatted: files
+# submitted from the app (JSON.stringify output) must pass CI unchanged.
+data/
+
+# Local working state
+.goals/
+.playwright-mcp/
