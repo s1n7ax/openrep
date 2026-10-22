@@ -146,7 +146,8 @@ export class ExerciseViewer {
     this.scene.environmentIntensity = 0.36;
     this.disposables.push(envTexture);
 
-    this.scene.add(new HemisphereLight('#eef3ff', '#3b352f', 0.55));
+    const hemisphere = new HemisphereLight('#eef3ff', '#3b352f', 0.55);
+    this.scene.add(hemisphere);
     const key = new DirectionalLight('#fffaf4', 2.0);
     key.position.set(2.2, 5, 2.6);
     key.castShadow = true;
@@ -167,6 +168,8 @@ export class ExerciseViewer {
     const fill = new DirectionalLight('#ffe9d6', 0.35);
     fill.position.set(-2.5, 1.2, 2.5);
     this.scene.add(fill);
+    // Disposing the key light frees its 2048² shadow map.
+    this.disposables.push(hemisphere, key, rim, fill);
 
     // Floor: a soft disc that fades out, plus a shadow catcher.
     const floorGeometry = new CircleGeometry(FLOOR_RADIUS, 96);
@@ -423,5 +426,9 @@ export class ExerciseViewer {
     this.figure.dispose();
     for (const item of this.disposables) item.dispose();
     this.renderer.dispose();
+    // Release the WebGL context now rather than whenever the canvas is
+    // garbage-collected: WebViews allow only a few live contexts, and every
+    // exercise page creates one.
+    this.renderer.forceContextLoss();
   }
 }
