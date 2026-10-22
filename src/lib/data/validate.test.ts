@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { readDataDir } from '../../../scripts/lib/data-dir';
-import { formatIssuePath, validateData, type DataSet } from './validate';
+import { readDataDir } from '../../../scripts/lib/data-dir.ts';
+import { formatIssuePath, validateData, type DataSet } from './validate.ts';
 
 const FIXTURES = path.resolve(import.meta.dirname, '../../../tests/fixtures/data');
 

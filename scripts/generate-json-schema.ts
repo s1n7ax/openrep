@@ -8,11 +8,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import * as z from 'zod';
-import { animationSchema } from '../src/lib/schema/animation';
-import { catalogSchema } from '../src/lib/schema/catalog';
-import { exerciseSchema } from '../src/lib/schema/exercise';
-import { scheduleSchema } from '../src/lib/schema/schedule';
-import { DATA_DIR } from './lib/paths';
+import { animationSchema } from '../src/lib/schema/animation.ts';
+import { catalogSchema } from '../src/lib/schema/catalog.ts';
+import { exerciseSchema } from '../src/lib/schema/exercise.ts';
+import { scheduleSchema } from '../src/lib/schema/schedule.ts';
+import { DATA_DIR } from './lib/paths.ts';
 
 const SCHEMA_DIR = path.join(DATA_DIR, 'schema');
 const SCHEMA_BASE_URL = 'https://raw.githubusercontent.com/s1n7ax/openrep/main/data/schema/';

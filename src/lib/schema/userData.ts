@@ -9,7 +9,7 @@ import {
   restSecSchema,
   setsSchema,
   timestampSchema,
-} from './common';
+} from './common.ts';
 
 // User data lives on the device. These schemas are deliberately structural:
 // a stricter rule that rejects one odd value would make the whole file unreadable.

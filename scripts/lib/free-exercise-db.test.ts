@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeAliases, toExercise, toKebabId, type UpstreamExercise } from './free-exercise-db';
+import { mergeAliases, toExercise, toKebabId, type UpstreamExercise } from './free-exercise-db.ts';
 
 describe('toKebabId', () => {
   it.each([

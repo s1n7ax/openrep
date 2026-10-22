@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { DataFile, DataSet } from '../../src/lib/data/validate';
+import type { DataFile, DataSet } from '../../src/lib/data/validate.ts';
 
 async function listEntries(dir: string) {
   try {

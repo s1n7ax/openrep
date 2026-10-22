@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { REPO_ROOT } from './lib/paths';
+import { REPO_ROOT } from './lib/paths.ts';
 
 const run = promisify(execFile);
 const FIXTURES = path.join(REPO_ROOT, 'tests/fixtures/data');

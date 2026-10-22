@@ -1,8 +1,8 @@
 import * as z from 'zod';
-import { animationSchema } from './animation';
-import { timestampSchema } from './common';
-import { exerciseSchema } from './exercise';
-import { scheduleSchema } from './schedule';
+import { animationSchema } from './animation.ts';
+import { timestampSchema } from './common.ts';
+import { exerciseSchema } from './exercise.ts';
+import { scheduleSchema } from './schedule.ts';
 
 /** Catalog format versions this app understands. */
 export const SUPPORTED_CATALOG_FORMAT_VERSIONS = [1] as const;

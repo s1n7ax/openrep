@@ -8,7 +8,7 @@ import {
   restSecSchema,
   setsSchema,
   textSchema,
-} from './common';
+} from './common.ts';
 
 /**
  * One exercise of a schedule day. It references a catalog exercise by

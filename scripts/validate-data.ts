@@ -6,9 +6,9 @@
  */
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { validateData } from '../src/lib/data/validate';
-import { readDataDir } from './lib/data-dir';
-import { DATA_DIR } from './lib/paths';
+import { validateData } from '../src/lib/data/validate.ts';
+import { readDataDir } from './lib/data-dir.ts';
+import { DATA_DIR } from './lib/paths.ts';
 
 const { values } = parseArgs({ options: { data: { type: 'string' } } });
 const dataDir = path.resolve(values.data ?? DATA_DIR);

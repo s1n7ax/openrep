@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { idSchema } from './common';
+import { idSchema } from './common.ts';
 
 /**
  * Coordinate system of animation files: metres, y up, the figure faces +z and

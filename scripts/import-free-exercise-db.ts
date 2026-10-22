@@ -16,14 +16,14 @@ import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 import * as z from 'zod';
-import { exerciseSchema } from '../src/lib/schema/exercise';
+import { exerciseSchema } from '../src/lib/schema/exercise.ts';
 import {
   aliasesFileSchema,
   toExercise,
   toKebabId,
   upstreamExerciseSchema,
-} from './lib/free-exercise-db';
-import { DATA_DIR, REPO_ROOT } from './lib/paths';
+} from './lib/free-exercise-db.ts';
+import { DATA_DIR, REPO_ROOT } from './lib/paths.ts';
 
 const UPSTREAM_COMMIT = 'f00c92c7dcf1216a928a52c3706c7ce8e2f71ed5';
 const UPSTREAM_BASE = `https://raw.githubusercontent.com/yuhonas/free-exercise-db/${UPSTREAM_COMMIT}`;

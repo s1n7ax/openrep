@@ -1,7 +1,7 @@
 import type * as z from 'zod';
-import { animationSchema, type Animation } from '../schema/animation';
-import { exerciseSchema, type Exercise } from '../schema/exercise';
-import { scheduleSchema, type Schedule } from '../schema/schedule';
+import { animationSchema, type Animation } from '../schema/animation.ts';
+import { exerciseSchema, type Exercise } from '../schema/exercise.ts';
+import { scheduleSchema, type Schedule } from '../schema/schedule.ts';
 
 /** A file of the data directory. */
 export interface DataFile {

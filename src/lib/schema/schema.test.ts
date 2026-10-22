@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { animationSchema, type Animation } from './animation';
-import { backupSchema } from './backup';
-import { repsSchema } from './common';
-import { exerciseSchema, type Exercise } from './exercise';
-import { scheduleSchema, type Schedule } from './schedule';
-import { emptyUserData, userDataSchema } from './userData';
+import { animationSchema, type Animation } from './animation.ts';
+import { backupSchema } from './backup.ts';
+import { repsSchema } from './common.ts';
+import { exerciseSchema, type Exercise } from './exercise.ts';
+import { scheduleSchema, type Schedule } from './schedule.ts';
+import { emptyUserData, userDataSchema } from './userData.ts';
 
 const exercise: Exercise = {
   formatVersion: 1,

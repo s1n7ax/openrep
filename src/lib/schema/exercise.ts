@@ -8,7 +8,7 @@ import {
   mechanicSchema,
   muscleSchema,
   textSchema,
-} from './common';
+} from './common.ts';
 
 /**
  * Image path relative to `data/exercises/`, e.g. `images/pushups/0.webp`.

@@ -7,8 +7,8 @@ import {
   levelSchema,
   mechanicSchema,
   muscleSchema,
-} from '../../src/lib/schema/common';
-import { exerciseSchema, type Exercise } from '../../src/lib/schema/exercise';
+} from '../../src/lib/schema/common.ts';
+import { exerciseSchema, type Exercise } from '../../src/lib/schema/exercise.ts';
 
 /** One record of free-exercise-db's `dist/exercises.json`. */
 export const upstreamExerciseSchema = z.object({
