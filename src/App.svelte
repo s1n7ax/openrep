@@ -22,6 +22,8 @@
   import PlanDetail from './routes/PlanDetail.svelte';
   import PlanEditor from './routes/PlanEditor.svelte';
   import PlansList from './routes/PlansList.svelte';
+  import ScheduleDetail from './routes/ScheduleDetail.svelte';
+  import SchedulesList from './routes/SchedulesList.svelte';
   import WorkoutPlaceholder from './routes/WorkoutPlaceholder.svelte';
 
   router.start();
@@ -100,9 +102,9 @@
           {:else if route.name === 'workout'}
             <WorkoutPlaceholder sessionId={route.sessionId} />
           {:else if route.name === 'schedules'}
-            <ComingSoon title="Schedules" icon="calendar" />
+            <SchedulesList />
           {:else if route.name === 'schedule'}
-            <ComingSoon title="Schedule" icon="calendar" back={paths.schedules()} />
+            <ScheduleDetail scheduleId={route.scheduleId} />
           {:else if route.name === 'history'}
             <ComingSoon title="History" icon="history" />
           {:else if route.name === 'history-session'}
