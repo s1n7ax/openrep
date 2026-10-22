@@ -1,4 +1,4 @@
-import type { Mesh } from 'three';
+import { MeshStandardMaterial, type Mesh } from 'three';
 import { describe, expect, it } from 'vitest';
 import { MUSCLES } from '../schema/common.ts';
 import { musclesWithRegions } from './anatomy.ts';
@@ -28,10 +28,12 @@ describe('muscle overlays', () => {
     for (const muscle of MUSCLES) expect(meshes(muscle).length).toBeGreaterThan(0);
     expect(meshes('chest').every((mesh) => mesh.visible)).toBe(true);
     expect(meshes('quadriceps').some((mesh) => mesh.visible)).toBe(false);
-    const material = (mesh: Mesh | undefined) => mesh?.material as { emissiveIntensity: number };
-    expect(material(meshes('chest')[0]).emissiveIntensity).toBeGreaterThan(
-      material(meshes('triceps')[0]).emissiveIntensity,
-    );
+    const glow = (mesh: Mesh | undefined) => {
+      const material = mesh?.material;
+      return material instanceof MeshStandardMaterial ? material.emissiveIntensity : 0;
+    };
+    expect(glow(meshes('chest')[0])).toBeGreaterThan(glow(meshes('triceps')[0]));
+    expect(glow(meshes('triceps')[0])).toBeGreaterThan(0);
 
     overlays.setGlow([], []);
     expect(meshes('chest').some((mesh) => mesh.visible)).toBe(false);
