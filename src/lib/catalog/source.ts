@@ -5,14 +5,7 @@
 import type { Catalog } from '../schema/catalog.ts';
 import { readWithFallback, writeFileAtomically, type TextFiles } from '../persistence/files.ts';
 import { parseCatalog } from './update.ts';
-
-/** The published catalog, rebuilt on every push to the repository's main branch. */
-export const DEFAULT_CATALOG_URL =
-  'https://raw.githubusercontent.com/s1n7ax/openrep/catalog/catalog.json';
-
-/** Exercise images of the repository, for exercises not bundled with the app. */
-export const REMOTE_IMAGE_BASE_URL =
-  'https://raw.githubusercontent.com/s1n7ax/openrep/main/data/exercises/';
+import { DEFAULT_CATALOG_URL, REMOTE_IMAGE_BASE_URL } from './urls.ts';
 
 /** The remote catalog URL, overridable at build time with `VITE_CATALOG_URL` (tests). */
 export const CATALOG_URL: string = import.meta.env.VITE_CATALOG_URL || DEFAULT_CATALOG_URL;
