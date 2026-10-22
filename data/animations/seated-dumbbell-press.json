@@ -1,0 +1,52 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "seated-dumbbell-press",
+  "durationSec": 2.8,
+  "props": [
+    {"type": "bench", "attach": "none", "position": [0, 0, -0.45]},
+    {"type": "dumbbell", "attach": "leftHand"},
+    {"type": "dumbbell", "attach": "rightHand"}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.33, 1.09, 0.04], "pole": [1, 0.8, -0.1]},
+        "rightHand": {"target": [-0.33, 1.09, 0.04], "pole": [-1, 0.8, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 0.45,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.14, 1.6, 0.02], "pole": [1, 1.2, -0.1]},
+        "rightHand": {"target": [-0.14, 1.6, 0.02], "pole": [-1, 1.2, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 0.55,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.14, 1.6, 0.02], "pole": [1, 1.2, -0.1]},
+        "rightHand": {"target": [-0.14, 1.6, 0.02], "pole": [-1, 1.2, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.33, 1.09, 0.04], "pole": [1, 0.8, -0.1]},
+        "rightHand": {"target": [-0.33, 1.09, 0.04], "pole": [-1, 0.8, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    }
+  ]
+}
