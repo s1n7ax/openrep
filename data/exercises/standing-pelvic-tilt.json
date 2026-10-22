@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "standing-pelvic-tilt",
+  "name": "Standing Pelvic Tilt",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": "isolation",
+  "equipment": null,
+  "primaryMuscles": [
+    "lower back"
+  ],
+  "secondaryMuscles": [
+    "glutes"
+  ],
+  "instructions": [
+    "Start off with your feet hip-distance apart.",
+    "Bend your knees slightly to keep them soft and springy.",
+    "You may want to move your pelvis forward and backward and back few times before holding the tailbone forward in this stretch."
+  ],
+  "images": [
+    "images/standing-pelvic-tilt/0.webp",
+    "images/standing-pelvic-tilt/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Standing_Pelvic_Tilt"
+  }
+}

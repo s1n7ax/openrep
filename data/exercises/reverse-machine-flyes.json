@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "id": "reverse-machine-flyes",
+  "name": "Reverse Machine Flyes",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "pull",
+  "mechanic": "isolation",
+  "equipment": "machine",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Adjust the handles so that they are fully to the rear. Make an appropriate weight selection and adjust the seat height so the handles are at shoulder level. Grasp the handles with your hands facing inwards. This will be your starting position.",
+    "In a semicircular motion, pull your hands out to your side and back, contracting your rear delts.",
+    "Keep your arms slightly bent throughout the movement, with all of the motion occurring at the shoulder joint.",
+    "Pause at the rear of the movement, and slowly return the weight to the starting position."
+  ],
+  "images": [
+    "images/reverse-machine-flyes/0.webp",
+    "images/reverse-machine-flyes/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Reverse_Machine_Flyes"
+  }
+}

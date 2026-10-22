@@ -1,0 +1,26 @@
+{
+  "formatVersion": 1,
+  "id": "upper-back-stretch",
+  "name": "Upper Back Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "middle back"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Clasp fingers together with your thumbs pointing down, round your shoulders as you reach your hands forward."
+  ],
+  "images": [
+    "images/upper-back-stretch/0.webp",
+    "images/upper-back-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Upper_Back_Stretch"
+  }
+}

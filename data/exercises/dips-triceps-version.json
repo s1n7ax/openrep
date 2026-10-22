@@ -1,0 +1,37 @@
+{
+  "formatVersion": 1,
+  "id": "dips-triceps-version",
+  "name": "Dips - Triceps Version",
+  "aliases": [
+    "dips",
+    "dip",
+    "triceps dips",
+    "tricep dips"
+  ],
+  "category": "strength",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+    "triceps"
+  ],
+  "secondaryMuscles": [
+    "chest",
+    "shoulders"
+  ],
+  "instructions": [
+    "To get into the starting position, hold your body at arm's length with your arms nearly locked above the bars.",
+    "Now, inhale and slowly lower yourself downward. Your torso should remain upright and your elbows should stay close to your body. This helps to better focus on tricep involvement. Lower yourself until there is a 90 degree angle formed between the upper arm and forearm.",
+    "Then, exhale and push your torso back up using your triceps to bring your body back to the starting position.",
+    "Repeat the movement for the prescribed amount of repetitions."
+  ],
+  "images": [
+    "images/dips-triceps-version/0.webp",
+    "images/dips-triceps-version/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Dips_-_Triceps_Version"
+  }
+}

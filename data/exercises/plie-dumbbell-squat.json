@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "id": "plie-dumbbell-squat",
+  "name": "Plie Dumbbell Squat",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "dumbbell",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [
+    "abdominals",
+    "calves",
+    "glutes",
+    "hamstrings"
+  ],
+  "instructions": [
+    "Hold a dumbbell at the base with both hands and stand straight up. Move your legs so that they are wider than shoulder width apart from each other with your knees slightly bent.",
+    "Your toes should be facing out. Note: Your arms should be stationary while performing the exercise. This is the starting position.",
+    "Slowly bend the knees and lower your legs until your thighs are parallel to the floor. Make sure to inhale as this is the eccentric part of the exercise.",
+    "Press mainly with the heel of the foot to bring the body back to the starting position while exhaling.",
+    "Repeat for the recommended amount of repetitions."
+  ],
+  "images": [
+    "images/plie-dumbbell-squat/0.webp",
+    "images/plie-dumbbell-squat/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Plie_Dumbbell_Squat"
+  }
+}

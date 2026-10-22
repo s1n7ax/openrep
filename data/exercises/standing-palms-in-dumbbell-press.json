@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "standing-palms-in-dumbbell-press",
+  "name": "Standing Palms-In Dumbbell Press",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "dumbbell",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "triceps"
+  ],
+  "instructions": [
+    "Start by having a dumbbell in each hand with your arm fully extended to the side using a neutral grip. Your feet should be shoulder width apart from each other. Now slowly lift the dumbbells up until you create a 90 degree angle with your arms. Note: Your forearms should be perpendicular to the floor. This the starting position.",
+    "Continue to maintain a neutral grip throughout the entire exercise. Slowly lift the dumbbells up until your arms are fully extended.",
+    "While inhaling lower the weights down until your arm is at a 90 degree angle again.",
+    "Repeat for the recommended amount of repetitions."
+  ],
+  "images": [
+    "images/standing-palms-in-dumbbell-press/0.webp",
+    "images/standing-palms-in-dumbbell-press/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Standing_Palms-In_Dumbbell_Press"
+  }
+}

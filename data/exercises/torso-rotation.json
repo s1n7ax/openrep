@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "id": "torso-rotation",
+  "name": "Torso Rotation",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "pull",
+  "mechanic": null,
+  "equipment": "exercise ball",
+  "primaryMuscles": [
+    "abdominals"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Stand upright holding an exercise ball with both hands. Extend your arms so the ball is straight out in front of you. This will be your starting position.",
+    "Rotate your torso to one side, keeping your eyes on the ball as you move. Now, rotate back to the opposite direction. Repeat for 10-20 repetitions."
+  ],
+  "images": [
+    "images/torso-rotation/0.webp",
+    "images/torso-rotation/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Torso_Rotation"
+  }
+}

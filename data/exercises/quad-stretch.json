@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "id": "quad-stretch",
+  "name": "Quad Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "intermediate",
+  "force": "static",
+  "mechanic": null,
+  "equipment": "other",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Lay on your side. Loop a belt, rope, or band around your top foot. Flex the knee and extend your hip, attempting to touch your glutes with your foot, and holding the belt with your hands. This will be your starting position.",
+    "With the belt being held over the shoulder or overhead, gently pull to increase the stretch in the quadriceps. Hold for 10-20 seconds, and then switch sides."
+  ],
+  "images": [
+    "images/quad-stretch/0.webp",
+    "images/quad-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Quad_Stretch"
+  }
+}

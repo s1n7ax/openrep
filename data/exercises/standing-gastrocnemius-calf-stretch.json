@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "standing-gastrocnemius-calf-stretch",
+  "name": "Standing Gastrocnemius Calf Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "calves"
+  ],
+  "secondaryMuscles": [
+    "hamstrings"
+  ],
+  "instructions": [
+    "Place your right heel on a step with your knee extended and lean forward to grab your right toe with your right hand. Your left knee should be slightly bent and your back should be straight.",
+    "Support your weight on your left leg and place your left hand on your left thigh.",
+    "Pull your right toes toward your knee until you feel a stretch in your calf."
+  ],
+  "images": [
+    "images/standing-gastrocnemius-calf-stretch/0.webp",
+    "images/standing-gastrocnemius-calf-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Standing_Gastrocnemius_Calf_Stretch"
+  }
+}

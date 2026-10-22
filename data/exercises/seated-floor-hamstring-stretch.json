@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "id": "seated-floor-hamstring-stretch",
+  "name": "Seated Floor Hamstring Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "hamstrings"
+  ],
+  "secondaryMuscles": [
+    "calves"
+  ],
+  "instructions": [
+    "Sit on a mat with your right leg extended in front of you and your left leg bent with your foot against your right inner thigh.",
+    "Lean forward from your hips and reach for your ankle until you feel a stretch in your hamstring. Hold for 15 seconds, then repeat for your other side."
+  ],
+  "images": [
+    "images/seated-floor-hamstring-stretch/0.webp",
+    "images/seated-floor-hamstring-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Seated_Floor_Hamstring_Stretch"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "cable-shoulder-press",
+  "name": "Cable Shoulder Press",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "cable",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "triceps"
+  ],
+  "instructions": [
+    "Move the cables to the bottom of the towers and select an appropriate weight.",
+    "Stand directly in between the uprights. Grasp the cables and hold them at shoulder height, palms facing forward. This will be your starting position.",
+    "Keeping your head and chest up, extend through the elbow to press the handles directly over head.",
+    "After pausing at the top, return to the starting position and repeat."
+  ],
+  "images": [
+    "images/cable-shoulder-press/0.webp",
+    "images/cable-shoulder-press/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Cable_Shoulder_Press"
+  }
+}

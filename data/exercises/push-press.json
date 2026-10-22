@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "id": "push-press",
+  "name": "Push Press",
+  "aliases": [],
+  "category": "olympic weightlifting",
+  "level": "expert",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "barbell",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "quadriceps",
+    "triceps"
+  ],
+  "instructions": [],
+  "images": [
+    "images/push-press/0.webp",
+    "images/push-press/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Push_Press"
+  }
+}

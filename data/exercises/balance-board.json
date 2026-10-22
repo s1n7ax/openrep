@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "balance-board",
+  "name": "Balance Board",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": null,
+  "mechanic": "compound",
+  "equipment": "other",
+  "primaryMuscles": [
+    "calves"
+  ],
+  "secondaryMuscles": [
+    "hamstrings",
+    "quadriceps"
+  ],
+  "instructions": [
+    "Place a balance board in front of you.",
+    "Stand up on it and try to balance yourself.",
+    "Hold the balance for as long as desired."
+  ],
+  "images": [
+    "images/balance-board/0.webp",
+    "images/balance-board/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Balance_Board"
+  }
+}

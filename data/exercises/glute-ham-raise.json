@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "glute-ham-raise",
+  "name": "Glute Ham Raise",
+  "aliases": [],
+  "category": "powerlifting",
+  "level": "intermediate",
+  "force": "pull",
+  "mechanic": "compound",
+  "equipment": "machine",
+  "primaryMuscles": [
+    "hamstrings"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "glutes"
+  ],
+  "instructions": [
+    "Begin by adjusting the equipment to fit your body. Place your feet against the footplate in between the rollers as you lie facedown. Your knees should be just behind the pad.",
+    "Start from the bottom of the movement. Keep your back arched as you begin the movement by flexing the knees. Drive your toes into the foot plate as you do so. Keep your upper body straight, and continue until your body is upright.",
+    "Return to the starting position, keeping your descent under control."
+  ],
+  "images": [
+    "images/glute-ham-raise/0.webp",
+    "images/glute-ham-raise/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Glute_Ham_Raise"
+  }
+}

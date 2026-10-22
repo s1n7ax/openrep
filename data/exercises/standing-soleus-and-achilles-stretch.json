@@ -1,0 +1,27 @@
+{
+  "formatVersion": 1,
+  "id": "standing-soleus-and-achilles-stretch",
+  "name": "Standing Soleus And Achilles Stretch",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": "isolation",
+  "equipment": null,
+  "primaryMuscles": [
+    "calves"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Stand with your feet hip-distance apart, one foot slightly in front of the other.",
+    "Bend both knees, keeping your back heel on the floor. Switch sides."
+  ],
+  "images": [
+    "images/standing-soleus-and-achilles-stretch/0.webp",
+    "images/standing-soleus-and-achilles-stretch/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Standing_Soleus_And_Achilles_Stretch"
+  }
+}

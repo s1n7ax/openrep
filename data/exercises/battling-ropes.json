@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "id": "battling-ropes",
+  "name": "Battling Ropes",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "other",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "chest",
+    "forearms"
+  ],
+  "instructions": [
+    "For this exercise you will need a heavy rope anchored at its center 15-20 feet away. Standing in front of the rope, take an end in each hand with your arms extended at your side. This will be your starting position.",
+    "Initiate the movement by rapidly raising one arm to shoulder level as quickly as you can.",
+    "As you let that arm drop to the starting position, raise the opposite side.",
+    "Continue alternating your left and right arms, whipping the ropes up and down as fast as you can."
+  ],
+  "images": [
+    "images/battling-ropes/0.webp",
+    "images/battling-ropes/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Battling_Ropes"
+  }
+}

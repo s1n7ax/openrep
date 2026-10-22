@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "running-treadmill",
+  "name": "Running, Treadmill",
+  "aliases": [],
+  "category": "cardio",
+  "level": "beginner",
+  "force": null,
+  "mechanic": null,
+  "equipment": "machine",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "glutes",
+    "hamstrings"
+  ],
+  "instructions": [
+    "To begin, step onto the treadmill and select the desired option from the menu. Most treadmills have a manual setting, or you can select a program to run. Typically, you can enter your age and weight to estimate the amount of calories burned during exercise. Elevation can be adjusted to change the intensity of the workout.",
+    "Treadmills offer convenience, cardiovascular benefits, and usually have less impact than running outside. A 150 lb person will burn over 450 calories running 8 miles per hour for 30 minutes. Maintain proper posture as you run, and only hold onto the handles when necessary, such as when dismounting or checking your heart rate."
+  ],
+  "images": [
+    "images/running-treadmill/0.webp",
+    "images/running-treadmill/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Running_Treadmill"
+  }
+}

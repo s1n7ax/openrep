@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "id": "sled-drag-harness",
+  "name": "Sled Drag - Harness",
+  "aliases": [],
+  "category": "strongman",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "other",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "glutes",
+    "hamstrings"
+  ],
+  "instructions": [
+    "To begin, load the sled with the desired weight and attach the pulling strap. You can pull with handles, use a harness, or attach the pulling strap to a weight belt.",
+    "Whether pulling forwards or backwards, lean in the direction of travel and progress by extending through the hips and knees."
+  ],
+  "images": [
+    "images/sled-drag-harness/0.webp",
+    "images/sled-drag-harness/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Sled_Drag_-_Harness"
+  }
+}

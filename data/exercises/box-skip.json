@@ -1,0 +1,36 @@
+{
+  "formatVersion": 1,
+  "id": "box-skip",
+  "name": "Box Skip",
+  "aliases": [],
+  "category": "plyometrics",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "other",
+  "primaryMuscles": [
+    "hamstrings"
+  ],
+  "secondaryMuscles": [
+    "abductors",
+    "adductors",
+    "calves",
+    "glutes",
+    "quadriceps"
+  ],
+  "instructions": [
+    "You will need several boxes lined up about 8 feet apart.",
+    "Begin facing the first box with one leg slightly behind the other.",
+    "Drive off the back leg, attempting to gain as much height with the hips as possible.",
+    "Immediately upon landing on the box, drive the other leg forward and upward to gain height and distance, leaping from the box. Land between the first two boxes with the same leg that landed on the first box.",
+    "Then, step to the next box and repeat."
+  ],
+  "images": [
+    "images/box-skip/0.webp",
+    "images/box-skip/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Box_Skip"
+  }
+}

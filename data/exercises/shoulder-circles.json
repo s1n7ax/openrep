@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "id": "shoulder-circles",
+  "name": "Shoulder Circles",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "pull",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "traps"
+  ],
+  "instructions": [
+    "With shoulders relaxed and arms resting loosely at your sides (or in your lap if you're seated), gently roll your shoulders forward, up, back, and down.",
+    "Reverse direction. You can do this exercise alternating shoulders or both at the same time."
+  ],
+  "images": [
+    "images/shoulder-circles/0.webp",
+    "images/shoulder-circles/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Shoulder_Circles"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "id": "side-to-side-box-shuffle",
+  "name": "Side to Side Box Shuffle",
+  "aliases": [],
+  "category": "plyometrics",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "other",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [
+    "abductors",
+    "adductors",
+    "calves",
+    "hamstrings"
+  ],
+  "instructions": [
+    "Stand to one side of the box with your left foot resting on the middle of it.",
+    "To begin, jump up and over to the other side of the box, landing with your right foot on top of the box and your left foot on the floor. Swing your arms to aid your movement.",
+    "Continue shuffling back and forth across the box."
+  ],
+  "images": [
+    "images/side-to-side-box-shuffle/0.webp",
+    "images/side-to-side-box-shuffle/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Side_to_Side_Box_Shuffle"
+  }
+}

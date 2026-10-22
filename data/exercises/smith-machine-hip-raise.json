@@ -1,0 +1,29 @@
+{
+  "formatVersion": 1,
+  "id": "smith-machine-hip-raise",
+  "name": "Smith Machine Hip Raise",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "pull",
+  "mechanic": "isolation",
+  "equipment": "machine",
+  "primaryMuscles": [
+    "abdominals"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [
+    "Position a bench in the rack and load the bar to an appropriate weight. Lie down on the bench, placing the bottom of your feet against the bar. Unlock the bar and extend your legs. You may need to use your hands to assist you. For added stability grasp the sides of the Smith Machine. This will be your starting position.",
+    "Initiate the movement by rotating your pelvis, flexing your spine to raise your hips off of the bench. Maintain a slight bend in the knees throughout the motion.",
+    "After a brief pause, return the hips to the bench.",
+    "Repeat for the desired number of repetitions."
+  ],
+  "images": [
+    "images/smith-machine-hip-raise/0.webp",
+    "images/smith-machine-hip-raise/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Smith_Machine_Hip_Raise"
+  }
+}

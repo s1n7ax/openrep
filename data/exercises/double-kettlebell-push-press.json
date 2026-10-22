@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "id": "double-kettlebell-push-press",
+  "name": "Double Kettlebell Push Press",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "kettlebells",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "quadriceps",
+    "triceps"
+  ],
+  "instructions": [
+    "Clean two kettlebells to your shoulders.",
+    "Squat down a few inches and reverse the motion rapidly. Use the momentum from the legs to drive the kettlebells overhead.",
+    "Once the kettlebells are locked out, lower the kettlebells to your shoulders and repeat."
+  ],
+  "images": [
+    "images/double-kettlebell-push-press/0.webp",
+    "images/double-kettlebell-push-press/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Double_Kettlebell_Push_Press"
+  }
+}

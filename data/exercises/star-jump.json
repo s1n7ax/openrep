@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "id": "star-jump",
+  "name": "Star Jump",
+  "aliases": [],
+  "category": "plyometrics",
+  "level": "beginner",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+    "quadriceps"
+  ],
+  "secondaryMuscles": [
+    "calves",
+    "glutes",
+    "hamstrings",
+    "shoulders"
+  ],
+  "instructions": [
+    "Begin in a relaxed stance with your feet shoulder width apart and hold your arms close to the body.",
+    "To initiate the move, squat down halfway and explode back up as high as possible. Fully extend your entire body, spreading your legs and arms away from the body.",
+    "As you land, bring your limbs back in and absorb your impact through the legs."
+  ],
+  "images": [
+    "images/star-jump/0.webp",
+    "images/star-jump/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Star_Jump"
+  }
+}

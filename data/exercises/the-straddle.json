@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "id": "the-straddle",
+  "name": "The Straddle",
+  "aliases": [],
+  "category": "stretching",
+  "level": "beginner",
+  "force": "static",
+  "mechanic": null,
+  "equipment": null,
+  "primaryMuscles": [
+    "hamstrings"
+  ],
+  "secondaryMuscles": [
+    "adductors",
+    "calves"
+  ],
+  "instructions": [
+    "Begin in a seated, upright position. Start by extending your legs in front of you in a V.",
+    "With your hands on the floor, lean forward as far as possible. Hold for 10 to 20 seconds."
+  ],
+  "images": [
+    "images/the-straddle/0.webp",
+    "images/the-straddle/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "The_Straddle"
+  }
+}

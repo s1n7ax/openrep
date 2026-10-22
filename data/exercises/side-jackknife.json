@@ -1,0 +1,24 @@
+{
+  "formatVersion": 1,
+  "id": "side-jackknife",
+  "name": "Side Jackknife",
+  "aliases": [],
+  "category": "strength",
+  "level": "beginner",
+  "force": "pull",
+  "mechanic": "compound",
+  "equipment": "body only",
+  "primaryMuscles": [
+    "abdominals"
+  ],
+  "secondaryMuscles": [],
+  "instructions": [],
+  "images": [
+    "images/side-jackknife/0.webp",
+    "images/side-jackknife/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Side_Jackknife"
+  }
+}

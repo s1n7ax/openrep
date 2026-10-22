@@ -1,0 +1,37 @@
+{
+  "formatVersion": 1,
+  "id": "landmine-linear-jammer",
+  "name": "Landmine Linear Jammer",
+  "aliases": [],
+  "category": "strength",
+  "level": "intermediate",
+  "force": "push",
+  "mechanic": "compound",
+  "equipment": "barbell",
+  "primaryMuscles": [
+    "shoulders"
+  ],
+  "secondaryMuscles": [
+    "abdominals",
+    "calves",
+    "chest",
+    "hamstrings",
+    "quadriceps",
+    "triceps"
+  ],
+  "instructions": [
+    "Position a bar into landmine or, lacking one, securely anchor it in a corner. Load the bar to an appropriate weight and position the handle attachment on the bar.",
+    "Raise the bar from the floor, taking the handles to your shoulders. This will be your starting position.",
+    "In an athletic stance, squat by flexing your hips and setting your hips back, keeping your arms flexed.",
+    "Reverse the motion by powerfully extending through the hips, knees, and ankles, while also extending the elbows to straighten the arms. This movement should be done explosively, coming out of the squat to full extension as powerfully as possible.",
+    "Return to the starting position."
+  ],
+  "images": [
+    "images/landmine-linear-jammer/0.webp",
+    "images/landmine-linear-jammer/1.webp"
+  ],
+  "source": {
+    "name": "free-exercise-db",
+    "id": "Landmine_Linear_Jammer"
+  }
+}
