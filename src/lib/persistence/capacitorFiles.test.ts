@@ -9,6 +9,9 @@ class MockFilesystemError extends Error {
 // `@capacitor/filesystem` mocked with an in-memory store, so the adapter and
 // the load / save logic above it are tested against the plugin's API.
 const store = vi.hoisted(() => new Map<string, string>());
+// Directories that exist while empty, like the `openrep` folder the iOS app
+// creates at launch (AppDelegate.swift) to exclude it from backup.
+const emptyDirs = vi.hoisted(() => new Set<string>());
 vi.mock('@capacitor/filesystem', () => {
   const missing = (path: string) => new MockFilesystemError(`File does not exist: ${path}`);
   return {
@@ -16,7 +19,8 @@ vi.mock('@capacitor/filesystem', () => {
     Encoding: { UTF8: 'utf8' },
     Filesystem: {
       readdir: vi.fn(async ({ path }: { path: string }) => {
-        // Directories exist while they hold files; '' is the data directory itself.
+        // Directories exist while they hold files or are in `emptyDirs`; '' is
+        // the data directory itself.
         const prefix = path === '' ? '' : `${path}/`;
         const entries = new Map<string, 'file' | 'directory'>();
         for (const key of store.keys()) {
@@ -24,7 +28,11 @@ vi.mock('@capacitor/filesystem', () => {
           const [name, ...rest] = key.slice(prefix.length).split('/');
           entries.set(name!, rest.length > 0 ? 'directory' : 'file');
         }
-        if (path !== '' && entries.size === 0) throw missing(path);
+        for (const dir of emptyDirs) {
+          if (dir.startsWith(prefix))
+            entries.set(dir.slice(prefix.length).split('/')[0]!, 'directory');
+        }
+        if (path !== '' && entries.size === 0 && !emptyDirs.has(path)) throw missing(path);
         return { files: [...entries].map(([name, type]) => ({ name, type })) };
       }),
       readFile: vi.fn(async ({ path }: { path: string }) => {
@@ -52,18 +60,38 @@ vi.mock('@capacitor/filesystem', () => {
 const { Filesystem } = await import('@capacitor/filesystem');
 const { capacitorFiles } = await import('./capacitorFiles.ts');
 const { loadUserDataFile, saveUserDataFile } = await import('./userDataFile.ts');
+const { loadSavedCatalog } = await import('../catalog/source.ts');
 
 const NOW = new Date('2026-03-04T05:06:07.089Z');
 
 describe('capacitorFiles', () => {
   beforeEach(() => {
     store.clear();
+    emptyDirs.clear();
     vi.clearAllMocks();
   });
 
   it('lists nothing when the directory does not exist', async () => {
     expect(await capacitorFiles.list('openrep')).toEqual([]);
     expect(await capacitorFiles.list('openrep/nested')).toEqual([]);
+  });
+
+  it('reads an existing empty directory as a first launch (iOS creates it at launch)', async () => {
+    emptyDirs.add('openrep');
+    expect(await capacitorFiles.list('openrep')).toEqual([]);
+    // Listed directly: the directory exists, so the missing-directory fallback is not needed.
+    expect(Filesystem.readdir).toHaveBeenCalledTimes(1);
+    expect(await loadUserDataFile(capacitorFiles, NOW)).toEqual({
+      data: emptyUserData(),
+      corruptFile: null,
+    });
+    expect(await loadSavedCatalog(capacitorFiles)).toBeNull();
+    expect(store.size).toBe(0);
+    expect(Filesystem.rename).not.toHaveBeenCalled();
+
+    const data = { ...emptyUserData(), settings: { unit: 'lb' as const } };
+    await saveUserDataFile(capacitorFiles, data);
+    expect(await loadUserDataFile(capacitorFiles, NOW)).toEqual({ data, corruptFile: null });
   });
 
   it('rejects when an existing directory cannot be listed, so saved data is never replaced', async () => {

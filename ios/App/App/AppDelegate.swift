@@ -7,8 +7,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        excludeAppDataFromBackup()
         return true
+    }
+
+    /// Keeps the app's data folder out of iCloud and computer backups, so
+    /// personal data stays on the device; moving to a new phone goes through
+    /// Settings > Backup (Export / Import). The folder is `openrep` in
+    /// Documents, where `@capacitor/filesystem` puts `Directory.Data`
+    /// (`USER_DATA_DIR` in src/lib/persistence/userDataFile.ts). It runs
+    /// before the web view loads, creating the folder if it is missing; the
+    /// app reads an empty folder as a first launch.
+    private func excludeAppDataFromBackup() {
+        guard var folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("openrep", isDirectory: true) else {
+            CAPLog.print("Could not find the Documents directory to exclude app data from backup")
+            return
+        }
+        do {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            try folder.setResourceValues(values)
+        } catch {
+            CAPLog.print("Could not exclude \(folder.path) from backup: \(error)")
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
