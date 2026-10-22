@@ -27,8 +27,8 @@ function messagesFor(set: DataSet, file: string): string[] {
 
 function readJson(kind: 'exercises' | 'animations' | 'schedules', file: string) {
   const entry = valid[kind].find((f) => f.path === `${kind}/${file}`);
-  if (!entry) throw new Error(`fixture ${kind}/${file} missing`);
-  return JSON.parse(entry.content) as Record<string, unknown>;
+  expect(entry, `fixture ${kind}/${file}`).toBeDefined();
+  return JSON.parse(entry?.content ?? '{}') as Record<string, unknown>;
 }
 
 describe('validateData', () => {

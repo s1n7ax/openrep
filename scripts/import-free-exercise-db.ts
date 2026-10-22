@@ -33,20 +33,40 @@ const IMAGE_MAX_WIDTH = 400;
 const IMAGE_QUALITY = 65;
 const CONCURRENCY = 16;
 
+/** A download from GitHub failed (network error or HTTP error status). */
+class DownloadError extends Error {
+  override name = 'DownloadError';
+}
+
+/** Two upstream ids convert to the same OpenRep id. */
+class IdCollisionError extends Error {
+  override name = 'IdCollisionError';
+}
+
+/** `scripts/aliases.json` names an exercise id that the dataset does not have. */
+class UnknownAliasIdError extends Error {
+  override name = 'UnknownAliasIdError';
+}
+
+/**
+ * GETs a URL, retrying network errors, HTTP 429 and HTTP 5xx with backoff.
+ *
+ * @throws {DownloadError} when every attempt fails.
+ */
 async function fetchWithRetry(url: string, attempts = 4): Promise<Response> {
-  let lastError: unknown;
+  let reason = '';
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       const response = await fetch(url);
       if (response.ok) return response;
-      lastError = new Error(`GET ${url} failed: HTTP ${response.status}`);
+      reason = `HTTP ${response.status}`;
       if (response.status < 500 && response.status !== 429) break;
     } catch (error) {
-      lastError = error;
+      reason = error instanceof Error ? error.message : String(error);
     }
     await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
   }
-  throw lastError;
+  throw new DownloadError(`GET ${url} failed: ${reason}`);
 }
 
 async function exists(file: string): Promise<boolean> {
@@ -80,6 +100,13 @@ async function runPool<T>(items: T[], worker: (item: T) => Promise<void>): Promi
   await Promise.all(runners);
 }
 
+/**
+ * Runs the import.
+ *
+ * @throws {DownloadError} when the dataset or an image cannot be downloaded.
+ * @throws {IdCollisionError} when two upstream ids convert to the same id.
+ * @throws {UnknownAliasIdError} when `scripts/aliases.json` names an unknown id.
+ */
 async function main(): Promise<void> {
   const force = process.argv.includes('--force');
 
@@ -93,13 +120,15 @@ async function main(): Promise<void> {
     const id = toKebabId(exercise.id);
     const other = ids.get(id);
     if (other !== undefined) {
-      throw new Error(`Id collision: "${other}" and "${exercise.id}" both become "${id}"`);
+      throw new IdCollisionError(`"${other}" and "${exercise.id}" both become "${id}"`);
     }
     ids.set(id, exercise.id);
   }
   const unknownAliasIds = Object.keys(curatedAliases).filter((id) => !ids.has(id));
   if (unknownAliasIds.length > 0) {
-    throw new Error(`scripts/aliases.json has unknown exercise ids: ${unknownAliasIds.join(', ')}`);
+    throw new UnknownAliasIdError(
+      `scripts/aliases.json has unknown exercise ids: ${unknownAliasIds.join(', ')}`,
+    );
   }
 
   await mkdir(EXERCISES_DIR, { recursive: true });
@@ -135,4 +164,11 @@ async function main(): Promise<void> {
   console.log(`Imported ${upstream.length} exercises (${converted} images converted).`);
 }
 
-await main();
+try {
+  await main();
+} catch (error) {
+  console.error(
+    `Import failed: ${error instanceof Error ? `${error.name}: ${error.message}` : error}`,
+  );
+  process.exit(1);
+}
