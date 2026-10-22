@@ -32,6 +32,30 @@ export async function loadSavedCatalog(files: TextFiles): Promise<Catalog | null
   return result.value;
 }
 
+/** A finished catalog download: the body text, or the HTTP status of an error answer. */
+export type CatalogDownload = { ok: true; text: string } | { ok: false; status: number };
+
+/**
+ * Downloads the catalog text from `url`, bypassing the HTTP cache. Rejects
+ * when there is no connection or when the download (body included) takes
+ * longer than `timeoutMs`.
+ *
+ * The timeout uses an AbortController and a timer, not
+ * `AbortSignal.timeout`, which iOS 15 Safari and Android WebViews before
+ * Chromium 103 lack.
+ */
+export async function downloadCatalog(url: string, timeoutMs: number): Promise<CatalogDownload> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { cache: 'no-store', signal: controller.signal });
+    if (!response.ok) return { ok: false, status: response.status };
+    return { ok: true, text: await response.text() };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Saves downloaded catalog text (already validated) crash-safely. Rejects when writing fails. */
 export async function saveCatalog(files: TextFiles, text: string): Promise<void> {
   await writeFileAtomically(files, SAVED_CATALOG_DIR, SAVED_CATALOG_FILE, text);

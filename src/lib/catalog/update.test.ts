@@ -1,9 +1,9 @@
 import path from 'node:path';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { MemoryFiles } from '../../../tests/helpers/memoryFiles.ts';
 import { loadCatalog } from '../../../scripts/lib/catalog.ts';
 import type { Catalog } from '../schema/catalog.ts';
-import { exerciseImageUrl, loadSavedCatalog, saveCatalog } from './source.ts';
+import { downloadCatalog, exerciseImageUrl, loadSavedCatalog, saveCatalog } from './source.ts';
 import {
   chooseCatalog,
   compareCatalogs,
@@ -190,6 +190,57 @@ describe('saved catalog', () => {
     await saveCatalog(files, JSON.stringify(current));
     files.fail.list = () => true;
     expect(await loadSavedCatalog(files)).toBeNull();
+  });
+});
+
+describe('downloadCatalog', () => {
+  const URL = 'https://example.test/catalog.json';
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  /** A fetch that answers `body` after `delayMs`, or rejects when its signal aborts first. */
+  function slowFetch(delayMs: number, body: string, status = 200) {
+    return vi.fn(
+      (_url: string, init: RequestInit) =>
+        new Promise<Response>((resolve, reject) => {
+          const timer = setTimeout(() => resolve(new Response(body, { status })), delayMs);
+          init.signal?.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(new DOMException('The operation was aborted.', 'AbortError'));
+          });
+        }),
+    );
+  }
+
+  it('works where AbortSignal.timeout does not exist (iOS 15, older Android WebViews)', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('AbortSignal', { ...AbortSignal, timeout: undefined });
+    const fetch = slowFetch(1000, '{"catalog":true}');
+    vi.stubGlobal('fetch', fetch);
+
+    const download = downloadCatalog(URL, 30_000);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(await download).toEqual({ ok: true, text: '{"catalog":true}' });
+    expect(fetch).toHaveBeenCalledWith(URL, expect.objectContaining({ cache: 'no-store' }));
+    // The timeout timer is cleared once the download finished.
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('gives up after the timeout', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('fetch', slowFetch(60_000, '{}'));
+    const download = downloadCatalog(URL, 30_000);
+    const outcome = expect(download).rejects.toThrow(/aborted/);
+    await vi.advanceTimersByTimeAsync(30_000);
+    await outcome;
+  });
+
+  it('reports the status of an error answer', async () => {
+    vi.stubGlobal('fetch', slowFetch(0, 'Not found', 404));
+    expect(await downloadCatalog(URL, 30_000)).toEqual({ ok: false, status: 404 });
   });
 });
 

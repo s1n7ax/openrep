@@ -6,6 +6,7 @@
 import {
   BUNDLED_CATALOG_PATH,
   CATALOG_URL,
+  downloadCatalog,
   exerciseImageUrl,
   loadSavedCatalog,
   saveCatalog,
@@ -210,24 +211,20 @@ class CatalogStore {
   }
 
   async #download(): Promise<CatalogUpdateResult> {
-    let text: string;
+    let download;
     try {
-      const response = await fetch(CATALOG_URL, {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS),
-      });
-      if (!response.ok) {
-        console.error(`Catalog update failed: HTTP ${response.status} from ${CATALOG_URL}`);
-        this.#recordCheck();
-        return { kind: 'failed' };
-      }
-      text = await response.text();
+      download = await downloadCatalog(CATALOG_URL, DOWNLOAD_TIMEOUT_MS);
     } catch (error) {
       // fetch rejects without a connection (and on timeout): not an app error.
       console.info('Catalog update skipped, offline:', error);
       return { kind: 'offline' };
     }
     this.#recordCheck();
+    if (!download.ok) {
+      console.error(`Catalog update failed: HTTP ${download.status} from ${CATALOG_URL}`);
+      return { kind: 'failed' };
+    }
+    const text = download.text;
     const decision = evaluateDownloadedCatalog(text, this.catalog);
     if (decision.kind !== 'accept') return decision;
     try {
