@@ -22,7 +22,7 @@
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { activeSession, findPlan, planStats } from '../lib/userData/selectors.ts';
   import { deleteSession, startSession } from '../lib/userData/sessions.ts';
-  import { formatDuration, formatTarget } from '../lib/userData/targets.ts';
+  import { formatTargetWithRest } from '../lib/userData/targets.ts';
 
   let { planId }: { planId: string } = $props();
 
@@ -175,9 +175,7 @@
                         </span>
                       {/if}
                       <span class="target" data-testid="plan-exercise-target">
-                        {formatTarget(entry, unit)}{entry.restSec !== undefined
-                          ? ` · Rest ${formatDuration(entry.restSec)}`
-                          : ''}
+                        {formatTargetWithRest(entry, unit)}
                       </span>
                       {#if entry.notes}
                         <span class="notes">{entry.notes}</span>

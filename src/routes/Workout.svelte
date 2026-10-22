@@ -18,7 +18,7 @@
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findSession, lastTimeFor } from '../lib/userData/selectors.ts';
   import { addLoggedSet, deleteSession, finishSession } from '../lib/userData/sessions.ts';
-  import { formatDuration, formatReps, formatTarget } from '../lib/userData/targets.ts';
+  import { formatReps, formatTargetWithRest } from '../lib/userData/targets.ts';
   import { formatDay, formatSets, sessionSetCounts } from '../lib/userData/workoutText.ts';
 
   let { sessionId }: { sessionId: string } = $props();
@@ -142,9 +142,7 @@
                 </span>
               {/if}
               <span class="target" data-testid="workout-target">
-                {formatTarget(exercise.target, unit)}{exercise.target.restSec !== undefined
-                  ? ` · Rest ${formatDuration(exercise.target.restSec)}`
-                  : ''}
+                {formatTargetWithRest(exercise.target, unit)}
               </span>
               {#if exercise.target.notes}
                 <span class="notes">{exercise.target.notes}</span>

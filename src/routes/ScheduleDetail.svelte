@@ -15,7 +15,7 @@
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { copyScheduleToPlan, scheduleExerciseCount } from '../lib/userData/schedules.ts';
-  import { formatDuration, formatTarget } from '../lib/userData/targets.ts';
+  import { formatTargetWithRest } from '../lib/userData/targets.ts';
 
   let { scheduleId }: { scheduleId: string } = $props();
 
@@ -130,11 +130,7 @@
                     {#if shown.note}
                       <span class="note">{shown.note}</span>
                     {/if}
-                    <span class="target">
-                      {formatTarget(entry, unit)}{entry.restSec !== undefined
-                        ? ` · Rest ${formatDuration(entry.restSec)}`
-                        : ''}
-                    </span>
+                    <span class="target">{formatTargetWithRest(entry, unit)}</span>
                     {#if entry.notes}
                       <span class="notes">{entry.notes}</span>
                     {/if}

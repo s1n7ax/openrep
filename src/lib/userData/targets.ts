@@ -45,6 +45,12 @@ export function formatTarget(target: PlanTarget, unit: Unit): string {
   return parts.join(' · ');
 }
 
+/** `formatTarget` followed by the rest time: "3 × 8–12 · 60 kg · Rest 1 min 30 s". */
+export function formatTargetWithRest(target: PlanTarget, unit: Unit): string {
+  const text = formatTarget(target, unit);
+  return target.restSec === undefined ? text : `${text} · Rest ${formatDuration(target.restSec)}`;
+}
+
 /** The target editor's fields, as typed. */
 export interface TargetForm {
   mode: 'reps' | 'time';

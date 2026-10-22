@@ -18,7 +18,7 @@ import {
   updateLoggedSet,
 } from './sessions.ts';
 import { setCatalogMeta, setUnit } from './settings.ts';
-import { defaultTarget, formatDuration, formatTarget } from './targets.ts';
+import { defaultTarget, formatDuration, formatTarget, formatTargetWithRest } from './targets.ts';
 
 const T0 = '2026-01-01T10:00:00.000Z';
 const T1 = '2026-01-01T11:00:00.000Z';
@@ -325,5 +325,15 @@ describe('targets', () => {
     expect(formatTarget({ sets: 2, durationSec: 90 }, 'kg')).toBe('2 × 1 min 30 s');
     expect(formatDuration(45)).toBe('45 s');
     expect(formatDuration(120)).toBe('2 min');
+  });
+
+  it('adds the rest time when there is one', () => {
+    expect(formatTargetWithRest({ sets: 3, reps: '8', weightKg: 60, restSec: 90 }, 'kg')).toBe(
+      '3 × 8 · 60 kg · Rest 1 min 30 s',
+    );
+    expect(formatTargetWithRest({ sets: 2, durationSec: 45, restSec: 0 }, 'kg')).toBe(
+      '2 × 45 s · Rest 0 s',
+    );
+    expect(formatTargetWithRest({ sets: 3, reps: '8-12' }, 'kg')).toBe('3 × 8–12');
   });
 });
