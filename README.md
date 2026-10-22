@@ -34,6 +34,22 @@ works offline.
 - **Backup**: export everything (plans, custom exercises, history, settings)
   to one file and import it on this or another phone.
 
+## Install
+
+**Android**: open the [latest release](https://github.com/s1n7ax/openrep/releases/latest)
+on your phone and download `OpenRep-<version>.apk`. Open the file; Android
+asks you to allow your browser (or file manager) to install unknown apps.
+Allow it, go back and tap **Install**. Next to each APK is a `.sha256` file
+with its SHA-256 checksum.
+
+To update, install the newer APK from the Releases page the same way: it
+installs over the previous version and keeps your data. This works only
+between APKs from the Releases page; a build from elsewhere (such as a debug
+build) is signed with a different key and does not install over it.
+
+**iOS**: there is no direct-download install yet. You can build the app from
+source with Xcode (see [Building](#building)).
+
 ## Privacy
 
 - No account, no login, no analytics, no ads, no tracking.

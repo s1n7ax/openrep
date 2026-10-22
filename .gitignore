@@ -22,6 +22,10 @@ android/local.properties
 *.apk
 *.aab
 
+# Signing keys (release builds read the keystore from ANDROID_KEYSTORE_FILE)
+*.jks
+*.keystore
+
 # iOS build outputs
 ios/App/build/
 ios/App/Pods/

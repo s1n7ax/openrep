@@ -183,6 +183,7 @@ Other scripts:
 | `npm run generate:schema`              | Regenerates `data/schema/*.v1.json` after changing a schema in `src/lib/schema/`.                                                          |
 | `npm run import:free-exercise-db`      | Re-imports free-exercise-db at the pinned commit (keeps existing images unless `--force`). Curated aliases live in `scripts/aliases.json`. |
 | `npm run generate:app-assets`          | Regenerates the app icons and splash screens from `resources/icon.svg`.                                                                    |
+| `npm run check:apk-version -- <apk>`   | Checks that an APK's versionName and versionCode come from `package.json`'s version (needs `ANDROID_HOME`).                                |
 
 ### NixOS notes
 
@@ -205,5 +206,8 @@ Other scripts:
   `src/app.css`.
 - The data formats are defined once, in `src/lib/schema/`. After changing one,
   run `npm run generate:schema` and update `docs/data-format.md`.
-- Commit messages follow [Conventional Commits](https://www.conventionalcommits.org)
-  (`feat(ui): …`, `fix(data): …`).
+- Pull request titles and commit messages follow
+  [Conventional Commits](https://www.conventionalcommits.org) (`feat(ui): …`,
+  `fix(data): …`). Pull requests are squash-merged, and release-please builds
+  the changelog and the next version from these messages (`feat` → minor,
+  `fix` → patch).

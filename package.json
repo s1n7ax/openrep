@@ -29,7 +29,8 @@
     "animation:fk-arms": "tsx scripts/animation-fk-arms.ts",
     "import:free-exercise-db": "tsx scripts/import-free-exercise-db.ts",
     "generate:app-assets": "tsx scripts/generate-app-assets.ts",
-    "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
+    "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
+    "check:apk-version": "tsx scripts/check-apk-version.ts"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",
