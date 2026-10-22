@@ -181,7 +181,7 @@ class CatalogStore {
    * or more. Call after user data and the catalog are loaded.
    */
   async checkOnLaunch(): Promise<CatalogUpdateResult | null> {
-    this.#recordRevision();
+    this.recordRevision();
     if (!isUpdateCheckDue(userData.data.catalogMeta.lastCheckedAt, new Date())) return null;
     return this.checkForUpdate();
   }
@@ -238,7 +238,7 @@ class CatalogStore {
     }
     this.#view = viewOf(decision.catalog);
     this.#source = 'saved';
-    this.#recordRevision();
+    this.recordRevision();
     return { kind: 'updated', newExercises: decision.newExercises };
   }
 
@@ -247,8 +247,12 @@ class CatalogStore {
     userData.update((data) => setCatalogMeta(data, { lastCheckedAt: new Date().toISOString() }));
   }
 
-  /** Keeps `catalogMeta.revision` in user data in sync: the saved catalog's revision, or null for the bundled one. */
-  #recordRevision(): void {
+  /**
+   * Keeps `catalogMeta.revision` in user data in sync: the saved catalog's
+   * revision, or null for the bundled one. Called at launch, after an update
+   * and after a backup (possibly from another device) replaced user data.
+   */
+  recordRevision(): void {
     if (userData.status !== 'ready' || !this.catalog) return;
     const revision = this.#source === 'saved' ? this.catalog.revision : null;
     userData.update((data) => setCatalogMeta(data, { revision }));

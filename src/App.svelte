@@ -11,7 +11,6 @@
   import { href, paths, router, tabOf, type Route } from './lib/router.ts';
   import { catalog } from './lib/stores/catalog.svelte.ts';
   import { userData } from './lib/stores/userData.svelte.ts';
-  import ComingSoon from './routes/ComingSoon.svelte';
   import CustomExerciseDetail from './routes/CustomExerciseDetail.svelte';
   import CustomExerciseForm from './routes/CustomExerciseForm.svelte';
   import DevPose from './routes/DevPose.svelte';
@@ -26,6 +25,7 @@
   import PlansList from './routes/PlansList.svelte';
   import ScheduleDetail from './routes/ScheduleDetail.svelte';
   import SchedulesList from './routes/SchedulesList.svelte';
+  import Settings from './routes/Settings.svelte';
   import Workout from './routes/Workout.svelte';
 
   router.start();
@@ -112,7 +112,7 @@
           {:else if route.name === 'history-session'}
             <HistorySession sessionId={route.sessionId} />
           {:else if route.name === 'settings'}
-            <ComingSoon title="Settings" icon="settings" />
+            <Settings />
           {:else}
             <NotFound />
           {/if}

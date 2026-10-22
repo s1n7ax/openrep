@@ -31,6 +31,8 @@ export default defineConfig(
       },
       globals: {
         ...globals.browser,
+        // Set by Vite's `define` (see vite.config.ts and src/env.d.ts).
+        __APP_VERSION__: 'readonly',
       },
     },
   },
