@@ -6,37 +6,38 @@
   "keyframes": [
     {
       "t": 0,
-      "ease": "easeIn",
       "pose": {
-        "pelvis": {"position": [0, 0.965, -0.2], "rotation": [0, 0, 0]},
+        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
+        "neck": [-3, 0, 0],
         "leftShoulder": [73.5, -24.4, 66.5],
         "leftElbow": [-109.3, 0, 0],
         "leftWrist": [0, 0, 0],
         "rightShoulder": [73.5, 24.4, -66.5],
         "rightElbow": [-109.3, 0, 0],
         "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0, -0.06], "pole": [0.14, 0.5, 1]},
-        "rightFoot": {"target": [-0.11, 0, -0.06], "pole": [-0.14, 0.5, 1]}
+        "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
+        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
       }
     },
     {
-      "t": 0.08,
+      "t": 0.04,
+      "ease": "easeIn",
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
+        "neck": [-3, 0, 0],
+        "leftShoulder": [73.5, -24.4, 66.5],
+        "leftElbow": [-109.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [73.5, 24.4, -66.5],
+        "rightElbow": [-109.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
+        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
+      }
+    },
+    {
+      "t": 0.12,
       "ease": "easeOut",
-      "pose": {
-        "pelvis": {"position": [0, 0.92, 0.04], "rotation": [2, 0, 0]},
-        "leftShoulder": [73.5, -24.4, 66.5],
-        "leftElbow": [-109.3, 0, 0],
-        "leftWrist": [0, 0, 0],
-        "rightShoulder": [73.5, 24.4, -66.5],
-        "rightElbow": [-109.3, 0, 0],
-        "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0.13, 0.42], "pole": [0.2, 0.6, 1.5]},
-        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.14, 0.5, 1]}
-      }
-    },
-    {
-      "t": 0.16,
-      "ease": "easeIn",
       "pose": {
         "pelvis": {"position": [0, 0.8, 0.3], "rotation": [3, 0, 0]},
         "leftShoulder": [73.5, -24.4, 66.5],
@@ -47,71 +48,25 @@
         "rightWrist": [0, 0, 0],
         "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
         "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
+      }
+    },
+    {
+      "t": 0.2,
+      "ease": "easeIn",
+      "pose": {
+        "pelvis": {"position": [0, 0.92, 0.04], "rotation": [2, 0, 0]},
+        "leftShoulder": [73.5, -24.4, 66.5],
+        "leftElbow": [-109.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [73.5, 24.4, -66.5],
+        "rightElbow": [-109.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.11, 0.13, 0.42], "pole": [0.2, 0.6, 1.5]},
+        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.14, 0.5, 1]}
       }
     },
     {
       "t": 0.25,
-      "pose": {
-        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
-        "neck": [-3, 0, 0],
-        "leftShoulder": [73.5, -24.4, 66.5],
-        "leftElbow": [-109.3, 0, 0],
-        "leftWrist": [0, 0, 0],
-        "rightShoulder": [73.5, 24.4, -66.5],
-        "rightElbow": [-109.3, 0, 0],
-        "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
-        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
-      }
-    },
-    {
-      "t": 0.29,
-      "ease": "easeIn",
-      "pose": {
-        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
-        "neck": [-3, 0, 0],
-        "leftShoulder": [73.5, -24.4, 66.5],
-        "leftElbow": [-109.3, 0, 0],
-        "leftWrist": [0, 0, 0],
-        "rightShoulder": [73.5, 24.4, -66.5],
-        "rightElbow": [-109.3, 0, 0],
-        "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
-        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
-      }
-    },
-    {
-      "t": 0.37,
-      "ease": "easeOut",
-      "pose": {
-        "pelvis": {"position": [0, 0.8, 0.3], "rotation": [3, 0, 0]},
-        "leftShoulder": [73.5, -24.4, 66.5],
-        "leftElbow": [-109.3, 0, 0],
-        "leftWrist": [0, 0, 0],
-        "rightShoulder": [73.5, 24.4, -66.5],
-        "rightElbow": [-109.3, 0, 0],
-        "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
-        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
-      }
-    },
-    {
-      "t": 0.45,
-      "ease": "easeIn",
-      "pose": {
-        "pelvis": {"position": [0, 0.92, 0.04], "rotation": [2, 0, 0]},
-        "leftShoulder": [73.5, -24.4, 66.5],
-        "leftElbow": [-109.3, 0, 0],
-        "leftWrist": [0, 0, 0],
-        "rightShoulder": [73.5, 24.4, -66.5],
-        "rightElbow": [-109.3, 0, 0],
-        "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0.13, 0.42], "pole": [0.2, 0.6, 1.5]},
-        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.14, 0.5, 1]}
-      }
-    },
-    {
-      "t": 0.5,
       "ease": "easeIn",
       "pose": {
         "pelvis": {"position": [0, 0.965, -0.2], "rotation": [0, 0, 0]},
@@ -126,7 +81,7 @@
       }
     },
     {
-      "t": 0.58,
+      "t": 0.33,
       "ease": "easeOut",
       "pose": {
         "pelvis": {"position": [0, 0.92, 0.04], "rotation": [2, 0, 0]},
@@ -141,7 +96,7 @@
       }
     },
     {
-      "t": 0.66,
+      "t": 0.41,
       "ease": "easeIn",
       "pose": {
         "pelvis": {"position": [0, 0.8, 0.3], "rotation": [3, 0, 0]},
@@ -153,57 +108,87 @@
         "rightWrist": [0, 0, 0],
         "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.15, -1, 0.7]},
         "rightFoot": {"target": [-0.11, 0, 0.98], "pole": [-0.2, 0.6, 1.5]}
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
+        "neck": [-3, 0, 0],
+        "leftShoulder": [73.5, -24.4, 66.5],
+        "leftElbow": [-109.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [73.5, 24.4, -66.5],
+        "rightElbow": [-109.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.15, -1, 0.7]},
+        "rightFoot": {"target": [-0.11, 0, 0.98], "pole": [-0.2, 0.6, 1.5]}
+      }
+    },
+    {
+      "t": 0.54,
+      "ease": "easeIn",
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
+        "neck": [-3, 0, 0],
+        "leftShoulder": [73.5, -24.4, 66.5],
+        "leftElbow": [-109.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [73.5, 24.4, -66.5],
+        "rightElbow": [-109.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.15, -1, 0.7]},
+        "rightFoot": {"target": [-0.11, 0, 0.98], "pole": [-0.2, 0.6, 1.5]}
+      }
+    },
+    {
+      "t": 0.62,
+      "ease": "easeOut",
+      "pose": {
+        "pelvis": {"position": [0, 0.8, 0.3], "rotation": [3, 0, 0]},
+        "leftShoulder": [73.5, -24.4, 66.5],
+        "leftElbow": [-109.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [73.5, 24.4, -66.5],
+        "rightElbow": [-109.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.15, -1, 0.7]},
+        "rightFoot": {"target": [-0.11, 0, 0.98], "pole": [-0.2, 0.6, 1.5]}
+      }
+    },
+    {
+      "t": 0.7,
+      "ease": "easeIn",
+      "pose": {
+        "pelvis": {"position": [0, 0.92, 0.04], "rotation": [2, 0, 0]},
+        "leftShoulder": [73.5, -24.4, 66.5],
+        "leftElbow": [-109.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [73.5, 24.4, -66.5],
+        "rightElbow": [-109.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.14, 0.5, 1]},
+        "rightFoot": {"target": [-0.11, 0.13, 0.42], "pole": [-0.2, 0.6, 1.5]}
       }
     },
     {
       "t": 0.75,
-      "pose": {
-        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
-        "neck": [-3, 0, 0],
-        "leftShoulder": [73.5, -24.4, 66.5],
-        "leftElbow": [-109.3, 0, 0],
-        "leftWrist": [0, 0, 0],
-        "rightShoulder": [73.5, 24.4, -66.5],
-        "rightElbow": [-109.3, 0, 0],
-        "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.15, -1, 0.7]},
-        "rightFoot": {"target": [-0.11, 0, 0.98], "pole": [-0.2, 0.6, 1.5]}
-      }
-    },
-    {
-      "t": 0.79,
       "ease": "easeIn",
       "pose": {
-        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
-        "neck": [-3, 0, 0],
+        "pelvis": {"position": [0, 0.965, -0.2], "rotation": [0, 0, 0]},
         "leftShoulder": [73.5, -24.4, 66.5],
         "leftElbow": [-109.3, 0, 0],
         "leftWrist": [0, 0, 0],
         "rightShoulder": [73.5, 24.4, -66.5],
         "rightElbow": [-109.3, 0, 0],
         "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.15, -1, 0.7]},
-        "rightFoot": {"target": [-0.11, 0, 0.98], "pole": [-0.2, 0.6, 1.5]}
+        "leftFoot": {"target": [0.11, 0, -0.06], "pole": [0.14, 0.5, 1]},
+        "rightFoot": {"target": [-0.11, 0, -0.06], "pole": [-0.14, 0.5, 1]}
       }
     },
     {
-      "t": 0.87,
+      "t": 0.83,
       "ease": "easeOut",
-      "pose": {
-        "pelvis": {"position": [0, 0.8, 0.3], "rotation": [3, 0, 0]},
-        "leftShoulder": [73.5, -24.4, 66.5],
-        "leftElbow": [-109.3, 0, 0],
-        "leftWrist": [0, 0, 0],
-        "rightShoulder": [73.5, 24.4, -66.5],
-        "rightElbow": [-109.3, 0, 0],
-        "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.15, -1, 0.7]},
-        "rightFoot": {"target": [-0.11, 0, 0.98], "pole": [-0.2, 0.6, 1.5]}
-      }
-    },
-    {
-      "t": 0.95,
-      "ease": "easeIn",
       "pose": {
         "pelvis": {"position": [0, 0.92, 0.04], "rotation": [2, 0, 0]},
         "leftShoulder": [73.5, -24.4, 66.5],
@@ -212,22 +197,38 @@
         "rightShoulder": [73.5, 24.4, -66.5],
         "rightElbow": [-109.3, 0, 0],
         "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0.012, -0.06], "pole": [0.14, 0.5, 1]},
-        "rightFoot": {"target": [-0.11, 0.13, 0.42], "pole": [-0.2, 0.6, 1.5]}
+        "leftFoot": {"target": [0.11, 0.13, 0.42], "pole": [0.2, 0.6, 1.5]},
+        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.14, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.91,
+      "ease": "easeIn",
+      "pose": {
+        "pelvis": {"position": [0, 0.8, 0.3], "rotation": [3, 0, 0]},
+        "leftShoulder": [73.5, -24.4, 66.5],
+        "leftElbow": [-109.3, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [73.5, 24.4, -66.5],
+        "rightElbow": [-109.3, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
+        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
       }
     },
     {
       "t": 1,
       "pose": {
-        "pelvis": {"position": [0, 0.965, -0.2], "rotation": [0, 0, 0]},
+        "pelvis": {"position": [0, 0.57, 0.42], "rotation": [4, 0, 0]},
+        "neck": [-3, 0, 0],
         "leftShoulder": [73.5, -24.4, 66.5],
         "leftElbow": [-109.3, 0, 0],
         "leftWrist": [0, 0, 0],
         "rightShoulder": [73.5, 24.4, -66.5],
         "rightElbow": [-109.3, 0, 0],
         "rightWrist": [0, 0, 0],
-        "leftFoot": {"target": [0.11, 0, -0.06], "pole": [0.14, 0.5, 1]},
-        "rightFoot": {"target": [-0.11, 0, -0.06], "pole": [-0.14, 0.5, 1]}
+        "leftFoot": {"target": [0.11, 0, 0.98], "pole": [0.2, 0.6, 1.5]},
+        "rightFoot": {"target": [-0.11, 0.012, -0.06], "pole": [-0.15, -1, 0.7]}
       }
     }
   ]
