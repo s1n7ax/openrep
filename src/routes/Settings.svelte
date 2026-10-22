@@ -103,6 +103,7 @@
       restoring = false;
     }
     catalog.recordRevision();
+    void userData.flush();
   }
 
   async function openRepository() {
