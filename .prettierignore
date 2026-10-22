@@ -8,6 +8,8 @@ blob-report/
 android/
 ios/
 package-lock.json
+# Written by release-please (see release-please-config.json).
+CHANGELOG.md
 
 # Data files are validated by `npm run validate:data`, not formatted: files
 # submitted from the app (JSON.stringify output) must pass CI unchanged.
