@@ -41,6 +41,7 @@ class UserDataStore {
   /** File an unreadable copy of the saved data was kept as; shown in a banner until dismissed. */
   corruptFile = $state<string | null>(null);
   #saver: Saver<UserData> | null = null;
+  #files: TextFiles = capacitorFiles;
   #loading: Promise<void> | null = null;
 
   get data(): UserData {
@@ -66,17 +67,23 @@ class UserDataStore {
     return this.#loading;
   }
 
+  #createSaver(): Saver<UserData> {
+    const files = this.#files;
+    return createSaver({
+      save: (data) => saveUserDataFile(files, data),
+      delayMs: SAVE_DELAY_MS,
+      onError: (error) => console.error('Saving user data failed:', error),
+      onState: (state) => (this.#saveState = state),
+    });
+  }
+
   async #load(files: TextFiles): Promise<void> {
+    this.#files = files;
     try {
       const loaded = await loadUserDataFile(files, new Date());
       this.#data = loaded.data;
       this.corruptFile = loaded.corruptFile;
-      this.#saver = createSaver({
-        save: (data) => saveUserDataFile(files, data),
-        delayMs: SAVE_DELAY_MS,
-        onError: (error) => console.error('Saving user data failed:', error),
-        onState: (state) => (this.#saveState = state),
-      });
+      this.#saver = this.#createSaver();
     } catch (error) {
       // UserDataUnreadableError is the expected case; anything else (a plugin
       // failure) is handled the same way: never risk overwriting saved data.
@@ -107,9 +114,28 @@ class UserDataStore {
     this.#saver?.schedule(next);
   }
 
-  /** Replaces all data (backup import) and saves it. */
-  replaceAll(data: UserData): void {
+  /**
+   * Replaces all data (backup import) and writes it to disk right away.
+   * Resolves once it is saved. When saving was disabled because the saved
+   * data could not be read, the restored data replaces that file and saving
+   * is turned back on.
+   *
+   * @throws {UserDataNotLoadedError} when called before `load` finished.
+   * Rejects with the file system's error when the data cannot be saved; it
+   * is replaced in memory anyway, and saving stays as it was (enabled: the
+   * write is retried on the next change; disabled: nothing is written).
+   */
+  async replaceAll(data: UserData): Promise<void> {
     this.update(() => data);
+    if (this.#saver) {
+      await this.#saver.save(data);
+      return;
+    }
+    // No saver: saving is disabled. Writing directly cannot overlap a save.
+    await saveUserDataFile(this.#files, data);
+    this.#saver = this.#createSaver();
+    this.#persistence = 'ok';
+    this.#saveState = 'saved';
   }
 
   /** Writes pending changes now; resolves when they are on disk (or failed). */

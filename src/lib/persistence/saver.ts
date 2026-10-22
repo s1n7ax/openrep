@@ -21,6 +21,12 @@ export interface Saver<T> {
   schedule(value: T): void;
   /** Writes the pending value now, if any, and resolves when all writes are done. */
   flush(): Promise<void>;
+  /**
+   * Writes `value` now, after any write in progress, and resolves once it is
+   * written. Rejects with the save's error when it fails; the value then
+   * stays pending and is retried like any failed write.
+   */
+  save(value: T): Promise<void>;
 }
 
 const NOTHING = Symbol('nothing pending');
@@ -38,31 +44,38 @@ export function createSaver<T>(options: SaverOptions<T>): Saver<T> {
     options.onState?.(state);
   }
 
-  function writePending(): Promise<void> {
+  /**
+   * Writes the pending value, if any, after the writes before it. Resolves
+   * when all writes are done, with the error of this write when it failed.
+   */
+  function writePending(): Promise<{ error: unknown } | null> {
     if (timer !== null) {
       clearTimeout(timer);
       timer = null;
     }
-    if (pending === NOTHING) return chain;
+    if (pending === NOTHING) return chain.then(() => null);
     const value = pending;
     pending = NOTHING;
     writing++;
     report();
-    chain = chain.then(async () => {
+    const write = chain.then(async () => {
       try {
         await options.save(value);
         failed = false;
+        return null;
       } catch (error) {
         failed = true;
         // Keep the value for the next attempt unless something newer is waiting.
         if (pending === NOTHING) pending = value;
         options.onError?.(error);
+        return { error };
       } finally {
         writing--;
         report();
       }
     });
-    return chain;
+    chain = write.then(() => undefined);
+    return write;
   }
 
   return {
@@ -72,6 +85,13 @@ export function createSaver<T>(options: SaverOptions<T>): Saver<T> {
       timer = setTimeout(() => void writePending(), options.delayMs);
       report();
     },
-    flush: writePending,
+    async flush() {
+      await writePending();
+    },
+    async save(value) {
+      pending = value;
+      const failure = await writePending();
+      if (failure) throw failure.error;
+    },
   };
 }

@@ -76,6 +76,34 @@ describe('createSaver', () => {
     expect(states.at(-1)).toBe('saved');
   });
 
+  it('save writes now, after the write in progress, and reports its own outcome', async () => {
+    const { save, writes } = controllableSave();
+    const saver = createSaver({ save, delayMs: 300 });
+    saver.schedule(1);
+    const first = saver.flush();
+    const saved = saver.save(2);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(writes.map((write) => write.value)).toEqual([1]);
+    writes[0]?.release();
+    await first;
+    await vi.advanceTimersByTimeAsync(0);
+    expect(writes.map((write) => write.value)).toEqual([1, 2]);
+    writes[1]?.release();
+    await expect(saved).resolves.toBeUndefined();
+
+    const failing = saver.save(3);
+    await vi.advanceTimersByTimeAsync(0);
+    const error = new DiskFullError('disk full');
+    writes[2]?.fail(error);
+    await expect(failing).rejects.toBe(error);
+    // The failed value is retried on the next flush.
+    const retry = saver.flush();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(writes.map((write) => write.value)).toEqual([1, 2, 3, 3]);
+    writes[3]?.release();
+    await retry;
+  });
+
   it('resolves a flush with nothing pending', async () => {
     const save = vi.fn(async (_value: number) => {});
     await createSaver({ save, delayMs: 300 }).flush();

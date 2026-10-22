@@ -33,6 +33,8 @@
 
   let fileInput: HTMLInputElement | undefined = $state();
   let exporting = $state(false);
+  /** A confirmed backup is being written to disk. */
+  let restoring = $state(false);
   /** A valid backup waiting for the user to confirm replacing everything. */
   let pendingImport = $state.raw<Backup | null>(null);
   let backupMessage = $state<string | null>(null);
@@ -83,14 +85,24 @@
     }
   }
 
-  function confirmImport() {
+  async function confirmImport() {
     const backup = pendingImport;
     pendingImport = null;
     if (!backup) return;
-    userData.replaceAll(backup.data);
+    clearBackupMessages();
+    restoring = true;
+    try {
+      await userData.replaceAll(backup.data);
+      backupMessage = `Backup restored: ${describeBackupSummary(summarizeBackup(backup.data))}.`;
+    } catch (error) {
+      console.error('Saving the restored backup failed:', error);
+      backupError =
+        'The backup was loaded but could not be saved, so it may be lost when the app closes. ' +
+        'Try importing it again.';
+    } finally {
+      restoring = false;
+    }
     catalog.recordRevision();
-    void userData.flush();
-    backupMessage = `Backup restored: ${describeBackupSummary(summarizeBackup(backup.data))}.`;
   }
 
   async function openRepository() {
@@ -193,6 +205,7 @@
         <button
           type="button"
           class="btn btn-outline"
+          disabled={restoring}
           data-testid="backup-import"
           onclick={() => fileInput?.click()}
         >
