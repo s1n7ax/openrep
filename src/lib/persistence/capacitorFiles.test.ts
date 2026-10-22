@@ -16,10 +16,16 @@ vi.mock('@capacitor/filesystem', () => {
     Encoding: { UTF8: 'utf8' },
     Filesystem: {
       readdir: vi.fn(async ({ path }: { path: string }) => {
-        const prefix = `${path}/`;
-        const names = [...store.keys()].filter((key) => key.startsWith(prefix));
-        if (names.length === 0) throw missing(path);
-        return { files: names.map((key) => ({ name: key.slice(prefix.length), type: 'file' })) };
+        // Directories exist while they hold files; '' is the data directory itself.
+        const prefix = path === '' ? '' : `${path}/`;
+        const entries = new Map<string, 'file' | 'directory'>();
+        for (const key of store.keys()) {
+          if (!key.startsWith(prefix)) continue;
+          const [name, ...rest] = key.slice(prefix.length).split('/');
+          entries.set(name!, rest.length > 0 ? 'directory' : 'file');
+        }
+        if (path !== '' && entries.size === 0) throw missing(path);
+        return { files: [...entries].map(([name, type]) => ({ name, type })) };
       }),
       readFile: vi.fn(async ({ path }: { path: string }) => {
         const data = store.get(path);
@@ -57,6 +63,26 @@ describe('capacitorFiles', () => {
 
   it('lists nothing when the directory does not exist', async () => {
     expect(await capacitorFiles.list('openrep')).toEqual([]);
+    expect(await capacitorFiles.list('openrep/nested')).toEqual([]);
+  });
+
+  it('rejects when an existing directory cannot be listed, so saved data is never replaced', async () => {
+    const saved = { ...emptyUserData(), settings: { unit: 'lb' as const } };
+    store.set('openrep/userdata.json', JSON.stringify(saved));
+    const ioError = new MockFilesystemError('I/O error');
+    vi.mocked(Filesystem.readdir).mockRejectedValueOnce(ioError);
+    await expect(capacitorFiles.list('openrep')).rejects.toBe(ioError);
+
+    vi.mocked(Filesystem.readdir).mockRejectedValueOnce(ioError);
+    await expect(loadUserDataFile(capacitorFiles, NOW)).rejects.toBe(ioError);
+    expect(store.get('openrep/userdata.json')).toBe(JSON.stringify(saved));
+  });
+
+  it('rejects when it cannot tell whether the directory exists', async () => {
+    const ioError = new MockFilesystemError('I/O error');
+    // Both the directory and the data directory above it fail to list.
+    vi.mocked(Filesystem.readdir).mockRejectedValueOnce(ioError).mockRejectedValueOnce(ioError);
+    await expect(capacitorFiles.list('openrep')).rejects.toBe(ioError);
   });
 
   it('writes UTF-8 into the data directory, creating parents, and reads Blobs back as text', async () => {

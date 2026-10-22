@@ -7,6 +7,7 @@ export class MemoryFilesError extends Error {
 
 /** Which operations of `MemoryFiles` should fail, for failure-path tests. */
 export interface MemoryFilesFailures {
+  list?: (dir: string) => boolean;
   read?: (path: string) => boolean;
   write?: (path: string) => boolean;
   remove?: (path: string) => boolean;
@@ -24,6 +25,7 @@ export class MemoryFiles implements TextFiles {
   }
 
   async list(dir: string): Promise<string[]> {
+    if (this.fail.list?.(dir)) throw new MemoryFilesError(`cannot list ${dir}`);
     const prefix = `${dir}/`;
     return [...this.files.keys()]
       .filter((path) => path.startsWith(prefix) && !path.slice(prefix.length).includes('/'))

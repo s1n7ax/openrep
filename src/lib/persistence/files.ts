@@ -9,7 +9,10 @@
  * `@capacitor/filesystem` in the app (`capacitorFiles.ts`) and in memory in tests.
  */
 export interface TextFiles {
-  /** Names of the files in `dir`; empty when the directory does not exist. */
+  /**
+   * Names of the files in `dir`; empty when the directory does not exist.
+   * Rejects when it exists but cannot be listed.
+   */
   list(dir: string): Promise<string[]>;
   /** The UTF-8 content of a file. Rejects when it cannot be read. */
   read(path: string): Promise<string>;
@@ -58,7 +61,8 @@ export type FallbackRead<T> = {
 /**
  * Reads `dir/name`, falling back to `dir/name.tmp` when the main file is
  * missing or invalid. `parse` turns the text into a value and throws when
- * the content is not valid.
+ * the content is not valid. Rejects with the file system's error when `dir`
+ * cannot be listed.
  */
 export async function readWithFallback<T>(
   files: TextFiles,

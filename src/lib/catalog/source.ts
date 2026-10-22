@@ -18,7 +18,14 @@ export const SAVED_CATALOG_FILE = 'catalog.json';
 
 /** The catalog saved by the last update, or null when there is none or it is not usable. */
 export async function loadSavedCatalog(files: TextFiles): Promise<Catalog | null> {
-  const result = await readWithFallback(files, SAVED_CATALOG_DIR, SAVED_CATALOG_FILE, parseCatalog);
+  let result;
+  try {
+    result = await readWithFallback(files, SAVED_CATALOG_DIR, SAVED_CATALOG_FILE, parseCatalog);
+  } catch (error) {
+    // The directory could not be listed: use the bundled catalog this time.
+    console.error('The saved catalog could not be looked up, ignoring it:', error);
+    return null;
+  }
   for (const { name, error } of result.invalid) {
     console.error(`Saved catalog "${name}" is not usable, ignoring it:`, error);
   }

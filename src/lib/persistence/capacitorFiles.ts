@@ -5,14 +5,39 @@
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import type { TextFiles } from './files.ts';
 
+/**
+ * Whether `dir` does not exist: it is missing from its parent's listing, or
+ * its parent does not exist. Rejects when that cannot be told.
+ */
+async function isMissing(dir: string): Promise<boolean> {
+  if (dir === '') return false;
+  const slash = dir.lastIndexOf('/');
+  const parent = slash === -1 ? '' : dir.slice(0, slash);
+  let entries;
+  try {
+    ({ files: entries } = await Filesystem.readdir({ path: parent, directory: Directory.Data }));
+  } catch (error) {
+    if (await isMissing(parent)) return true;
+    throw error;
+  }
+  const name = dir.slice(slash + 1);
+  return !entries.some((entry) => entry.name === name);
+}
+
 export const capacitorFiles: TextFiles = {
   async list(dir) {
     try {
       const { files } = await Filesystem.readdir({ path: dir, directory: Directory.Data });
       return files.filter((file) => file.type === 'file').map((file) => file.name);
-    } catch {
-      // The plugin rejects when the directory does not exist (first launch).
-      return [];
+    } catch (error) {
+      // The plugin rejects both when the directory does not exist (first
+      // launch) and on real read errors, with codes that differ by platform.
+      // Only a directory its parent does not list is empty: any other failure
+      // must not look like "nothing saved", or the next save would replace
+      // the saved data.
+      if (await isMissing(dir)) return [];
+      console.error(`Could not list "${dir}":`, error);
+      throw error;
     }
   },
 

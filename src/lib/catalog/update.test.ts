@@ -184,6 +184,13 @@ describe('saved catalog', () => {
     files.files.set('openrep/catalog.json', '{"truncated');
     expect(await loadSavedCatalog(files)).toBeNull();
   });
+
+  it('falls back to none when the directory cannot be listed', async () => {
+    const files = new MemoryFiles();
+    await saveCatalog(files, JSON.stringify(current));
+    files.fail.list = () => true;
+    expect(await loadSavedCatalog(files)).toBeNull();
+  });
 });
 
 describe('exerciseImageUrl', () => {

@@ -41,6 +41,8 @@ export function corruptFileName(now: Date, suffix = ''): string {
  *
  * @throws {UserDataUnreadableError} when an unreadable copy cannot be moved
  *   aside: saving would then overwrite it, so the caller must not save.
+ * Also rejects with the file system's error when the directory cannot be
+ * listed; the caller must not save then either.
  */
 export async function loadUserDataFile(files: TextFiles, now: Date): Promise<LoadedUserData> {
   const result = await readWithFallback(files, USER_DATA_DIR, USER_DATA_FILE, parseUserData);
