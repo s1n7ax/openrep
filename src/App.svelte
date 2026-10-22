@@ -16,8 +16,13 @@
   import CustomExerciseForm from './routes/CustomExerciseForm.svelte';
   import DevPose from './routes/DevPose.svelte';
   import ExerciseDetail from './routes/ExerciseDetail.svelte';
+  import ExercisePicker from './routes/ExercisePicker.svelte';
   import Exercises from './routes/Exercises.svelte';
   import NotFound from './routes/NotFound.svelte';
+  import PlanDetail from './routes/PlanDetail.svelte';
+  import PlanEditor from './routes/PlanEditor.svelte';
+  import PlansList from './routes/PlansList.svelte';
+  import WorkoutPlaceholder from './routes/WorkoutPlaceholder.svelte';
 
   router.start();
 
@@ -70,7 +75,13 @@
       <main class="screen">
         {#key screenKey}
           {#if route.name === 'plans'}
-            <ComingSoon title="Plans" icon="plans" />
+            <PlansList />
+          {:else if route.name === 'plan'}
+            <PlanDetail planId={route.planId} />
+          {:else if route.name === 'plan-edit'}
+            <PlanEditor planId={route.planId} />
+          {:else if route.name === 'plan-add-exercise'}
+            <ExercisePicker planId={route.planId} dayId={route.dayId} />
           {:else if route.name === 'exercises'}
             <Exercises />
           {:else if route.name === 'exercise'}
@@ -86,6 +97,8 @@
             <CustomExerciseDetail customId={route.customId} />
           {:else if route.name === 'custom-edit'}
             <CustomExerciseForm mode="edit" customId={route.customId} />
+          {:else if route.name === 'workout'}
+            <WorkoutPlaceholder sessionId={route.sessionId} />
           {:else if route.name === 'schedules'}
             <ComingSoon title="Schedules" icon="calendar" />
           {:else if route.name === 'schedule'}
