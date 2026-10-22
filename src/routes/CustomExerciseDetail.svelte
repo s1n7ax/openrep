@@ -10,7 +10,7 @@
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import StepList from '../components/StepList.svelte';
-  import SubmitDialog from '../components/SubmitDialog.svelte';
+  import SubmitCard from '../components/SubmitCard.svelte';
   import {
     canSubmitCustomExercise,
     customExerciseToExercise,
@@ -20,16 +20,15 @@
   } from '../lib/contribute.ts';
   import { equipmentLabel, muscleList } from '../lib/labels.ts';
   import { paths, router } from '../lib/router.ts';
+  import type { CustomExercise } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { submitContribution, type SubmitResult } from '../lib/submit.ts';
   import { deleteCustomExercise } from '../lib/userData/customExercises.ts';
   import { findCustomExercise } from '../lib/userData/selectors.ts';
 
   let { customId }: { customId: string } = $props();
 
   const exercise = $derived(findCustomExercise(userData.data, customId));
-  const canSubmit = $derived(!!exercise && canSubmitCustomExercise(exercise));
   const facts = $derived(
     exercise
       ? [
@@ -56,36 +55,14 @@
     router.navigate(paths.exercises(), { replace: true });
   }
 
-  let submitting = $state(false);
-  let submitted = $state<{ contribution: Contribution; result: SubmitResult } | null>(null);
-  let submitError = $state<string | null>(null);
-
-  /** Opens GitHub with the exercise as a new catalog file, ready to propose as a pull request. */
-  async function submit() {
-    if (!exercise || submitting) return;
-    submitError = null;
-    let contribution: Contribution;
-    try {
-      contribution = exerciseContribution(
-        customExerciseToExercise(exercise, {
-          findExercise: (id) => catalog.exercise(id),
-          suffix: randomSuffix(),
-        }),
-      );
-    } catch (error) {
-      console.error('The exercise cannot be submitted:', error);
-      submitError = 'This exercise cannot be submitted. Check its name, muscles and steps.';
-      return;
-    }
-    submitting = true;
-    try {
-      submitted = { contribution, result: await submitContribution(contribution) };
-    } catch (error) {
-      console.error('Opening GitHub failed:', error);
-      submitError = 'GitHub could not be opened. Check that a web browser is installed.';
-    } finally {
-      submitting = false;
-    }
+  /** The exercise as a new catalog file, to submit. */
+  function exerciseFile(current: CustomExercise): Contribution {
+    return exerciseContribution(
+      customExerciseToExercise(current, {
+        findExercise: (id) => catalog.exercise(id),
+        suffix: randomSuffix(),
+      }),
+    );
   }
 </script>
 
@@ -142,30 +119,17 @@
       </section>
     {/if}
 
-    <section class="share card">
-      <h2 class="share-title">Share with the community</h2>
-      <p class="share-text">
-        Submit opens GitHub with this exercise ready to add to the OpenRep catalog.
-      </p>
-      <button
-        type="button"
-        class="btn btn-outline btn-block"
-        disabled={!canSubmit || submitting}
-        aria-describedby={canSubmit ? undefined : 'submit-hint'}
-        data-testid="custom-submit"
-        onclick={submit}
-      >
-        <Icon name="send" size={20} /> Submit to OpenRep
-      </button>
-      {#if !canSubmit}
-        <p id="submit-hint" class="field-hint" data-testid="custom-submit-hint">
-          Add at least one primary muscle and one step to submit.
-        </p>
-      {/if}
-      {#if submitError}
-        <p class="field-error" role="alert" data-testid="submit-error">{submitError}</p>
-      {/if}
-    </section>
+    <div class="share">
+      <SubmitCard
+        title="Share with the community"
+        text="Submit opens GitHub with this exercise ready to add to the OpenRep catalog."
+        canSubmit={canSubmitCustomExercise(exercise)}
+        hint="Add at least one primary muscle and one step to submit."
+        build={() => exerciseFile(exercise)}
+        invalidMessage="This exercise cannot be submitted. Check its name, muscles and steps."
+        testid="custom-submit"
+      />
+    </div>
 
     <button
       type="button"
@@ -175,8 +139,6 @@
     >
       <Icon name="trash" size={20} /> Delete exercise
     </button>
-
-    <SubmitDialog {submitted} onclose={() => (submitted = null)} />
 
     <ConfirmDialog
       open={confirmDelete}
@@ -242,19 +204,6 @@
   }
 
   .share {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
     margin-bottom: var(--space-4);
-    padding: var(--space-5) var(--space-4);
-  }
-
-  .share-title {
-    font-size: var(--text-lg);
-    font-weight: 750;
-  }
-
-  .share-text {
-    color: var(--text-2);
   }
 </style>

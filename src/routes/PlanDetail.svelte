@@ -7,7 +7,7 @@
   import EmptyState from '../components/EmptyState.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
-  import SubmitDialog from '../components/SubmitDialog.svelte';
+  import SubmitCard from '../components/SubmitCard.svelte';
   import {
     planToSchedule,
     randomSuffix,
@@ -17,9 +17,8 @@
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { newId, nowIso } from '../lib/ids.ts';
   import { paths, router } from '../lib/router.ts';
-  import type { PlanDay } from '../lib/schema/userData.ts';
+  import type { Plan, PlanDay } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
-  import { submitContribution, type SubmitResult } from '../lib/submit.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { activeSession, findPlan, planStats } from '../lib/userData/selectors.ts';
   import { deleteSession, startSession } from '../lib/userData/sessions.ts';
@@ -60,38 +59,15 @@
     begin(day);
   }
 
-  const canSubmit = $derived(!!plan && planStats(plan).exercises > 0);
-  let submitting = $state(false);
-  let submitted = $state<{ contribution: Contribution; result: SubmitResult } | null>(null);
-  let submitError = $state<string | null>(null);
-
-  /** Opens GitHub with the plan as a new schedule file, ready to propose as a pull request. */
-  async function submit() {
-    if (!plan || submitting) return;
-    submitError = null;
-    let contribution: Contribution;
-    try {
-      contribution = scheduleContribution(
-        planToSchedule(plan, {
-          customExercises: userData.data.customExercises,
-          findExercise: (id) => catalog.exercise(id),
-          suffix: randomSuffix(),
-        }),
-      );
-    } catch (error) {
-      console.error('The plan cannot be submitted:', error);
-      submitError = 'This plan cannot be submitted as a schedule.';
-      return;
-    }
-    submitting = true;
-    try {
-      submitted = { contribution, result: await submitContribution(contribution) };
-    } catch (error) {
-      console.error('Opening GitHub failed:', error);
-      submitError = 'GitHub could not be opened. Check that a web browser is installed.';
-    } finally {
-      submitting = false;
-    }
+  /** The plan as a new schedule file, to submit. */
+  function scheduleFile(current: Plan): Contribution {
+    return scheduleContribution(
+      planToSchedule(current, {
+        customExercises: userData.data.customExercises,
+        findExercise: (id) => catalog.exercise(id),
+        suffix: randomSuffix(),
+      }),
+    );
   }
 
   function dayName(day: PlanDay, index: number): string {
@@ -222,32 +198,17 @@
       {/each}
     </div>
 
-    <section class="share card">
-      <h2 class="share-title">Share this plan</h2>
-      <p class="share-text">
-        Submit opens GitHub with your plan ready to add as a community schedule.
-      </p>
-      <button
-        type="button"
-        class="btn btn-outline btn-block"
-        disabled={!canSubmit || submitting}
-        aria-describedby={canSubmit ? undefined : 'plan-submit-hint'}
-        data-testid="plan-submit"
-        onclick={submit}
-      >
-        <Icon name="send" size={20} /> Submit to OpenRep
-      </button>
-      {#if !canSubmit}
-        <p id="plan-submit-hint" class="field-hint">Add exercises to submit this plan.</p>
-      {/if}
-      {#if submitError}
-        <p class="field-error" role="alert" data-testid="submit-error">{submitError}</p>
-      {/if}
-    </section>
+    <SubmitCard
+      title="Share this plan"
+      text="Submit opens GitHub with your plan ready to add as a community schedule."
+      canSubmit={planStats(plan).exercises > 0}
+      hint="Add exercises to submit this plan."
+      build={() => scheduleFile(plan)}
+      invalidMessage="This plan cannot be submitted as a schedule."
+      testid="plan-submit"
+    />
   {/if}
 </div>
-
-<SubmitDialog {submitted} onclose={() => (submitted = null)} />
 
 <Dialog
   open={pendingDay !== null}
@@ -410,21 +371,5 @@
     color: var(--text-3);
     font-size: var(--text-sm);
     font-style: italic;
-  }
-
-  .share {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-5) var(--space-4);
-  }
-
-  .share-title {
-    font-size: var(--text-lg);
-    font-weight: 750;
-  }
-
-  .share-text {
-    color: var(--text-2);
   }
 </style>
