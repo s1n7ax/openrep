@@ -282,14 +282,10 @@ export class ExerciseViewer {
     const target = (this.viewFocus ?? this.customCamera?.target ?? this.framedTarget).clone();
     let position: Vector3;
     if (this.customCamera && this.viewPreset === 'default' && !this.viewFocus) {
-      position = target
-        .clone()
-        .add(
-          this.customCamera.position
-            .clone()
-            .sub(this.customCamera.target)
-            .divideScalar(this.viewZoom),
-        );
+      // The animation's camera sets the angle; move back if the canvas is too narrow to fit.
+      const offset = this.customCamera.position.clone().sub(this.customCamera.target);
+      const distance = Math.max(offset.length(), this.framedDistance) / this.viewZoom;
+      position = target.clone().addScaledVector(offset.normalize(), distance);
     } else {
       position = target
         .clone()

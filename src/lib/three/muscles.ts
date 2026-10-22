@@ -34,9 +34,9 @@ export interface MuscleOverlays {
 function glowMaterial(level: Exclude<GlowLevel, 'none'>): MeshStandardMaterial {
   const color = new Color(GLOW_COLORS[level]);
   const material = new MeshStandardMaterial({
-    color: color.clone().multiplyScalar(level === 'primary' ? 0.55 : 0.75),
+    color: color.clone().multiplyScalar(level === 'primary' ? 0.42 : 0.7),
     emissive: color,
-    emissiveIntensity: level === 'primary' ? 0.75 : 0.32,
+    emissiveIntensity: level === 'primary' ? 0.85 : 0.34,
     roughness: 0.45,
     metalness: 0,
     transparent: true,
