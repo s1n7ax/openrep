@@ -296,13 +296,16 @@ function inclineBench(b: Builder): void {
   const { frame, rubber } = b.materials;
   const seatTop = 0.45;
   b.pad(0.3, 0.07, 0.36, new Vector3(0, seatTop - 0.035, 0.06));
+  // Back rest: hinged at the rear of the seat, rising towards −z at 35° from horizontal.
   const angle = MathUtils.degToRad(35);
   const back = new Group();
   back.position.set(0, seatTop - 0.01, -0.13);
-  back.rotation.x = -(Math.PI / 2 - angle);
+  back.rotation.x = angle;
   b.root.add(back);
   b.pad(0.3, 0.07, 0.86, new Vector3(0, -0.035, -0.43), back);
-  b.rod(new Vector3(0, 0.3, -0.75), new Vector3(0, 0.03, -0.75), 0.025, frame);
+  // Rear strut from the floor beam up to the underside of the back rest.
+  const strutTop = back.localToWorld(new Vector3(0, -0.07, -0.55));
+  b.rod(new Vector3(0, 0.03, strutTop.z), strutTop, 0.025, frame);
   b.rod(new Vector3(0, seatTop - 0.1, 0.1), new Vector3(0, 0.03, 0.3), 0.025, frame);
   b.box(new Vector3(0.08, 0.05, 1.1), new Vector3(0, 0.025, -0.25), frame);
   for (const z of [-0.75, 0.3]) {
