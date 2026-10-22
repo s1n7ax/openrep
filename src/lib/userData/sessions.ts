@@ -149,3 +149,33 @@ export function deleteSession(data: UserData, sessionId: string): UserData {
     activeSessionId: data.activeSessionId === sessionId ? null : data.activeSessionId,
   };
 }
+
+/**
+ * Ticks a set off (or un-ticks it). Ticking fills an empty reps field from a
+ * single-number reps target ("8", not a range like "8-12") and an empty
+ * duration from a timed target, so a set done as planned takes one tap.
+ */
+export function setLoggedSetDone(
+  data: UserData,
+  sessionId: string,
+  sessionExerciseId: string,
+  setId: string,
+  done: boolean,
+): UserData {
+  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
+    let changed = false;
+    const { reps, durationSec } = exercise.target;
+    const sets = exercise.sets.map((set) => {
+      if (set.id !== setId || set.done === done) return set;
+      changed = true;
+      if (!done) return { ...set, done };
+      return {
+        ...set,
+        done,
+        reps: set.reps ?? (reps !== undefined && /^\d+$/.test(reps) ? Number(reps) : null),
+        durationSec: set.durationSec ?? durationSec ?? null,
+      };
+    });
+    return changed ? { ...exercise, sets } : exercise;
+  });
+}

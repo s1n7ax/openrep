@@ -17,6 +17,8 @@
   import DevPose from './routes/DevPose.svelte';
   import ExerciseDetail from './routes/ExerciseDetail.svelte';
   import ExercisePicker from './routes/ExercisePicker.svelte';
+  import HistoryList from './routes/HistoryList.svelte';
+  import HistorySession from './routes/HistorySession.svelte';
   import Exercises from './routes/Exercises.svelte';
   import NotFound from './routes/NotFound.svelte';
   import PlanDetail from './routes/PlanDetail.svelte';
@@ -24,7 +26,7 @@
   import PlansList from './routes/PlansList.svelte';
   import ScheduleDetail from './routes/ScheduleDetail.svelte';
   import SchedulesList from './routes/SchedulesList.svelte';
-  import WorkoutPlaceholder from './routes/WorkoutPlaceholder.svelte';
+  import Workout from './routes/Workout.svelte';
 
   router.start();
 
@@ -100,15 +102,15 @@
           {:else if route.name === 'custom-edit'}
             <CustomExerciseForm mode="edit" customId={route.customId} />
           {:else if route.name === 'workout'}
-            <WorkoutPlaceholder sessionId={route.sessionId} />
+            <Workout sessionId={route.sessionId} />
           {:else if route.name === 'schedules'}
             <SchedulesList />
           {:else if route.name === 'schedule'}
             <ScheduleDetail scheduleId={route.scheduleId} />
           {:else if route.name === 'history'}
-            <ComingSoon title="History" icon="history" />
+            <HistoryList />
           {:else if route.name === 'history-session'}
-            <ComingSoon title="Workout" icon="history" back={paths.history()} />
+            <HistorySession sessionId={route.sessionId} />
           {:else if route.name === 'settings'}
             <ComingSoon title="Settings" icon="settings" />
           {:else}

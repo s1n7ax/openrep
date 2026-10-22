@@ -13,6 +13,7 @@ import {
   deleteSession,
   finishSession,
   removeLoggedSet,
+  setLoggedSetDone,
   startSession,
   updateLoggedSet,
 } from './sessions.ts';
@@ -112,6 +113,53 @@ describe('sessions', () => {
     sets = data.sessions[0]?.exercises[0]?.sets ?? [];
     expect(sets).toHaveLength(3);
     expect(userDataSchema.safeParse(data).success).toBe(true);
+  });
+
+  it('ticks sets off, filling empty reps or duration from a single-value target', () => {
+    let data = startSession(
+      planData(),
+      { sessionId: 's1', planId: 'p1', dayId: 'd1' },
+      T0,
+      counter('id'),
+    );
+    const [squatEx, plankEx] = data.sessions[0]?.exercises ?? [];
+    const squatSets = squatEx?.sets ?? [];
+    data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatSets[0]?.id ?? '', true);
+    data = updateLoggedSet(data, 's1', squatEx?.id ?? '', squatSets[1]?.id ?? '', { reps: 3 });
+    data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatSets[1]?.id ?? '', true);
+    data = setLoggedSetDone(data, 's1', plankEx?.id ?? '', plankEx?.sets[0]?.id ?? '', true);
+    let session = data.sessions[0];
+    expect(session?.exercises[0]?.sets.map((s) => [s.done, s.reps, s.durationSec])).toEqual([
+      [true, 5, null],
+      [true, 3, null],
+      [false, null, null],
+    ]);
+    expect(session?.exercises[1]?.sets[0]).toMatchObject({
+      done: true,
+      durationSec: 60,
+      reps: null,
+    });
+    // Un-ticking keeps the values; ticking an already done set changes nothing.
+    data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatSets[0]?.id ?? '', false);
+    session = data.sessions[0];
+    expect(session?.exercises[0]?.sets[0]).toMatchObject({ done: false, reps: 5 });
+    expect(setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatSets[1]?.id ?? '', true)).toBe(
+      data,
+    );
+  });
+
+  it('leaves reps empty when the target is a range', () => {
+    let data = addPlanExercise(
+      planData(),
+      'p1',
+      'd2',
+      { id: 'e9', exercise: squat, target: { sets: 1, reps: '8-12' } },
+      T0,
+    );
+    data = startSession(data, { sessionId: 's1', planId: 'p1', dayId: 'd2' }, T0, counter('id'));
+    const exercise = data.sessions[0]?.exercises[0];
+    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', true);
+    expect(data.sessions[0]?.exercises[0]?.sets[0]).toMatchObject({ done: true, reps: null });
   });
 
   it('finishes and deletes sessions, clearing the active one', () => {
