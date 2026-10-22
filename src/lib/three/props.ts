@@ -23,7 +23,6 @@
 import {
   BoxGeometry,
   CylinderGeometry,
-  Euler,
   Group,
   LatheGeometry,
   MathUtils,
@@ -40,6 +39,7 @@ import {
   type Material,
 } from 'three';
 import type { Prop, PropType } from '../schema/animation.ts';
+import { eulerDegreesToQuaternion } from './animation.ts';
 import { ARM_JOINTS, LEG_JOINTS, SIDES, type Rig, type Side } from './rig.ts';
 import { ballPoint, emptyPoseContext, gripPoint, type PoseContext } from './pose.ts';
 
@@ -554,18 +554,6 @@ export interface PropsController {
   dispose(): void;
 }
 
-const _euler = new Euler();
-function toQuaternion(rotation: readonly number[] | undefined, out = new Quaternion()): Quaternion {
-  if (!rotation) return out.identity();
-  _euler.set(
-    MathUtils.degToRad(rotation[0] ?? 0),
-    MathUtils.degToRad(rotation[1] ?? 0),
-    MathUtils.degToRad(rotation[2] ?? 0),
-    'XYZ',
-  );
-  return out.setFromEuler(_euler);
-}
-
 function buildModel(
   b: Builder,
   prop: Prop,
@@ -672,14 +660,21 @@ export function createProps(props: readonly Prop[], figureCentre = new Vector3()
     }
     if (prop.attach === 'none') {
       object.position.copy(position);
-      toQuaternion(prop.rotation, object.quaternion);
+      eulerDegreesToQuaternion(prop.rotation, object.quaternion);
     }
     if (rope) {
       // Rope ends live in world space.
       group.add(rope.left, rope.right);
     }
     group.add(object);
-    placed.push({ prop, object, offset: toQuaternion(prop.rotation), cableAnchor, cable, rope });
+    placed.push({
+      prop,
+      object,
+      offset: eulerDegreesToQuaternion(prop.rotation),
+      cableAnchor,
+      cable,
+      rope,
+    });
 
     // Pose context.
     if (prop.attach === 'hands') {
@@ -687,7 +682,7 @@ export function createProps(props: readonly Prop[], figureCentre = new Vector3()
     } else if (prop.attach === 'leftHand' || prop.attach === 'rightHand') {
       poseContext.hands[prop.attach === 'leftHand' ? 'left' : 'right'] = 'handle';
     } else if (prop.attach === 'none') {
-      const q = toQuaternion(prop.rotation);
+      const q = eulerDegreesToQuaternion(prop.rotation);
       const line = (a: Vector3, c: Vector3) => ({
         start: a.applyQuaternion(q).add(position),
         end: c.applyQuaternion(q).add(position),
@@ -708,7 +703,9 @@ export function createProps(props: readonly Prop[], figureCentre = new Vector3()
       prop.type === 'leg-press' &&
       (prop.attach === 'feet' || prop.attach === 'leftFoot' || prop.attach === 'rightFoot')
     ) {
-      const normal = LEG_PRESS_RAIL.clone().negate().applyQuaternion(toQuaternion(prop.rotation));
+      const normal = LEG_PRESS_RAIL.clone()
+        .negate()
+        .applyQuaternion(eulerDegreesToQuaternion(prop.rotation));
       if (prop.attach !== 'rightFoot') poseContext.footPlates.left = normal.clone();
       if (prop.attach !== 'leftFoot') poseContext.footPlates.right = normal.clone();
     }

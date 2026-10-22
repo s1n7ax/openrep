@@ -36,6 +36,7 @@ import { attachMuscles, type MuscleOverlays } from './muscles.ts';
 import { applyPose, createPoseResult } from './pose.ts';
 import { createProps, type PropsController } from './props.ts';
 import { STILL_POSE } from './stillPose.ts';
+import { smoothstep } from './surface.ts';
 
 export type ViewPreset = 'default' | 'front' | 'side' | 'back' | 'top';
 
@@ -71,9 +72,7 @@ function floorTexture(): DataTexture {
     for (let x = 0; x < size; x++) {
       const dx = (x + 0.5) / size - 0.5;
       const dy = (y + 0.5) / size - 0.5;
-      const r = Math.sqrt(dx * dx + dy * dy) * 2;
-      const t = Math.min(1, Math.max(0, (r - 0.25) / 0.75));
-      const alpha = 1 - t * t * (3 - 2 * t);
+      const alpha = 1 - smoothstep(0.25, 1, Math.sqrt(dx * dx + dy * dy) * 2);
       const i = (y * size + x) * 4;
       data[i] = 255;
       data[i + 1] = 255;
@@ -101,7 +100,6 @@ export class ExerciseViewer {
   private animated = false;
   private readonly pose = createSampledPose();
   private readonly poseResult = createPoseResult();
-  private readonly floorMaterial: MeshBasicMaterial;
   private readonly disposables: { dispose(): void }[] = [];
   private readonly resizeObserver: ResizeObserver;
   private readonly intersectionObserver: IntersectionObserver;
@@ -175,14 +173,14 @@ export class ExerciseViewer {
     const floorGeometry = new CircleGeometry(FLOOR_RADIUS, 96);
     floorGeometry.rotateX(-Math.PI / 2);
     const texture = floorTexture();
-    this.floorMaterial = new MeshBasicMaterial({
+    const floorMaterial = new MeshBasicMaterial({
       color: new Color('#8d96a3'),
       map: texture,
       transparent: true,
       opacity: 0.32,
       depthWrite: false,
     });
-    const floor = new Mesh(floorGeometry, this.floorMaterial);
+    const floor = new Mesh(floorGeometry, floorMaterial);
     floor.renderOrder = -2;
     const shadowMaterial = new ShadowMaterial({
       color: '#0b0d12',
@@ -194,7 +192,7 @@ export class ExerciseViewer {
     shadowCatcher.position.y = 0.0005;
     shadowCatcher.renderOrder = -1;
     this.scene.add(floor, shadowCatcher);
-    this.disposables.push(floorGeometry, texture, this.floorMaterial, shadowMaterial);
+    this.disposables.push(floorGeometry, texture, floorMaterial, shadowMaterial);
 
     this.figure = createFigure();
     this.scene.add(this.figure.group);
@@ -249,15 +247,6 @@ export class ExerciseViewer {
     this.frameContent();
     this.resetView();
     this.updateLoop();
-  }
-
-  /** Whether the content loops a movement. */
-  get isAnimated(): boolean {
-    return this.animated;
-  }
-
-  get frameCount(): number {
-    return this.frames;
   }
 
   play(): void {

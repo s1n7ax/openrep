@@ -116,10 +116,6 @@ const _lowerQuat = new Quaternion();
 const _endQuat = new Quaternion();
 const _twist = new Quaternion();
 
-function worldQuaternion(bone: Bone, out: Quaternion): Quaternion {
-  return bone.getWorldQuaternion(out);
-}
-
 /** Sets a bone's local rotation from a desired world rotation. */
 function setWorldRotation(bone: Bone, parentWorld: Quaternion, world: Quaternion): void {
   bone.quaternion.copy(parentWorld).invert().multiply(world);
@@ -136,9 +132,6 @@ export function ballPoint(rig: Rig, side: Side, out: Vector3): Vector3 {
   const ankle = rig.joints[LEG_JOINTS[side].end];
   return out.set(0, -ANKLE_HEIGHT, BALL_OFFSET).applyMatrix4(ankle.matrixWorld);
 }
-
-/** Palm centre of a flat hand, in the hand's local frame. */
-export const FLAT_PALM_LOCAL = new Vector3(0, -FLAT_HAND_PALM_OFFSET, 0);
 
 function closestOnSegment(point: Vector3, line: GraspLine, out: Vector3): Vector3 {
   _c.subVectors(line.end, line.start);
@@ -228,7 +221,7 @@ function solveArm(
   }
 
   const chest = rig.joints.chest;
-  worldQuaternion(chest, _parentQuat);
+  chest.getWorldQuaternion(_parentQuat);
   shoulder.getWorldPosition(_root);
   const s = sideSign(side);
   _defaultPole
@@ -340,7 +333,7 @@ function solveLeg(
   }
 
   const pelvis = rig.joints.pelvis;
-  worldQuaternion(pelvis, _parentQuat);
+  pelvis.getWorldQuaternion(_parentQuat);
   hip.getWorldPosition(_root);
   const s = sideSign(side);
   _defaultPole
