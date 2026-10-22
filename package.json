@@ -29,6 +29,7 @@
     "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
+    "three": "0.186.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -37,6 +38,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^22.20.5",
+    "@types/three": "0.186.0",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.23.1",
