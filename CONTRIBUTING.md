@@ -183,6 +183,7 @@ Other scripts:
 | `npm run generate:schema`              | Regenerates `data/schema/*.v1.json` after changing a schema in `src/lib/schema/`.                                                          |
 | `npm run import:free-exercise-db`      | Re-imports free-exercise-db at the pinned commit (keeps existing images unless `--force`). Curated aliases live in `scripts/aliases.json`. |
 | `npm run generate:app-assets`          | Regenerates the app icons and splash screens from `resources/icon.svg`.                                                                    |
+| `npm run check:apk-version -- <apk>`   | Checks that an APK's versionName and versionCode come from `package.json`'s version (needs `ANDROID_HOME`).                                |
 
 ### NixOS notes
 
