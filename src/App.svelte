@@ -13,6 +13,8 @@
   import { userData } from './lib/stores/userData.svelte.ts';
   import ComingSoon from './routes/ComingSoon.svelte';
   import DevPose from './routes/DevPose.svelte';
+  import ExerciseDetail from './routes/ExerciseDetail.svelte';
+  import Exercises from './routes/Exercises.svelte';
   import NotFound from './routes/NotFound.svelte';
 
   router.start();
@@ -68,7 +70,9 @@
           {#if route.name === 'plans'}
             <ComingSoon title="Plans" icon="plans" />
           {:else if route.name === 'exercises'}
-            <ComingSoon title="Exercises" icon="dumbbell" />
+            <Exercises />
+          {:else if route.name === 'exercise'}
+            <ExerciseDetail exerciseId={route.exerciseId} />
           {:else if route.name === 'schedules'}
             <ComingSoon title="Schedules" icon="calendar" />
           {:else if route.name === 'schedule'}
