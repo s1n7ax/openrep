@@ -1,0 +1,17 @@
+{
+  "formatVersion": 1,
+  "id": "sample-schedule",
+  "name": "Sample Schedule",
+  "description": "A tiny schedule used by the tests.",
+  "level": "beginner",
+  "days": [
+    {
+      "name": "Day A",
+      "exercises": [
+        { "exerciseId": "sample-push-up", "sets": 3, "reps": "8-12", "restSec": 90 },
+        { "exerciseId": "sample-plank", "sets": 3, "durationSec": 30 },
+        { "name": "Farmer's walk", "sets": 2, "durationSec": 40, "notes": "Heavy dumbbells." }
+      ]
+    }
+  ]
+}
