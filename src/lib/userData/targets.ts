@@ -1,9 +1,9 @@
 /**
  * Plan targets: defaults for a newly added exercise and human-readable text.
  */
-import type { Force } from '../schema/common.ts';
+import { durationSecSchema, repsSchema, restSecSchema, type Force } from '../schema/common.ts';
 import type { PlanTarget, Unit } from '../schema/userData.ts';
-import { formatWeightWithUnit } from '../units.ts';
+import { formatWeightWithUnit, parseWeight } from '../units.ts';
 
 /** Seconds a newly added timed exercise is held. */
 export const DEFAULT_DURATION_SEC = 30;
@@ -43,4 +43,76 @@ export function formatTarget(target: PlanTarget, unit: Unit): string {
   const parts = [`${target.sets} × ${amount}`];
   if (target.weightKg !== undefined) parts.push(formatWeightWithUnit(target.weightKg, unit));
   return parts.join(' · ');
+}
+
+/** The target editor's fields, as typed. */
+export interface TargetForm {
+  mode: 'reps' | 'time';
+  reps: string;
+  /** Seconds. */
+  duration: string;
+  /** In the user's unit; empty for none. */
+  weight: string;
+  /** Seconds; empty for none. */
+  rest: string;
+  notes: string;
+  /**
+   * Whether the user edited the weight field. Until then it shows the stored
+   * weight rounded, so reading it back would change the stored weight.
+   */
+  weightEdited: boolean;
+}
+
+const WHOLE_NUMBER = /^\d+$/;
+
+/** A reps field: one number or a range ("8", "8-12"). */
+export function isValidRepsText(text: string): boolean {
+  return repsSchema.safeParse(text.trim()).success;
+}
+
+/** A duration field: whole seconds within the allowed range. */
+export function isValidDurationText(text: string): boolean {
+  const trimmed = text.trim();
+  return WHOLE_NUMBER.test(trimmed) && durationSecSchema.safeParse(Number(trimmed)).success;
+}
+
+/** A rest field: empty, or whole seconds within the allowed range. */
+export function isValidRestText(text: string): boolean {
+  const trimmed = text.trim();
+  return (
+    trimmed === '' ||
+    (WHOLE_NUMBER.test(trimmed) && restSecSchema.safeParse(Number(trimmed)).success)
+  );
+}
+
+/**
+ * The target to save from the editor: `stored` with every valid field of
+ * `form` applied; invalid fields keep their stored value. The weight field is
+ * applied only once edited (see `TargetForm.weightEdited`), so editing other
+ * fields keeps the stored weight at full precision.
+ */
+export function applyTargetForm(stored: PlanTarget, form: TargetForm, unit: Unit): PlanTarget {
+  const target: PlanTarget = {
+    sets: stored.sets,
+    reps: stored.reps,
+    durationSec: stored.durationSec,
+    weightKg: stored.weightKg,
+    restSec: stored.restSec,
+    notes: form.notes,
+  };
+  if (form.mode === 'reps' && isValidRepsText(form.reps)) {
+    target.reps = form.reps.trim();
+    target.durationSec = undefined;
+  } else if (form.mode === 'time' && isValidDurationText(form.duration)) {
+    target.durationSec = Number(form.duration.trim());
+    target.reps = undefined;
+  }
+  if (form.weightEdited) {
+    const weight = parseWeight(form.weight, unit);
+    if (weight.ok) target.weightKg = weight.kg ?? undefined;
+  }
+  if (isValidRestText(form.rest)) {
+    target.restSec = form.rest.trim() === '' ? undefined : Number(form.rest.trim());
+  }
+  return target;
 }

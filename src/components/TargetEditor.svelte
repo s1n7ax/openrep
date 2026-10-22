@@ -8,8 +8,7 @@
   import { untrack } from 'svelte';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { nowIso } from '../lib/ids.ts';
-  import { durationSecSchema, repsSchema, restSecSchema } from '../lib/schema/common.ts';
-  import type { PlanExercise, PlanTarget, Unit } from '../lib/schema/userData.ts';
+  import type { PlanExercise, Unit } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { formatWeight, parseWeight } from '../lib/units.ts';
@@ -18,7 +17,14 @@
     movePlanExercise,
     updatePlanExerciseTarget,
   } from '../lib/userData/plans.ts';
-  import { DEFAULT_DURATION_SEC, DEFAULT_REPS } from '../lib/userData/targets.ts';
+  import {
+    applyTargetForm,
+    DEFAULT_DURATION_SEC,
+    DEFAULT_REPS,
+    isValidDurationText,
+    isValidRepsText,
+    isValidRestText,
+  } from '../lib/userData/targets.ts';
   import Icon from './Icon.svelte';
 
   interface Props {
@@ -47,43 +53,39 @@
   );
   let restText = $state(initial.restSec !== undefined ? String(initial.restSec) : '');
   let notesText = $state(initial.notes ?? '');
+  /** The weight field shows the stored weight rounded; it is saved only once edited. */
+  let weightEdited = false;
 
-  const intPattern = /^\d+$/;
-  const repsValid = $derived(repsSchema.safeParse(repsText.trim()).success);
-  const durationValid = $derived(
-    intPattern.test(durationText.trim()) &&
-      durationSecSchema.safeParse(Number(durationText)).success,
-  );
+  const repsValid = $derived(isValidRepsText(repsText));
+  const durationValid = $derived(isValidDurationText(durationText));
   const parsedWeight = $derived(parseWeight(weightText, unit));
-  const restValid = $derived(
-    restText.trim() === '' ||
-      (intPattern.test(restText.trim()) && restSecSchema.safeParse(Number(restText)).success),
-  );
+  const restValid = $derived(isValidRestText(restText));
 
   const id = $props.id();
 
   /** Saves every valid field; invalid ones keep their stored value. */
   function commit(sets = entry.sets) {
-    const target: PlanTarget = {
-      sets,
-      reps: entry.reps,
-      durationSec: entry.durationSec,
-      weightKg: entry.weightKg,
-      restSec: entry.restSec,
-      notes: notesText,
-    };
-    if (mode === 'reps' && repsValid) {
-      target.reps = repsText.trim();
-      target.durationSec = undefined;
-    } else if (mode === 'time' && durationValid) {
-      target.durationSec = Number(durationText.trim());
-      target.reps = undefined;
-    }
-    if (parsedWeight.ok) target.weightKg = parsedWeight.kg ?? undefined;
-    if (restValid) target.restSec = restText.trim() === '' ? undefined : Number(restText.trim());
+    const target = applyTargetForm(
+      { ...entry, sets },
+      {
+        mode,
+        reps: repsText,
+        duration: durationText,
+        weight: weightText,
+        rest: restText,
+        notes: notesText,
+        weightEdited,
+      },
+      unit,
+    );
     userData.update((data) =>
       updatePlanExerciseTarget(data, planId, dayId, entry.id, target, nowIso()),
     );
+  }
+
+  function onWeightInput() {
+    weightEdited = true;
+    commit();
   }
 
   function setMode(next: 'reps' | 'time') {
@@ -228,7 +230,7 @@
         aria-invalid={!parsedWeight.ok}
         data-testid="target-weight"
         bind:value={weightText}
-        oninput={() => commit()}
+        oninput={onWeightInput}
       />
     </div>
     <div class="field">
