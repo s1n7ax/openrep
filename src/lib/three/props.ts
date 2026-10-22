@@ -11,7 +11,11 @@
  *   the handle runs along the hand's thumb axis (local +z); `rotation` turns
  *   the prop in the hand's frame.
  * - attach "feet" / "leftFoot" / "rightFoot": at the ball of the foot (or
- *   between both), keeping the world rotation `rotation`.
+ *   between both), keeping the world rotation `rotation`. Exception: the
+ *   leg-extension / leg-curl roller rides on the shins — it is placed at the
+ *   ankle joint (or between both) and `position` / `rotation` are in the
+ *   frame of the (left) lower leg: +y up the shin towards the knee, +z out of
+ *   the front of the shin, +x to the figure's left.
  *
  * `cableFrom` draws a cable machine: a pulley at that world point on a column,
  * and a cable from the pulley to the prop.
@@ -36,7 +40,7 @@ import {
   type Material,
 } from 'three';
 import type { Prop, PropType } from '../schema/animation.ts';
-import { ARM_JOINTS, SIDES, type Rig, type Side } from './rig.ts';
+import { ARM_JOINTS, LEG_JOINTS, SIDES, type Rig, type Side } from './rig.ts';
 import { ballPoint, emptyPoseContext, gripPoint, type PoseContext } from './pose.ts';
 
 /** How the hands hold each prop type when it is attached to them. */
@@ -240,13 +244,15 @@ function dumbbell(b: Builder): void {
   }
 }
 
+/** Kettlebell: the top of the handle arch is at the origin, running along z; the bell hangs below. */
 function kettlebell(b: Builder): void {
   const { plate, steel } = b.materials;
-  const handle = b.add(new TorusGeometry(0.065, 0.013, 12, 32, Math.PI), steel);
-  handle.rotation.y = Math.PI / 2;
-  handle.position.y = -0.055;
-  handle.rotation.z = Math.PI;
-  b.add(new SphereGeometry(0.1, 32, 20), plate).position.set(0, -0.17, 0);
+  // An arch in the yz plane, its ends dipping into the top of the bell.
+  const dip = MathUtils.degToRad(20);
+  const handle = b.add(new TorusGeometry(0.065, 0.013, 12, 32, Math.PI + 2 * dip), steel);
+  handle.rotation.set(0, Math.PI / 2, -dip);
+  handle.position.y = -0.065;
+  b.add(new SphereGeometry(0.1, 32, 20), plate).position.set(0, -0.16, 0);
 }
 
 function straightHandle(b: Builder, halfLength: number): void {
@@ -419,6 +425,12 @@ function legPressSled(b: Builder): void {
   }
 }
 
+/** Leg extension handles beside the seat (model space; grasp lines for the hands). */
+export const LEG_EXTENSION_HANDLES = [
+  [new Vector3(0.22, -0.05, -0.25), new Vector3(0.22, -0.05, 0.25)],
+  [new Vector3(-0.22, -0.05, -0.25), new Vector3(-0.22, -0.05, 0.25)],
+] as const;
+
 function legExtensionFrame(b: Builder, floorY: number): void {
   const { frame } = b.materials;
   b.pad(0.36, 0.07, 0.42, new Vector3(0, -0.05, -0.1));
@@ -429,16 +441,20 @@ function legExtensionFrame(b: Builder, floorY: number): void {
   b.pad(0.38, 0.07, 0.6, new Vector3(0, 0.3, 0), back).rotation.x = Math.PI / 2;
   b.rod(new Vector3(0, -0.1, -0.1), new Vector3(0, floorY, -0.1), 0.04, frame);
   b.box(new Vector3(0.5, 0.05, 0.9), new Vector3(0, floorY + 0.025, -0.05), frame);
-  for (const s of [-1, 1]) {
-    b.rod(new Vector3(s * 0.22, -0.05, 0.25), new Vector3(s * 0.22, -0.05, -0.25), 0.018, frame);
-  }
+  for (const [start, end] of LEG_EXTENSION_HANDLES) b.rod(start, end, 0.018, frame);
 }
 
-/** Shin pad roller (follows the feet) — a horizontal roller along x. */
+/** Shin pad roller (rides on the shins) — a horizontal roller along x. */
 function roller(b: Builder): void {
   const pad = b.add(new CylinderGeometry(0.055, 0.055, 0.34, 24), b.materials.pad);
   pad.rotation.z = Math.PI / 2;
 }
+
+/** Leg curl handles at the head end of the bench (model space; grasp lines for the hands). */
+export const LEG_CURL_HANDLES = [
+  [new Vector3(0.24, -0.1, 0.55), new Vector3(0.24, -0.1, 0.75)],
+  [new Vector3(-0.24, -0.1, 0.55), new Vector3(-0.24, -0.1, 0.75)],
+] as const;
 
 function legCurlFrame(b: Builder, floorY: number): void {
   const { frame } = b.materials;
@@ -447,8 +463,7 @@ function legCurlFrame(b: Builder, floorY: number): void {
   b.rod(new Vector3(0, -0.07, 0.6), new Vector3(0, floorY, 0.6), 0.04, frame);
   b.rod(new Vector3(0, -0.07, -0.35), new Vector3(0, floorY, -0.35), 0.04, frame);
   b.box(new Vector3(0.5, 0.05, 1.3), new Vector3(0, floorY + 0.025, 0.15), frame);
-  for (const s of [-1, 1])
-    b.rod(new Vector3(s * 0.24, -0.1, 0.75), new Vector3(s * 0.24, -0.1, 0.55), 0.018, frame);
+  for (const [start, end] of LEG_CURL_HANDLES) b.rod(start, end, 0.018, frame);
 }
 
 function mat(b: Builder): void {
@@ -610,6 +625,13 @@ function buildModel(
   }
 }
 
+/** Handles of machine frames (attach "none") that free hands grab. */
+const MACHINE_HANDLES: Partial<Record<PropType, readonly (readonly [Vector3, Vector3])[]>> = {
+  'leg-press': LEG_PRESS_HANDLES,
+  'leg-extension': LEG_EXTENSION_HANDLES,
+  'leg-curl': LEG_CURL_HANDLES,
+};
+
 const _a = new Vector3();
 const _b = new Vector3();
 const _c = new Vector3();
@@ -672,10 +694,8 @@ export function createProps(props: readonly Prop[], figureCentre = new Vector3()
       });
       if (prop.type === 'pull-up-bar')
         poseContext.graspLines.push(line(new Vector3(-0.6, 0, 0), new Vector3(0.6, 0, 0)));
-      if (prop.type === 'leg-press') {
-        for (const [start, end] of LEG_PRESS_HANDLES)
-          poseContext.graspLines.push(line(start.clone(), end.clone()));
-      }
+      for (const [start, end] of MACHINE_HANDLES[prop.type] ?? [])
+        poseContext.graspLines.push(line(start.clone(), end.clone()));
       if (prop.type === 'dip-bars') {
         for (const s of [-1, 1]) {
           poseContext.graspLines.push(
@@ -741,6 +761,19 @@ export function createProps(props: readonly Prop[], figureCentre = new Vector3()
           case 'feet':
           case 'leftFoot':
           case 'rightFoot': {
+            if (prop.type === 'leg-extension' || prop.type === 'leg-curl') {
+              // The roller turns with the shin it rests on.
+              const side: Side = prop.attach === 'rightFoot' ? 'right' : 'left';
+              rig.joints[LEG_JOINTS[side].end].getWorldPosition(object.position);
+              if (prop.attach === 'feet') {
+                rig.joints[LEG_JOINTS.right.end].getWorldPosition(_a);
+                object.position.add(_a).multiplyScalar(0.5);
+              }
+              rig.joints[LEG_JOINTS[side].mid].getWorldQuaternion(_q);
+              object.position.add(offset.applyQuaternion(_q));
+              object.quaternion.copy(_q).multiply(item.offset);
+              break;
+            }
             if (prop.attach === 'feet') {
               ballPoint(rig, 'left', _a);
               ballPoint(rig, 'right', _b);
