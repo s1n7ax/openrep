@@ -9,6 +9,7 @@ import svelteConfig from './svelte.config.js';
 export default defineConfig(
   globalIgnores([
     'dist/',
+    'dist-e2e/',
     'coverage/',
     'test-results/',
     'playwright-report/',
