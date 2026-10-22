@@ -1,40 +1,22 @@
 <!--
   Developer route: one exercise's 3D view full screen, frozen at a loop time.
-  Not linked from the app; see `src/lib/devRoute.ts`.
+  Not linked from the app; see `DevPoseRoute` in `src/lib/router.ts`.
 -->
 <script lang="ts">
   import ExerciseViewer from '../components/ExerciseViewer.svelte';
-  import type { DevPoseRoute } from '../lib/devRoute.ts';
-  import type { Catalog } from '../lib/schema/catalog.ts';
+  import type { DevPoseRoute } from '../lib/router.ts';
+  import { catalog } from '../lib/stores/catalog.svelte.ts';
 
   let { route }: { route: DevPoseRoute } = $props();
 
-  let catalog = $state<Catalog | null>(null);
-  let loadError = $state<string | null>(null);
-
-  $effect(() => {
-    fetch(`${import.meta.env.BASE_URL}catalog/catalog.json`)
-      .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json() as Promise<Catalog>;
-      })
-      .then((data) => (catalog = data))
-      .catch((error: unknown) => {
-        console.error('Could not load the catalog:', error);
-        loadError = 'Could not load the catalog.';
-      });
-  });
-
-  const exercise = $derived(catalog?.exercises.find((e) => e.id === route.exerciseId));
-  const animation = $derived(
-    catalog?.animations.find((a) => a.exerciseId === route.exerciseId) ?? null,
-  );
+  const exercise = $derived(catalog.exercise(route.exerciseId));
+  const animation = $derived(catalog.animation(route.exerciseId));
 </script>
 
 <div class="dev-pose" data-testid="dev-pose">
-  {#if loadError}
-    <p class="message">{loadError}</p>
-  {:else if !catalog}
+  {#if catalog.status === 'error'}
+    <p class="message">Could not load the catalog.</p>
+  {:else if catalog.status === 'loading'}
     <p class="message">Loading…</p>
   {:else if !exercise}
     <p class="message">No exercise with id “{route.exerciseId}”.</p>
@@ -57,6 +39,7 @@
     inset: 0;
     display: flex;
     flex-direction: column;
+    background: var(--bg);
   }
 
   .dev-pose > :global(*) {
