@@ -190,13 +190,6 @@ export function createFigure(asset: FigureAsset): Figure {
     SIDES.map((side) => [side, bindLocal.get(toesBone(side)) ?? new Quaternion()]),
   );
 
-  // Blend bone pivots in the bind pose.
-  const bindPivot = new Map<string, Vector3>();
-  for (const blend of BLEND_BONES) {
-    const pivot = blend.kind === 'twist' ? blend.parent : blend.child;
-    const bindWorld = (inverseOf.get(pivot) as Matrix4).clone().invert();
-    bindPivot.set(blend.name, new Vector3().setFromMatrixPosition(bindWorld));
-  }
   // Twist axes in the bind pose: the forearm for "twist", the upper arm for "swing".
   const bindPosition = (name: string) =>
     new Vector3().setFromMatrixPosition((inverseOf.get(name) as Matrix4).clone().invert());
