@@ -216,3 +216,44 @@ test(`non-core exercise ${NON_CORE_BACK_EXERCISE_ID} shows its back muscles with
     MIN_PRIMARY_IN_VIEW,
   );
 });
+
+test('play/pause stops and resumes the movement, reset view brings the camera back', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await openApp(page, '#/exercises/barbell-squat');
+  await expect(viewer(page)).toHaveAttribute('data-animated', 'true');
+  await waitForFrameAfter(page, await waitForFrameAfter(page, 0));
+
+  // Pause: the view stops rendering and stays still.
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await expect(page.getByRole('button', { name: 'Play' })).toHaveAttribute('aria-pressed', 'true');
+  const idle = await waitForIdle(page);
+  const paused = await captureCanvas(page);
+  await page.waitForTimeout(1_500);
+  expect(await frameCount(page)).toBe(idle);
+
+  // Rotate, then reset the view: back to the same picture.
+  const box = await viewer(page).locator('canvas').boundingBox();
+  expect(box, 'the 3D canvas is on screen').not.toBeNull();
+  const centre = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+  await afterRender(page, async () => {
+    await page.mouse.move(centre.x, centre.y);
+    await page.mouse.down();
+    await page.mouse.move(centre.x + 140, centre.y + 30, { steps: 4 });
+    await page.mouse.up();
+  });
+  const rotated = await captureCanvas(page);
+  expect(changedFraction(paused, rotated), 'rotation').toBeGreaterThan(MIN_CHANGED);
+  await afterRender(page, () => page.getByRole('button', { name: 'Reset view' }).click());
+  const reset = await captureCanvas(page);
+  expect(changedFraction(paused, reset), 'reset view').toBeLessThan(MIN_CHANGED / 2);
+
+  // Play: the movement resumes.
+  await page.getByRole('button', { name: 'Play' }).click();
+  await expect(page.getByRole('button', { name: 'Pause' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  await waitForFrameAfter(page, await waitForFrameAfter(page, await frameCount(page)));
+});
