@@ -4,11 +4,7 @@
  * exercise of a superset is next, and whether going back would lose anything.
  */
 import type { Session, SessionExercise } from '../schema/userData.ts';
-import { supersetRounds, type Block } from './supersets.ts';
-
-function blockEntries(block: Block<SessionExercise>): SessionExercise[] {
-  return block.kind === 'exercise' ? [block.entry] : block.entries;
-}
+import { blockEntries, supersetRounds, type Block } from './supersets.ts';
 
 /**
  * The page a workout opens on: the first block with a set not ticked off,

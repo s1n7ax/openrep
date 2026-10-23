@@ -43,6 +43,7 @@
     finishSession,
   } from '../lib/userData/sessions.ts';
   import {
+    blockEntries,
     blockKey,
     groupBlocks,
     supersetExerciseLabel,
@@ -401,7 +402,7 @@
 {/if}
 
 {#snippet picture(block: Block<SessionExercise>, index: number)}
-  {@const entries = block.kind === 'exercise' ? [block.entry] : block.entries}
+  {@const entries = blockEntries(block)}
   {@const slides = pictureSlides(
     entries.map((exercise, position) => {
       const resolved = resolve(exercise);
