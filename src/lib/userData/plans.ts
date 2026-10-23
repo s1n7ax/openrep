@@ -258,16 +258,6 @@ export function movePlanExercise(
   });
 }
 
-/** The superset of a day with id `supersetId` as a block, and the block's index. */
-function findSupersetBlock(day: PlanDay, supersetId: string) {
-  const blocks = dayBlocks(day);
-  const index = blocks.findIndex(
-    (block) => block.kind === 'superset' && block.superset.id === supersetId,
-  );
-  const block = blocks[index];
-  return block?.kind === 'superset' ? { blocks, index, block } : null;
-}
-
 /** Moves a whole superset up (-1) or down (1) past the next block. */
 export function moveSuperset(
   data: UserData,
@@ -278,10 +268,12 @@ export function moveSuperset(
   now: string,
 ): UserData {
   return updateDay(data, planId, dayId, now, (day) => {
-    const found = findSupersetBlock(day, supersetId);
-    if (!found) return day;
-    const moved = moveItem(found.blocks, found.index, delta);
-    return moved === found.blocks ? day : { ...day, exercises: flattenBlocks(moved) };
+    const blocks = dayBlocks(day);
+    const index = blocks.findIndex(
+      (block) => block.kind === 'superset' && block.superset.id === supersetId,
+    );
+    const moved = moveItem(blocks, index, delta);
+    return moved === blocks ? day : { ...day, exercises: flattenBlocks(moved) };
   });
 }
 
