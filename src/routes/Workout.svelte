@@ -63,6 +63,7 @@
   let { sessionId }: { sessionId: string } = $props();
 
   const session = $derived(findSession(userData.data, sessionId));
+  const title = $derived(session?.dayName.trim() || 'Workout');
   const unit = $derived(userData.data.settings.unit);
   const counts = $derived(session ? sessionSetCounts(session) : { done: 0, total: 0 });
   const blocks = $derived(session ? groupBlocks(session.exercises, session.supersets) : []);
@@ -178,10 +179,7 @@
 {#if discarded}
   <!-- Going back. -->
 {:else if !session || session.finishedAt !== null}
-  <PageHeader
-    title={session ? session.dayName.trim() || 'Workout' : 'Workout'}
-    back={paths.plans()}
-  />
+  <PageHeader {title} back={paths.plans()} />
   <div class="page" data-testid="workout" data-session-id={sessionId}>
     {#if !session}
       <EmptyState
@@ -218,7 +216,7 @@
         >
           <Icon name="back" />
         </button>
-        <h1 class="title" data-testid="page-title">{session.dayName.trim() || 'Workout'}</h1>
+        <h1 class="title" data-testid="page-title">{title}</h1>
         {#if page < blocks.length}
           <span class="position" data-testid="workout-position">
             {page + 1} of {blocks.length}
