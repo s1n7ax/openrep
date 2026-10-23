@@ -23,8 +23,6 @@ import {
 export interface BuiltFigure {
   /** Final (sculpted) mesh in the bind pose. */
   mesh: PolyMesh;
-  /** The mesh before the muscles were sculpted (charts are measured on it). */
-  unsculpted: PolyMesh;
   /** Skin weight per vertex per bone (`FIGURE_BONES` order). */
   weights: Float64Array;
   bind: BindBone[];
@@ -102,14 +100,12 @@ export async function buildFigure(read: SourceReader): Promise<BuiltFigure> {
   });
 
   const { skinIndex, skinWeight } = quantizeWeights(weights, vertexCount, boneCount);
-  const unsculpted: PolyMesh = { ...mesh, positions: Float64Array.from(mesh.positions) };
   const muscles = paintMuscles(mesh, body.bind, weights, MUSCLE_SPECS);
   sculptMuscles(mesh, muscles);
   const cavity = bakeCavity(mesh);
   const indices = Uint16Array.from(triangulate(mesh));
   return {
     mesh,
-    unsculpted,
     weights,
     bind: body.bind,
     muscles,
