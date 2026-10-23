@@ -1,0 +1,2 @@
+Features
+• release: automated Google Play and F-Droid releases
