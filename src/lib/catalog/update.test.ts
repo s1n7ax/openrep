@@ -77,8 +77,41 @@ describe('evaluateDownloadedCatalog', () => {
   });
 
   it('rejects unsupported format versions', () => {
-    const v2 = JSON.stringify({ ...withExtraExercise(), formatVersion: 2 });
-    expect(evaluateDownloadedCatalog(v2, current)).toEqual({ kind: 'unsupported' });
+    const v3 = JSON.stringify({ ...withExtraExercise(), formatVersion: 3 });
+    expect(evaluateDownloadedCatalog(v3, current)).toEqual({ kind: 'unsupported' });
+  });
+
+  it('accepts a version 2 catalog with a superset schedule', () => {
+    const superset = {
+      formatVersion: 2,
+      id: 'superset-schedule',
+      name: 'Supersets',
+      description: '',
+      days: [
+        {
+          name: 'Day',
+          exercises: [
+            {
+              superset: {
+                rounds: 3,
+                restSec: 90,
+                exercises: [
+                  { exerciseId: 'sample-push-up', reps: '10' },
+                  { exerciseId: 'sample-plank', durationSec: 30 },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+    const v2 = { ...withExtraExercise(), formatVersion: 2, schedules: [superset] };
+    const decision = evaluateDownloadedCatalog(JSON.stringify(v2), current);
+    expect(decision.kind).toBe('accept');
+    expect(decision.kind === 'accept' && decision.catalog.schedules[0]).toEqual(superset);
+    // A version 1 catalog cannot hold it.
+    const v1 = JSON.stringify({ ...v2, formatVersion: 1 });
+    expect(evaluateDownloadedCatalog(v1, current)).toEqual({ kind: 'invalid' });
   });
 
   it('rejects text that is not JSON or not a valid catalog', () => {

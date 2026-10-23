@@ -1,7 +1,12 @@
 import type * as z from 'zod';
 import { animationSchema, type Animation } from '../schema/animation.ts';
 import { exerciseSchema, type Exercise } from '../schema/exercise.ts';
-import { scheduleSchema, type Schedule } from '../schema/schedule.ts';
+import {
+  isScheduleSuperset,
+  scheduleSchema,
+  type Schedule,
+  type ScheduleItem,
+} from '../schema/schedule.ts';
 
 /** A file of the data directory. */
 export interface DataFile {
@@ -152,14 +157,24 @@ export function validateData(set: DataSet): ValidationResult {
     }
   }
   for (const { file, item } of schedules) {
+    const checkExerciseId = (exerciseId: string | undefined, where: string) => {
+      if (exerciseId !== undefined && !exerciseIds.has(exerciseId)) {
+        issues.push({
+          file: file.path,
+          message: `${where}.exerciseId: no exercise with id "${exerciseId}"`,
+        });
+      }
+    };
     item.days.forEach((day, dayIndex) => {
-      day.exercises.forEach((entry, entryIndex) => {
-        if (entry.exerciseId !== undefined && !exerciseIds.has(entry.exerciseId)) {
-          issues.push({
-            file: file.path,
-            message: `days[${dayIndex}].exercises[${entryIndex}].exerciseId: no exercise with id "${entry.exerciseId}"`,
-          });
+      day.exercises.forEach((entry: ScheduleItem, entryIndex) => {
+        const where = `days[${dayIndex}].exercises[${entryIndex}]`;
+        if (!isScheduleSuperset(entry)) {
+          checkExerciseId(entry.exerciseId, where);
+          return;
         }
+        entry.superset.exercises.forEach((member, memberIndex) => {
+          checkExerciseId(member.exerciseId, `${where}.superset.exercises[${memberIndex}]`);
+        });
       });
     });
   }

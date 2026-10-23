@@ -9,9 +9,9 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import * as z from 'zod';
 import { animationSchema } from '../src/lib/schema/animation.ts';
-import { catalogSchema } from '../src/lib/schema/catalog.ts';
+import { catalogV1Schema, catalogV2Schema } from '../src/lib/schema/catalog.ts';
 import { exerciseSchema } from '../src/lib/schema/exercise.ts';
-import { scheduleSchema } from '../src/lib/schema/schedule.ts';
+import { scheduleV1Schema, scheduleV2Schema } from '../src/lib/schema/schedule.ts';
 import { DATA_DIR } from './lib/paths.ts';
 
 const SCHEMA_DIR = path.join(DATA_DIR, 'schema');
@@ -20,8 +20,10 @@ const SCHEMA_BASE_URL = 'https://raw.githubusercontent.com/s1n7ax/openrep/main/d
 const SCHEMAS: Record<string, z.ZodType> = {
   'exercise.v1.json': exerciseSchema,
   'animation.v1.json': animationSchema,
-  'schedule.v1.json': scheduleSchema,
-  'catalog.v1.json': catalogSchema,
+  'schedule.v1.json': scheduleV1Schema,
+  'schedule.v2.json': scheduleV2Schema,
+  'catalog.v1.json': catalogV1Schema,
+  'catalog.v2.json': catalogV2Schema,
 };
 
 /** Renders one zod schema as the text of its JSON Schema file. */

@@ -3,9 +3,25 @@
  * conventions of pure updates).
  */
 import type { Exercise } from '../schema/exercise.ts';
-import type { Schedule, ScheduleEntry } from '../schema/schedule.ts';
-import type { CustomExercise, ExerciseRef, Plan, UserData } from '../schema/userData.ts';
+import {
+  isScheduleSuperset,
+  type Schedule,
+  type ScheduleDayV2,
+  type ScheduleEntry,
+  type ScheduleSuperset,
+  type ScheduleSupersetExercise,
+} from '../schema/schedule.ts';
+import type {
+  CustomExercise,
+  ExerciseRef,
+  Plan,
+  PlanDay,
+  PlanExercise,
+  Superset,
+  UserData,
+} from '../schema/userData.ts';
 import { cleanTarget } from './plans.ts';
+import { supersetLetter } from './supersets.ts';
 
 export interface CopyScheduleOptions {
   /** Id of the new plan. */
@@ -39,6 +55,8 @@ function nameFromId(id: string): string {
  * - Name-only entries become custom exercises. A custom exercise with the same
  *   name (ignoring case and spacing) is reused instead of creating a duplicate.
  * - Targets keep sets, reps or duration, rest and notes.
+ * - Supersets stay supersets: their exercises get the round count as their
+ *   sets, and the superset keeps the rest after each round.
  */
 export function copyScheduleToPlan(
   data: UserData,
@@ -51,7 +69,7 @@ export function copyScheduleToPlan(
   );
   const created: CustomExercise[] = [];
 
-  function refFor(entry: ScheduleEntry): ExerciseRef {
+  function refFor(entry: ScheduleSupersetExercise): ExerciseRef {
     if (entry.exerciseId !== undefined) {
       const exercise = findExercise(entry.exerciseId);
       return {
@@ -80,24 +98,50 @@ export function copyScheduleToPlan(
     return { kind: 'custom', customExerciseId: custom.id, name: custom.name };
   }
 
+  function planExercise(
+    entry: ScheduleSupersetExercise,
+    sets: number,
+    restSec: number | undefined,
+  ): PlanExercise {
+    return {
+      id: newId(),
+      exercise: refFor(entry),
+      ...cleanTarget({
+        sets,
+        reps: entry.reps,
+        durationSec: entry.durationSec,
+        restSec,
+        notes: entry.notes?.trim(),
+      }),
+    };
+  }
+
+  function planDay(day: ScheduleDayV2): PlanDay {
+    const id = newId();
+    const exercises: PlanExercise[] = [];
+    const supersets: Superset[] = [];
+    for (const item of day.exercises) {
+      if (!isScheduleSuperset(item)) {
+        exercises.push(planExercise(item, item.sets, item.restSec));
+        continue;
+      }
+      const { rounds, restSec, exercises: members } = item.superset;
+      const superset: Superset = restSec === undefined ? { id: newId() } : { id: newId(), restSec };
+      supersets.push(superset);
+      for (const member of members) {
+        exercises.push({ ...planExercise(member, rounds, undefined), supersetId: superset.id });
+      }
+    }
+    const name = day.name.trim();
+    return supersets.length > 0 ? { id, name, exercises, supersets } : { id, name, exercises };
+  }
+
+  // A version 1 day is a version 2 day without supersets.
+  const days: readonly ScheduleDayV2[] = schedule.days;
   const plan: Plan = {
     id: options.planId,
     name: schedule.name.trim(),
-    days: schedule.days.map((day) => ({
-      id: newId(),
-      name: day.name.trim(),
-      exercises: day.exercises.map((entry) => ({
-        id: newId(),
-        exercise: refFor(entry),
-        ...cleanTarget({
-          sets: entry.sets,
-          reps: entry.reps,
-          durationSec: entry.durationSec,
-          restSec: entry.restSec,
-          notes: entry.notes?.trim(),
-        }),
-      })),
-    })),
+    days: days.map(planDay),
     createdAt: now,
     updatedAt: now,
   };
@@ -110,7 +154,40 @@ export function copyScheduleToPlan(
   };
 }
 
-/** Number of exercises across all days of a schedule. */
+/** An item of a schedule day as shown: an exercise, or a superset with its letter. */
+export type ScheduleBlock =
+  | {
+      kind: 'exercise';
+      entry: ScheduleEntry;
+      /** Position of the exercise among the day's exercises, from 1 (as in a copied plan). */
+      number: number;
+    }
+  | { kind: 'superset'; superset: ScheduleSuperset['superset']; letter: string };
+
+/** The items of a schedule day as shown, supersets lettered A, B, … in order. */
+export function scheduleDayBlocks(day: ScheduleDayV2): ScheduleBlock[] {
+  let exercises = 0;
+  let supersets = 0;
+  return day.exercises.map((item) => {
+    if (!isScheduleSuperset(item)) {
+      exercises += 1;
+      return { kind: 'exercise', entry: item, number: exercises };
+    }
+    exercises += item.superset.exercises.length;
+    return { kind: 'superset', superset: item.superset, letter: supersetLetter(supersets++) };
+  });
+}
+
+/** Number of exercises of a schedule day, counting each exercise of a superset. */
+export function scheduleDayExerciseCount(day: ScheduleDayV2): number {
+  return day.exercises.reduce(
+    (sum, item) => sum + (isScheduleSuperset(item) ? item.superset.exercises.length : 1),
+    0,
+  );
+}
+
+/** Number of exercises across all days of a schedule, counting each exercise of a superset. */
 export function scheduleExerciseCount(schedule: Schedule): number {
-  return schedule.days.reduce((sum, day) => sum + day.exercises.length, 0);
+  const days: readonly ScheduleDayV2[] = schedule.days;
+  return days.reduce((sum, day) => sum + scheduleDayExerciseCount(day), 0);
 }

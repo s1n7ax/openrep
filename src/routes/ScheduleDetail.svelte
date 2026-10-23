@@ -1,29 +1,42 @@
 <!--
-  A community schedule (`#/schedules/:id`): description, days with exercises
-  and targets, and "Copy to my plans", which creates an editable plan and
-  opens it.
+  A community schedule (`#/schedules/:id`): description, days with exercises,
+  supersets and targets, and "Copy to my plans", which creates an editable
+  plan and opens it.
 -->
 <script lang="ts">
   import EmptyState from '../components/EmptyState.svelte';
   import FactGrid from '../components/FactGrid.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import SupersetLabel from '../components/SupersetLabel.svelte';
   import { newId, nowIso } from '../lib/ids.ts';
   import { valueLabel } from '../lib/labels.ts';
   import { href, paths, router } from '../lib/router.ts';
-  import type { ScheduleEntry } from '../lib/schema/schedule.ts';
+  import type { ScheduleDayV2, ScheduleSupersetExercise } from '../lib/schema/schedule.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { copyScheduleToPlan, scheduleExerciseCount } from '../lib/userData/schedules.ts';
-  import { formatTargetWithRest } from '../lib/userData/targets.ts';
+  import {
+    copyScheduleToPlan,
+    scheduleDayBlocks,
+    scheduleDayExerciseCount,
+    scheduleExerciseCount,
+  } from '../lib/userData/schedules.ts';
+  import { supersetExerciseLabel } from '../lib/userData/supersets.ts';
+  import {
+    formatSupersetExerciseTarget,
+    formatSupersetSummary,
+    formatTargetWithRest,
+  } from '../lib/userData/targets.ts';
 
   let { scheduleId }: { scheduleId: string } = $props();
 
   const schedule = $derived(catalog.schedule(scheduleId));
+  // A version 1 day is a version 2 day without supersets.
+  const days = $derived<readonly ScheduleDayV2[]>(schedule?.days ?? []);
   const unit = $derived(userData.data.settings.unit);
 
   /** How an entry is shown: catalog exercises link to their page; name-only entries are plain text. */
-  function display(entry: ScheduleEntry): {
+  function display(entry: ScheduleSupersetExercise): {
     name: string;
     link: string | null;
     note: string | null;
@@ -105,44 +118,48 @@
     </p>
 
     <div class="days">
-      {#each schedule.days as day, dayIndex (dayIndex)}
+      {#each days as day, dayIndex (dayIndex)}
+        {@const count = scheduleDayExerciseCount(day)}
         <section class="day card" data-testid="schedule-day" aria-labelledby={`sday-${dayIndex}`}>
           <header class="day-head">
             <h2 id={`sday-${dayIndex}`} class="day-name">{day.name}</h2>
             <p class="day-meta">
-              {day.exercises.length}
-              {day.exercises.length === 1 ? 'exercise' : 'exercises'}
+              {count}
+              {count === 1 ? 'exercise' : 'exercises'}
             </p>
           </header>
           <ol class="exercises">
-            {#each day.exercises as entry, index (index)}
-              {@const shown = display(entry)}
-              <li data-testid="schedule-exercise">
-                <svelte:element
-                  this={shown.link ? 'a' : 'div'}
-                  class="exercise"
-                  class:link={!!shown.link}
-                  href={shown.link ?? undefined}
-                >
-                  <span class="number" aria-hidden="true">{index + 1}</span>
-                  <span class="exercise-text">
-                    <span class="exercise-name">{shown.name}</span>
-                    {#if shown.note}
-                      <span class="note">{shown.note}</span>
-                    {/if}
-                    <span class="target">{formatTargetWithRest(entry, unit)}</span>
-                    {#if entry.notes}
-                      <span class="notes">{entry.notes}</span>
-                    {/if}
-                  </span>
-                  {#if shown.animated}
-                    <span class="badge">3D</span>
-                  {/if}
-                  {#if shown.link}
-                    <span class="chevron"><Icon name="chevron-right" size={18} /></span>
-                  {/if}
-                </svelte:element>
-              </li>
+            {#each scheduleDayBlocks(day) as block, index (index)}
+              {#if block.kind === 'exercise'}
+                <li data-testid="schedule-exercise">
+                  {@render exerciseRow(
+                    block.entry,
+                    String(block.number),
+                    formatTargetWithRest(block.entry, unit),
+                  )}
+                </li>
+              {:else}
+                <li class="superset" data-testid="schedule-superset">
+                  <div class="superset-head">
+                    <SupersetLabel
+                      letter={block.letter}
+                      summary={formatSupersetSummary(block.superset.rounds, block.superset.restSec)}
+                      testid="schedule-superset-summary"
+                    />
+                  </div>
+                  <ol class="superset-exercises">
+                    {#each block.superset.exercises as member, position (position)}
+                      <li data-testid="schedule-exercise">
+                        {@render exerciseRow(
+                          member,
+                          supersetExerciseLabel(block.letter, position),
+                          formatSupersetExerciseTarget(member, unit),
+                        )}
+                      </li>
+                    {/each}
+                  </ol>
+                </li>
+              {/if}
             {/each}
           </ol>
         </section>
@@ -150,6 +167,34 @@
     </div>
   {/if}
 </div>
+
+{#snippet exerciseRow(entry: ScheduleSupersetExercise, label: string, target: string)}
+  {@const shown = display(entry)}
+  <svelte:element
+    this={shown.link ? 'a' : 'div'}
+    class="exercise"
+    class:link={!!shown.link}
+    href={shown.link ?? undefined}
+  >
+    <span class="number" aria-hidden="true" data-testid="schedule-exercise-label">{label}</span>
+    <span class="exercise-text">
+      <span class="exercise-name" data-testid="schedule-exercise-name">{shown.name}</span>
+      {#if shown.note}
+        <span class="note">{shown.note}</span>
+      {/if}
+      <span class="target">{target}</span>
+      {#if entry.notes}
+        <span class="notes">{entry.notes}</span>
+      {/if}
+    </span>
+    {#if shown.animated}
+      <span class="badge">3D</span>
+    {/if}
+    {#if shown.link}
+      <span class="chevron"><Icon name="chevron-right" size={18} /></span>
+    {/if}
+  </svelte:element>
+{/snippet}
 
 <style>
   .intro {
@@ -223,6 +268,24 @@
     border-top: 1px solid var(--border);
   }
 
+  .superset {
+    border-left: 3px solid var(--accent);
+  }
+
+  .superset-head {
+    padding: var(--space-3) var(--space-4) 0 calc(var(--space-4) - 3px);
+  }
+
+  .superset-exercises {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .superset .exercise {
+    padding-left: calc(var(--space-4) - 3px);
+  }
+
   .exercise {
     display: flex;
     align-items: flex-start;
@@ -241,14 +304,20 @@
     display: grid;
     flex: none;
     place-items: center;
-    width: 26px;
+    min-width: 26px;
     height: 26px;
+    padding: 0 var(--space-1);
     margin-top: 1px;
     border-radius: var(--radius-pill);
     background: var(--surface-2);
     color: var(--text-2);
     font-size: var(--text-xs);
     font-weight: 800;
+  }
+
+  .superset .number {
+    background: var(--accent-soft);
+    color: var(--accent-text);
   }
 
   .exercise-text {

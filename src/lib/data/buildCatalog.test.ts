@@ -1,11 +1,17 @@
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { readDataDir } from '../../../scripts/lib/data-dir.ts';
 import { catalogSchema } from '../schema/catalog.ts';
+import { scheduleSchema } from '../schema/schedule.ts';
 import { buildCatalog, canonicalJson, sha256Hex } from './buildCatalog.ts';
 import { validateData, type ValidatedData } from './validate.ts';
 
 const VALID = path.resolve(import.meta.dirname, '../../../tests/fixtures/data/valid');
+const SUPERSET_SCHEDULE = path.resolve(
+  import.meta.dirname,
+  '../../../tests/fixtures/data/superset-schedule.json',
+);
 
 let data: ValidatedData;
 
@@ -36,6 +42,20 @@ describe('buildCatalog', () => {
     expect(catalog.formatVersion).toBe(1);
     expect(catalog.generatedAt).toBe('2026-10-22T10:00:00.000Z');
     expect(catalog.exercises.map((e) => e.id)).toEqual(['sample-plank', 'sample-push-up']);
+  });
+
+  it('is version 2 only when a schedule is version 2', async () => {
+    const supersets = scheduleSchema.parse(JSON.parse(await readFile(SUPERSET_SCHEDULE, 'utf8')));
+    const withSupersets = { ...data, schedules: [...data.schedules, supersets] };
+    const catalog = await buildCatalog(withSupersets, '2026-10-22T10:00:00.000Z');
+    expect(catalog.formatVersion).toBe(2);
+    expect(catalogSchema.parse(catalog)).toEqual(catalog);
+    expect(catalog.schedules.map((s) => [s.id, s.formatVersion])).toEqual([
+      ['sample-schedule', 1],
+      ['superset-schedule', 2],
+    ]);
+    const v1 = await buildCatalog(data, '2026-10-22T10:00:00.000Z');
+    expect(catalog.revision).not.toBe(v1.revision);
   });
 
   it('gives the same revision for the same content in any order, at any time', async () => {

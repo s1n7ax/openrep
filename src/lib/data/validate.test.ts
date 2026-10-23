@@ -8,10 +8,12 @@ const FIXTURES = path.resolve(import.meta.dirname, '../../../tests/fixtures/data
 
 let valid: DataSet;
 let malformedExercise: string;
+let supersetSchedule: string;
 
 beforeAll(async () => {
   valid = await readDataDir(path.join(FIXTURES, 'valid'));
   malformedExercise = await readFile(path.join(FIXTURES, 'malformed-exercise.json'), 'utf8');
+  supersetSchedule = await readFile(path.join(FIXTURES, 'superset-schedule.json'), 'utf8');
 });
 
 function withFile(kind: 'exercises' | 'animations' | 'schedules', name: string, content: unknown) {
@@ -100,6 +102,68 @@ describe('validateData', () => {
     expect(messagesFor(set, 'schedules/ghost-schedule.json')).toEqual([
       'days[0].exercises[0].exerciseId: no exercise with id "ghost"',
     ]);
+  });
+});
+
+describe('validateData with supersets', () => {
+  it('accepts a version 2 schedule with a superset next to version 1 schedules', () => {
+    const result = validateData(withFile('schedules', 'superset-schedule.json', supersetSchedule));
+    expect(result.issues).toEqual([]);
+    expect(result.data.schedules.map((s) => [s.id, s.formatVersion])).toEqual([
+      ['sample-schedule', 1],
+      ['superset-schedule', 2],
+    ]);
+  });
+
+  it('requires the exercises of a superset to exist', () => {
+    const schedule = JSON.parse(supersetSchedule) as { days: { exercises: unknown[] }[] };
+    const days = [
+      {
+        name: 'Day',
+        exercises: [
+          {
+            superset: {
+              rounds: 3,
+              exercises: [
+                { exerciseId: 'sample-plank', durationSec: 30 },
+                { exerciseId: 'ghost', reps: '8' },
+              ],
+            },
+          },
+        ],
+      },
+    ];
+    const set = withFile('schedules', 'superset-schedule.json', { ...schedule, days });
+    expect(messagesFor(set, 'schedules/superset-schedule.json')).toEqual([
+      'days[0].exercises[0].superset.exercises[1].exerciseId: no exercise with id "ghost"',
+    ]);
+  });
+
+  it('reports what is wrong with a superset', () => {
+    const schedule = JSON.parse(supersetSchedule) as Record<string, unknown>;
+    const superset = (rounds: number, exercises: unknown[]) => ({
+      ...schedule,
+      days: [{ name: 'Day', exercises: [{ superset: { rounds, exercises } }] }],
+    });
+    const push = { exerciseId: 'sample-push-up', reps: '8' };
+    const file = 'schedules/superset-schedule.json';
+    expect(messagesFor(withFile('schedules', 'superset-schedule.json', superset(3, [push])), file)).toEqual([
+      'days[0].exercises[0].superset.exercises: Too small: expected array to have >=2 items',
+    ]);
+    expect(
+      messagesFor(withFile('schedules', 'superset-schedule.json', superset(21, [push, push])), file),
+    ).toEqual(['days[0].exercises[0].superset.rounds: Too big: expected number to be <=20']);
+    const withSets = superset(3, [{ ...push, sets: 3 }, push]);
+    expect(messagesFor(withFile('schedules', 'superset-schedule.json', withSets), file)).toEqual([
+      'days[0].exercises[0].superset.exercises[0]: Unrecognized key: "sets"',
+    ]);
+  });
+
+  it('keeps version 1 schedules free of supersets', () => {
+    const schedule = { ...JSON.parse(supersetSchedule), formatVersion: 1 };
+    const messages = messagesFor(withFile('schedules', 'superset-schedule.json', schedule), 'schedules/superset-schedule.json');
+    expect(messages.length).toBeGreaterThan(0);
+    expect(messages[0]).toMatch(/^days\[0\]\.exercises\[0\]/);
   });
 });
 

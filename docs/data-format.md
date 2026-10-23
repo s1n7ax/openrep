@@ -1,4 +1,4 @@
-# OpenRep data format (v1)
+# OpenRep data format
 
 OpenRep's exercises, animations and schedules are plain JSON files in this
 repository, one file per item. They are released under
@@ -11,14 +11,14 @@ data/
 ├── exercises/images/<id>/<n>.webp exercise photos
 ├── animations/<exerciseId>.json   3D animations
 ├── schedules/<id>.json            workout schedules
-├── schema/*.v1.json               JSON Schema of each format
+├── schema/*.v<n>.json             JSON Schema of each format version
 └── LICENSE                        CC0 1.0
 ```
 
 The formats are defined once, as [Zod](https://zod.dev) schemas in
 `src/lib/schema/`. The JSON Schema files in `data/schema/` are generated from
-them (`npm run generate:schema`) for use outside this repository; CI fails when
-they are out of date. The schema files' `$id` is their URL on GitHub, e.g.
+them (`npm run generate:schema`) for use outside this repository, one file
+per format version; CI fails when they are out of date. The schema files' `$id` is their URL on GitHub, e.g.
 `https://raw.githubusercontent.com/s1n7ax/openrep/main/data/schema/exercise.v1.json`.
 
 `npm run validate:data` checks every file against its schema plus the rules
@@ -31,8 +31,10 @@ runs it.
   dashes (`^[a-z0-9]+(-[a-z0-9]+)*$`), e.g. `barbell-bench-press-medium-grip`.
 - **The file name is the id**: `data/exercises/pushups.json` has
   `"id": "pushups"`; an animation file is named after its `exerciseId`.
-- **Every file has a `formatVersion`**. This document describes version 1.
-- **No other fields**: the v1 objects are strict, so a field not listed here is
+- **Every file has a `formatVersion`**. Exercises and animations are version
+  1; schedules are version 1, or version 2 when they have supersets (see
+  [Schedule](#schedule)).
+- **No other fields**: the objects are strict, so a field not listed here is
   an error.
 - **Text** fields marked "text" must contain something other than whitespace.
 
@@ -243,11 +245,13 @@ Placement by attachment:
 
 ## Schedule
 
-`data/schedules/<id>.json` — schema `data/schema/schedule.v1.json`.
+`data/schedules/<id>.json` — schema `data/schema/schedule.v1.json`, or
+`data/schema/schedule.v2.json` for a schedule with
+[supersets](#supersets-version-2).
 
 | Field           | Type                 | Description                                       |
 | --------------- | -------------------- | ------------------------------------------------- |
-| `formatVersion` | `1`                  |                                                   |
+| `formatVersion` | `1` or `2`           | `2` only for a schedule with supersets.           |
 | `id`            | id                   | Equals the file name.                             |
 | `name`          | text                 | Display name.                                     |
 | `description`   | string               | What the schedule is for (may be empty).          |
@@ -289,9 +293,55 @@ Every entry sets exactly one of `reps` and `durationSec`.
 }
 ```
 
+### Supersets (version 2)
+
+A superset is two or more exercises done alternately: one set of each, in
+order, makes a round, with no rest in between, and the rest comes after each
+round. In a version 2 schedule an item of a day's `exercises` is an entry or
+`{ "superset": superset }`:
+
+| Field       | Type                      | Description                                                           |
+| ----------- | ------------------------- | --------------------------------------------------------------------- |
+| `rounds`    | integer, 1–20             | Number of rounds; every exercise of the superset does that many sets. |
+| `restSec`   | integer, 0–3600           | Optional rest after each round.                                       |
+| `exercises` | exercise[] (at least two) | In the order they are done in a round.                                |
+
+An exercise of a superset is an entry without `sets` and `restSec` (the
+superset sets both): `exerciseId` and/or `name`, exactly one of `reps` and
+`durationSec`, and optional `notes`. Reps-based and timed exercises can be
+mixed. Everything else is as in version 1, whose files stay valid as they are.
+
+```json
+{
+  "formatVersion": 2,
+  "id": "example-supersets",
+  "name": "Example with a superset",
+  "description": "Chest and triceps.",
+  "days": [
+    {
+      "name": "Push",
+      "exercises": [
+        {
+          "superset": {
+            "rounds": 3,
+            "restSec": 90,
+            "exercises": [
+              { "exerciseId": "barbell-bench-press-medium-grip", "reps": "8" },
+              { "exerciseId": "dumbbell-flyes", "reps": "12" }
+            ]
+          }
+        },
+        { "exerciseId": "triceps-pushdown", "sets": 3, "reps": "10-12", "restSec": 60 }
+      ]
+    }
+  ]
+}
+```
+
 ## Catalog
 
-`catalog.json` — schema `data/schema/catalog.v1.json`. All data in one file,
+`catalog.json` — schema `data/schema/catalog.v1.json`, or
+`data/schema/catalog.v2.json` when it holds a version 2 schedule. All data in one file,
 built by `npm run build:catalog -- --out <dir>` (add `--json-only` to skip
 copying the images). The app ships one inside it and downloads updates from:
 
@@ -304,12 +354,12 @@ the only file of the `catalog` branch.
 
 | Field           | Type        | Description                                                                                                                                                     |
 | --------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `formatVersion` | `1`         |                                                                                                                                                                 |
+| `formatVersion` | `1` or `2`  | `2` only when one of its schedules is version 2 (has supersets); otherwise `1`, so apps that read only version 1 keep updating.                                 |
 | `revision`      | string      | Lowercase hex SHA-256 of the canonical JSON (keys sorted) of `formatVersion`, `exercises`, `animations` and `schedules`. Changes exactly when the content does. |
 | `generatedAt`   | timestamp   | ISO 8601 UTC time the data last changed: the commit time of the last commit that changed `data/` (`SOURCE_DATE_EPOCH` when set). Not part of the revision.      |
 | `exercises`     | exercise[]  | Sorted by `id`.                                                                                                                                                 |
 | `animations`    | animation[] | Sorted by `exerciseId`.                                                                                                                                         |
-| `schedules`     | schedule[]  | Sorted by `id`.                                                                                                                                                 |
+| `schedules`     | schedule[]  | Sorted by `id`. Version 1 schedules only in a version 1 catalog.                                                                                                |
 
 Image paths stay relative to `data/exercises/`, so `images/pushups/0.webp` is at
 `https://raw.githubusercontent.com/s1n7ax/openrep/main/data/exercises/images/pushups/0.webp`.
@@ -331,13 +381,14 @@ with its file and exits 1 when there is any. Beyond the schemas it checks that:
   `.json` files are in the data folders;
 - ids are unique;
 - every image path of an exercise exists;
-- every animation's `exerciseId` and every schedule `exerciseId` is an existing
-  exercise.
+- every animation's `exerciseId` and every schedule `exerciseId` (superset
+  exercises included) is an existing exercise.
 
 ## Versioning
 
-- Every file carries its `formatVersion`. The current version of every format
-  is 1.
+- Every file carries its `formatVersion`. Exercises and animations are at
+  version 1. Schedules and the catalog have a version 2 that adds supersets;
+  a schedule or catalog without supersets stays version 1.
 - A change that existing readers would reject or misread is a breaking change:
   renaming or removing a field, changing a meaning or unit, and — because v1
   objects allow no unknown fields — adding a field. A breaking change gets a new
