@@ -37,6 +37,10 @@ xcuserdata/
 .idea/
 *.local
 
+# Ruby gems for fastlane (bundle install)
+.bundle/
+vendor/bundle/
+
 # Local working state
 .goals/
 .playwright-mcp/
