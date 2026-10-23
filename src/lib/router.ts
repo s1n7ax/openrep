@@ -3,14 +3,17 @@
  * builders, in-app history with direction (for scroll restoration) and the
  * back behaviour shared by the header back button and Android's back button.
  */
+import { MUSCLES, type Muscle } from './schema/common.ts';
 import type { ViewPreset } from './three/viewer.ts';
 
 /**
  * The developer route `#/dev/pose/<exerciseId>?t=<0..1>`: shows an exercise's
  * 3D view full screen, frozen at loop time t (playing when t is omitted).
  * Optional review parameters: `view=<default|front|side|back|top>`,
- * `zoom=<factor>` and `focus=<x,y,z>` (world point to look at). Used to review
- * animations and by screenshot tooling.
+ * `zoom=<factor>`, `focus=<x,y,z>` (world point to look at) and
+ * `primary=<muscles>` / `secondary=<muscles>` (comma-separated muscle groups
+ * shown instead of the exercise's own). Used to review animations and the
+ * muscle glow, and by screenshot tooling.
  */
 export interface DevPoseRoute {
   exerciseId: string;
@@ -21,6 +24,8 @@ export interface DevPoseRoute {
   zoom: number;
   /** World point to look at instead of the framed figure, or null. */
   focus: [number, number, number] | null;
+  /** Muscle groups to light instead of the exercise's own, or null. */
+  glow: { primary: Muscle[]; secondary: Muscle[] } | null;
 }
 
 export type Route =
@@ -93,6 +98,12 @@ function parseDevPose(exerciseId: string, params: URLSearchParams): DevPoseRoute
   const view = params.get('view');
   const zoom = Number(params.get('zoom') ?? 1);
   const focus = (params.get('focus') ?? '').split(',').map(Number);
+  const muscles = (name: string) =>
+    (params.get(name) ?? '')
+      .split(',')
+      .map((muscle) => muscle.trim())
+      .filter((muscle): muscle is Muscle => (MUSCLES as readonly string[]).includes(muscle));
+  const overridden = params.has('primary') || params.has('secondary');
   return {
     exerciseId,
     time: Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : null,
@@ -102,6 +113,7 @@ function parseDevPose(exerciseId: string, params: URLSearchParams): DevPoseRoute
       focus.length === 3 && focus.every((n) => Number.isFinite(n))
         ? [focus[0] ?? 0, focus[1] ?? 0, focus[2] ?? 0]
         : null,
+    glow: overridden ? { primary: muscles('primary'), secondary: muscles('secondary') } : null,
   };
 }
 
