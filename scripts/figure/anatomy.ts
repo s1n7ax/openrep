@@ -78,6 +78,8 @@ export interface LimbMuscle extends MuscleBase {
   ring?: boolean;
   /** Only vertices within this distance (metres) of the bone's axis. */
   radius?: number;
+  /** Only vertices at least this far (metres) from the body's midline. */
+  midline?: number;
 }
 
 export type MuscleSpec = TorsoMuscle | LimbMuscle;
@@ -226,7 +228,7 @@ export interface ChartSampler {
   /** Torso chart: |x|, y (metres) and how much the vertex faces forward (0–1). */
   torso(v: number): { x: number; y: number; front: number };
   /** Limb chart: θ (radians, mirrored so + is lateral), u (bone lengths) and distance from the axis. */
-  limb(chart: LimbChart, v: number): { theta: number; u: number; r: number };
+  limb(chart: LimbChart, v: number): { theta: number; u: number; r: number; midline: number };
 }
 
 export function createChartSampler(
@@ -289,6 +291,7 @@ export function createChartSampler(
         theta: Math.atan2(mirror * local.x, local.z),
         u: (chart === 'neck' ? local.y : -local.y) / spec.length,
         r: Math.hypot(local.x, local.z),
+        midline: Math.abs(x),
       };
     },
   };
@@ -376,6 +379,7 @@ export function paintMuscles(
       const chart = spec.chart;
       const ring = spec.ring ?? false;
       const radius = spec.radius ?? Infinity;
+      const midline = spec.midline ?? 0;
       measure = (v) => {
         const p = charts.limb(chart, v);
         // Angle measured around the outline's centre, so it may cross ±180°.
@@ -385,7 +389,9 @@ export function paintMuscles(
         const d = ring
           ? Math.min(y - shape.minY, shape.maxY - y)
           : distanceTo(shape, x, y, edge * 2);
-        const near = radius === Infinity ? 1 : 1 - smoothstep(radius - 0.01, radius + 0.01, p.r);
+        const near =
+          (radius === Infinity ? 1 : 1 - smoothstep(radius - 0.01, radius + 0.01, p.r)) *
+          (midline === 0 ? 1 : smoothstep(midline - 0.006, midline + 0.006, p.midline));
         return {
           cover: smoothstep(-edge, edge, d) * near,
           belly: belly(d, spec.width) * near,
@@ -398,7 +404,8 @@ export function paintMuscles(
       const m = measure(v);
       if (group >= 0 && m.cover > 0) {
         const i = v * MUSCLES.length + group;
-        groupCover[i] = Math.max(groupCover[i] ?? 0, m.cover * gate);
+        // The glow ends crisply where a body segment hands over to the next.
+        groupCover[i] = Math.max(groupCover[i] ?? 0, m.cover * smoothstep(0.2, 0.6, gate));
       }
       if (spec.height !== 0 && m.belly > 0) {
         displacement[v] = (displacement[v] ?? 0) + spec.height * gate * m.belly;

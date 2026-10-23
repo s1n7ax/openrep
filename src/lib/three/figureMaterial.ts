@@ -95,8 +95,9 @@ export function createFigureMaterial(): FigureMaterial {
         /* glsl */ `#include <color_fragment>
         float glowPrimary = smoothstep(0.2, 0.8, vPrimary);
         float glowSecondary = smoothstep(0.2, 0.8, vSecondary) * (1.0 - glowPrimary);
-        diffuseColor.rgb = mix(diffuseColor.rgb, glowSecondaryDiffuse, glowSecondary);
-        diffuseColor.rgb = mix(diffuseColor.rgb, glowPrimaryDiffuse, glowPrimary);
+        // Tinted rather than replaced, so the muscle forms stay readable under the glow.
+        diffuseColor.rgb = mix(diffuseColor.rgb, glowSecondaryDiffuse, glowSecondary * 0.9);
+        diffuseColor.rgb = mix(diffuseColor.rgb, glowPrimaryDiffuse, glowPrimary * 0.9);
         diffuseColor.rgb *= mix(1.0, vCavity, 0.7);`,
       )
       .replace(

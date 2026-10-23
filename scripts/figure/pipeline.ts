@@ -12,7 +12,13 @@ import { bakeCavity } from './cavity.ts';
 import { FigureBuildError } from './errors.ts';
 import { MUSCLE_SPECS } from './muscles.ts';
 import { smoothHead } from './head.ts';
-import { catmullClark, triangulate, type PolyMesh } from './mesh.ts';
+import {
+  catmullClark,
+  taubinSmooth,
+  triangulate,
+  vertexNeighbours,
+  type PolyMesh,
+} from './mesh.ts';
 
 export interface BuiltFigure {
   /** Final (sculpted) mesh in the bind pose. */
@@ -63,6 +69,9 @@ export async function buildFigure(read: SourceReader): Promise<BuiltFigure> {
     }
   }
 
+  smoothCrotch(head.mesh, denseWeights, boneCount);
+  smoothHipWeights(head.mesh, denseWeights, boneCount);
+
   // One level of Catmull–Clark subdivision; skin weights interpolated per bone.
   const subdivided = catmullClark(head.mesh, [{ itemSize: boneCount, array: denseWeights }]);
   const mesh = subdivided.mesh;
@@ -112,6 +121,65 @@ export async function buildFigure(read: SourceReader): Promise<BuiltFigure> {
     indices,
     report: body.report,
   };
+}
+
+/** Bones whose weights are smoothed around the hips (the groin pinches otherwise). */
+const HIP_BONES = ['pelvis', 'leftHip', 'rightHip', 'leftHipBlend', 'rightHipBlend'];
+const HIP_SMOOTHING = 6;
+
+/** Diffuses the hip-region skin weights over the mesh, so the groin bends without creases. */
+function smoothHipWeights(mesh: PolyMesh, weights: Float64Array, boneCount: number): void {
+  const hip = HIP_BONES.map((name) => FIGURE_BONES.findIndex((bone) => bone.name === name));
+  const count = mesh.positions.length / 3;
+  const region: number[] = [];
+  for (let v = 0; v < count; v++) {
+    let share = 0;
+    for (const b of hip) share += weights[v * boneCount + b] ?? 0;
+    // Only vertices weighted to the hips alone (not the spine or the knees).
+    if (share > 0.999 && share > 0) region.push(v);
+  }
+  const neighbours = vertexNeighbours(mesh);
+  const next = new Float64Array(hip.length);
+  for (let pass = 0; pass < HIP_SMOOTHING; pass++) {
+    for (const v of region) {
+      const list = neighbours[v] ?? [];
+      next.fill(0);
+      for (const u of [v, ...list]) {
+        hip.forEach((b, i) => (next[i] = (next[i] ?? 0) + (weights[u * boneCount + b] ?? 0)));
+      }
+      const total = next.reduce((sum, w) => sum + w, 0);
+      if (total <= 0) continue;
+      hip.forEach((b, i) => (weights[v * boneCount + b] = (next[i] ?? 0) / total));
+    }
+  }
+}
+
+/**
+ * Smooths the folds of MakeHuman's crotch into a clean, statue-like surface,
+ * and ties its middle to the pelvis so it stretches rather than folds when
+ * the thighs spread.
+ */
+function smoothCrotch(mesh: PolyMesh, weights: Float64Array, boneCount: number): void {
+  const count = mesh.positions.length / 3;
+  const strength = new Float64Array(count);
+  for (let v = 0; v < count; v++) {
+    const x = Math.abs(mesh.positions[v * 3] ?? 0);
+    const y = mesh.positions[v * 3 + 1] ?? 0;
+    const across = 1 - Math.min(1, Math.max(0, (x - 0.03) / 0.03));
+    const along =
+      Math.min(1, Math.max(0, (y - 0.76) / 0.03)) * Math.min(1, Math.max(0, (0.92 - y) / 0.03));
+    strength[v] = across * along;
+  }
+  taubinSmooth(mesh.positions, vertexNeighbours(mesh), strength, 30);
+  const pelvis = FIGURE_BONES.findIndex((bone) => bone.name === 'pelvis');
+  for (let v = 0; v < count; v++) {
+    const move = 0.7 * (strength[v] ?? 0);
+    if (move <= 0) continue;
+    for (let b = 0; b < boneCount; b++) {
+      weights[v * boneCount + b] = (weights[v * boneCount + b] ?? 0) * (1 - move);
+    }
+    weights[v * boneCount + pelvis] = (weights[v * boneCount + pelvis] ?? 0) + move;
+  }
 }
 
 /** The four largest skin weights per vertex, as bytes summing to exactly 255. */

@@ -9,7 +9,7 @@ import { taubinSmooth, vertexNeighbours, vertexNormals, type PolyMesh } from './
 /** Depth (metres) of a crease that gets the full darkening. */
 const FULL_DEPTH = 0.006;
 /** Darkest cavity value (1 = no darkening). */
-const DARKEST = 0.7;
+const DARKEST = 0.75;
 
 export function bakeCavity(mesh: PolyMesh): Uint8Array {
   const count = mesh.positions.length / 3;

@@ -152,7 +152,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [90, -0.24],
       [0, -0.2],
     ],
-    height: 0.008,
+    height: 0.0104,
     width: 0.03,
   },
   // ── Arms ──────────────────────────────────────────────────────────────────
@@ -173,7 +173,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [10, 0.26],
       [-15, 0.18],
     ],
-    height: 0.009,
+    height: 0.0117,
     width: 0.025,
   },
   {
@@ -190,7 +190,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [74, 0.56],
       [60, 0.46],
     ],
-    height: 0.004,
+    height: 0.0052,
     width: 0.012,
   },
   {
@@ -214,7 +214,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [108, 0.74],
       [96, 0.6],
     ],
-    height: 0.008,
+    height: 0.0104,
     width: 0.025,
   },
   {
@@ -246,7 +246,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [30, 0.55],
       [20, 0.2],
     ],
-    height: 0.005,
+    height: 0.0065,
     width: 0.014,
   },
   {
@@ -263,7 +263,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [-110, 0.66],
       [-160, 0.4],
     ],
-    height: 0.005,
+    height: 0.0065,
     width: 0.02,
   },
   {
@@ -280,7 +280,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [120, 0.66],
       [95, 0.5],
     ],
-    height: 0.004,
+    height: 0.0052,
     width: 0.016,
   },
   // ── Back ──────────────────────────────────────────────────────────────────
@@ -311,7 +311,8 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [0.12, 1.56],
       [0.07, 1.6],
     ],
-    height: 0.007,
+    edge: 0.004,
+    height: 0.00875,
     width: 0.035,
   },
   {
@@ -323,14 +324,14 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
     thetaCenter: 180,
     outline: [
       [110, -0.5],
-      [115, 0.65],
-      [135, 1.0],
-      [180, 1.1],
-      [225, 1.0],
-      [245, 0.65],
+      [115, 0.6],
+      [135, 0.84],
+      [180, 0.9],
+      [225, 0.84],
+      [245, 0.6],
       [250, -0.5],
     ],
-    height: 0.004,
+    height: 0.0052,
     width: 0.015,
   },
   {
@@ -360,7 +361,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [0.175, 1.2],
       [0.168, 1.3],
     ],
-    height: 0.008,
+    height: 0.01,
     width: 0.04,
   },
   {
@@ -396,7 +397,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [0.09, 1.31],
       [0.075, 1.36],
     ],
-    height: 0.005,
+    height: 0.00625,
     width: 0.02,
   },
   {
@@ -412,7 +413,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [0.15, 1.365],
       [0.11, 1.335],
     ],
-    height: 0.004,
+    height: 0.005,
     width: 0.01,
   },
   {
@@ -430,7 +431,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [0.012, 0.99],
       [0.01, 1.12],
     ],
-    height: 0.008,
+    height: 0.01,
     width: 0.025,
   },
   // ── Hips ──────────────────────────────────────────────────────────────────
@@ -451,7 +452,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [0.015, 0.83],
       [0.006, 0.9],
     ],
-    height: 0.01,
+    height: 0.0125,
     width: 0.05,
   },
   {
@@ -475,7 +476,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [0.175, 0.95],
       [0.16, 0.99],
     ],
-    height: 0.005,
+    height: 0.00625,
     width: 0.025,
   },
   {
@@ -492,7 +493,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [62, 0.15],
       [45, 0.0],
     ],
-    height: 0.005,
+    height: 0.0065,
     width: 0.02,
   },
   // ── Thighs ────────────────────────────────────────────────────────────────
@@ -512,7 +513,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [-32, 0.45],
       [-24, 0.2],
     ],
-    height: 0.008,
+    height: 0.0104,
     width: 0.03,
   },
   {
@@ -531,7 +532,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [27, 0.6],
       [25, 0.35],
     ],
-    height: 0.009,
+    height: 0.0117,
     width: 0.035,
   },
   {
@@ -549,7 +550,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [-70, 0.62],
       [-50, 0.52],
     ],
-    height: 0.01,
+    height: 0.013,
     width: 0.03,
   },
   {
@@ -570,7 +571,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [-10, 0.22],
       [22, 0.0],
     ],
-    height: 0.002,
+    height: 0.0026,
     width: 0.008,
   },
   {
@@ -579,18 +580,18 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
     chart: 'thigh',
     segments: THIGH,
     outline: [
-      [-35, 0.04],
-      [-30, 0.2],
-      [-48, 0.42],
-      [-75, 0.6],
-      [-100, 0.7],
-      [-122, 0.62],
-      [-140, 0.42],
-      [-155, 0.2],
-      [-150, 0.04],
-      [-95, 0.0],
+      [-30, 0.02],
+      [-28, 0.18],
+      [-40, 0.36],
+      [-58, 0.54],
+      [-85, 0.68],
+      [-118, 0.64],
+      [-145, 0.44],
+      [-155, 0.18],
+      [-150, 0.0],
+      [-90, -0.06],
     ],
-    height: 0.007,
+    height: 0.0091,
     width: 0.03,
   },
   {
@@ -614,7 +615,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [116, 0.5],
       [122, 0.22],
     ],
-    height: 0.008,
+    height: 0.0104,
     width: 0.035,
   },
   // ── Lower legs ────────────────────────────────────────────────────────────
@@ -633,7 +634,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [200, 0.5],
       [184, 0.36],
     ],
-    height: 0.01,
+    height: 0.013,
     width: 0.025,
   },
   {
@@ -651,7 +652,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [164, 0.42],
       [176, 0.3],
     ],
-    height: 0.008,
+    height: 0.0104,
     width: 0.022,
   },
   {
@@ -674,7 +675,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [125, 0.76],
       [100, 0.58],
     ],
-    height: 0.004,
+    height: 0.0052,
     width: 0.015,
   },
   {
@@ -691,7 +692,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [14, 0.5],
       [10, 0.25],
     ],
-    height: 0.004,
+    height: 0.0052,
     width: 0.015,
   },
   // ── Neck ──────────────────────────────────────────────────────────────────
@@ -711,7 +712,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
       [75, 1.0],
       [35, 0.6],
     ],
-    height: 0.005,
+    height: 0.0065,
     width: 0.012,
   },
   {

@@ -150,8 +150,6 @@ function mapBone(name: string): string {
   return central[base] ?? 'head';
 }
 
-const TORSO_BONES = new Set(['pelvis', 'spine', 'chest']);
-
 /** Pelvis / spine / chest share of a torso vertex by rest height (smooth bands). */
 function torsoSplit(y: number): [number, number, number] {
   const smooth = (a: number, b: number, x: number) => {
@@ -498,7 +496,6 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
   };
   const boneWarps = FIGURE_BONES.map((bone) => warpOf(bone.name));
   const p = new Vector3();
-  const moved = new Vector3();
   const sum = new Vector3();
   for (let v = 0; v < vertexCount; v++) {
     sum.set(0, 0, 0);
@@ -507,16 +504,12 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
       const weight = dense[row + b] ?? 0;
       if (weight <= 0) continue;
       for (const [warp, share] of boneWarps[b] ?? []) {
-        p.fromArray(placed, v * 3)
-          .sub(warp.from)
-          .applyMatrix4(warp.matrix)
-          .add(warp.to);
-        if (warp === none) p.fromArray(placed, v * 3);
+        p.fromArray(placed, v * 3);
+        if (warp !== none) p.sub(warp.from).applyMatrix4(warp.matrix).add(warp.to);
         sum.addScaledVector(p, weight * share);
       }
     }
-    moved.copy(sum);
-    placed.set([moved.x, moved.y, moved.z], v * 3);
+    placed.set([sum.x, sum.y, sum.z], v * 3);
   }
 
   // Blend bones take the shared part of their two joints' weights.
@@ -559,7 +552,6 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
     if (!matrix) throw new FigureBuildError(`No bind pose for ${bone.name}`);
     return { name: bone.name, world: matrix };
   });
-  void TORSO_BONES;
   return { mesh, skinIndex, skinWeight, bind, headWeight, report };
 }
 

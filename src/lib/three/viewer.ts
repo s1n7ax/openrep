@@ -148,12 +148,12 @@ export class ExerciseViewer {
     environment.dispose();
     pmrem.dispose();
     this.scene.environment = envTexture;
-    this.scene.environmentIntensity = 0.36;
+    this.scene.environmentIntensity = 0.3;
     this.disposables.push(envTexture);
 
-    const hemisphere = new HemisphereLight('#eef3ff', '#3b352f', 0.55);
+    const hemisphere = new HemisphereLight('#eef3ff', '#3b352f', 0.45);
     this.scene.add(hemisphere);
-    const key = new DirectionalLight('#fffaf4', 2.0);
+    const key = new DirectionalLight('#fffaf4', 2.3);
     key.position.set(2.2, 5, 2.6);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
@@ -167,10 +167,10 @@ export class ExerciseViewer {
     key.shadow.bias = -0.0004;
     key.shadow.normalBias = 0.02;
     this.scene.add(key, key.target);
-    const rim = new DirectionalLight('#a8c6ff', 1.5);
+    const rim = new DirectionalLight('#d6e2f5', 1.3);
     rim.position.set(-3, 2.6, -3.5);
     this.scene.add(rim);
-    const fill = new DirectionalLight('#ffe9d6', 0.35);
+    const fill = new DirectionalLight('#ffe9d6', 0.45);
     fill.position.set(-2.5, 1.2, 2.5);
     this.scene.add(fill);
     // Disposing the key light frees its 2048² shadow map.
