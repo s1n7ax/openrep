@@ -182,8 +182,10 @@ Other scripts:
 | `npm run build:catalog -- --out <dir>` | Builds `catalog.json` and copies the images (`--json-only`: just the JSON).                                                                |
 | `npm run generate:schema`              | Regenerates `data/schema/*.v1.json` after changing a schema in `src/lib/schema/`.                                                          |
 | `npm run import:free-exercise-db`      | Re-imports free-exercise-db at the pinned commit (keeps existing images unless `--force`). Curated aliases live in `scripts/aliases.json`. |
-| `npm run generate:app-assets`          | Regenerates the app icons and splash screens from `resources/icon.svg`.                                                                    |
+| `npm run generate:app-assets`          | Regenerates the app icons and splash screens, and the store icon and feature graphic, from `resources/icon.svg`.                           |
+| `npm run generate:store-screenshots`   | Retakes the store screenshots in `fastlane/metadata/android/en-US/images/phoneScreenshots/` (Playwright).                                  |
 | `npm run check:apk-version -- <apk>`   | Checks that an APK's versionName and versionCode come from `package.json`'s version (needs `ANDROID_HOME`).                                |
+| `npm run release:store-files`          | Writes the store "what's new" text and the F-Droid recipe version for `package.json`'s version (run by the release workflow).              |
 
 ### NixOS notes
 
@@ -210,4 +212,6 @@ Other scripts:
   [Conventional Commits](https://www.conventionalcommits.org) (`feat(ui): …`,
   `fix(data): …`). Pull requests are squash-merged, and release-please builds
   the changelog and the next version from these messages (`feat` → minor,
-  `fix` → patch).
+  `fix` → patch). The changelog is also the "what's new" text on Google Play
+  and F-Droid, so write the subject for users. Releasing:
+  [docs/releasing.md](docs/releasing.md).
