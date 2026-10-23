@@ -131,5 +131,5 @@ Exercises, animations, schedules and code are all welcome. Start with
 - Data in `data/` (exercises, animations, schedules, photos):
   [CC0 1.0 Universal](data/LICENSE). The exercises and photos imported from
   free-exercise-db are public domain under the Unlicense.
-- Third-party works (free-exercise-db, three.js, Svelte, Capacitor, Zod):
+- Third-party works (free-exercise-db, three.js, Svelte, Capacitor, Zod, MakeHuman):
   [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

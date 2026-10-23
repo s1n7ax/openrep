@@ -58,6 +58,8 @@ export const ANKLE_HEIGHT = 0.07;
  * toe joints). Foot IK targets are the ball of the foot, on the sole.
  */
 export const BALL_OFFSET = 0.145;
+/** The toe joint (ball of the foot, just above the sole) in the ankle's frame. */
+export const TOE_JOINT = { x: 0, y: -0.058, z: BALL_OFFSET } as const;
 /** Distance along the foot from the ankle to the back of the heel. */
 export const HEEL_OFFSET = 0.06;
 /** Distance along the foot from the ankle to the tip of the toes. */

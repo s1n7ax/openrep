@@ -95,18 +95,18 @@ Their photos were converted to WebP, at most 400 px wide.
 
 `data/animations/<exerciseId>.json` — schema `data/schema/animation.v1.json`.
 
-An animation is one repetition of an exercise, played as a loop on a plain 3D
+An animation is one repetition of an exercise, played as a loop on the 3D
 figure. Exercises without an animation are shown on a still standing figure
 with the same muscle glow.
 
-| Field           | Type                      | Description                                                                                     |
-| --------------- | ------------------------- | ----------------------------------------------------------------------------------------------- |
-| `formatVersion` | `1`                       |                                                                                                 |
-| `exerciseId`    | id                        | The exercise it animates; equals the file name. The exercise must exist.                        |
-| `durationSec`   | number, > 0 and ≤ 60      | Length of one loop (one repetition) in seconds.                                                 |
-| `camera`        | `{ position, target }`    | Optional initial camera (world points). Default: a 3/4 front view framing the figure and props. |
-| `props`         | prop[]                    | Equipment, see [Props](#props).                                                                 |
-| `keyframes`     | keyframe[] (at least two) | Poses over the loop, see [Keyframes](#keyframes).                                               |
+| Field           | Type                      | Description                                                                                                                                                                                                          |
+| --------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formatVersion` | `1`                       |                                                                                                                                                                                                                      |
+| `exerciseId`    | id                        | The exercise it animates; equals the file name. The exercise must exist.                                                                                                                                             |
+| `durationSec`   | number, > 0 and ≤ 60      | Length of one loop (one repetition) in seconds.                                                                                                                                                                      |
+| `camera`        | `{ position, target }`    | Optional initial camera (world points). Default: a 3/4 view framing the figure and props, from the front — or from behind when most primary muscles are on the back. Choose a camera that shows the primary muscles. |
+| `props`         | prop[]                    | Equipment, see [Props](#props).                                                                                                                                                                                      |
+| `keyframes`     | keyframe[] (at least two) | Poses over the loop, see [Keyframes](#keyframes).                                                                                                                                                                    |
 
 ### Coordinate system
 

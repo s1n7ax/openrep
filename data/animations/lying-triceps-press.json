@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "exerciseId": "lying-triceps-press",
   "durationSec": 2.8,
-  "camera": {"position": [2.75, 2.05, -1.85], "target": [0, 0.62, 0]},
+  "camera": {"position": [2.3, 1.7, 2.3], "target": [0, 0.75, -0.25]},
   "props": [
     {"type": "bench", "attach": "none", "position": [0, 0, 0]},
     {"type": "ez-bar", "attach": "hands"}

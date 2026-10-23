@@ -8,6 +8,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { Box3, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
+import { readFigureAsset } from '../../../tests/helpers/figureAsset.ts';
 import { animationSchema, type Animation } from '../schema/animation.ts';
 import { AnimationSampler, createSampledPose } from './animation.ts';
 import { createFigure } from './figure.ts';
@@ -17,6 +18,7 @@ import { JOINT_NAMES, SIDES } from './rig.ts';
 
 const DIR = path.resolve(import.meta.dirname, '../../../data/animations');
 const files = readdirSync(DIR).filter((file) => file.endsWith('.json'));
+const asset = readFigureAsset();
 
 /** Allowed distance between an IK target and where the hand or foot ends up. */
 const REACH_TOLERANCE = 0.02;
@@ -35,7 +37,7 @@ function sampleTimes(animation: Animation): number[] {
 }
 
 describe.skipIf(files.length === 0)('animation data', () => {
-  const figure = createFigure();
+  const figure = createFigure(asset);
   const box = new Box3();
 
   for (const file of files) {

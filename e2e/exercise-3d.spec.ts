@@ -57,11 +57,18 @@ const CORE_EXERCISE_IDS = [
 ];
 
 const NON_CORE_EXERCISE_ID = '3-4-sit-up';
+/** A non-core exercise working back muscles: its still figure starts from behind. */
+const NON_CORE_BACK_EXERCISE_ID = 'hyperextensions-back-extensions';
 
 /** Frames compared must differ in more than this share of pixels. */
 const MIN_CHANGED = 0.01;
 /** Fewer glow-coloured pixels than this count as no glow. */
 const MIN_GLOW_PIXELS = 40;
+/**
+ * Primary glow pixels the default view must show without rotating (the
+ * primary muscles are visible, not just a sliver of them).
+ */
+const MIN_PRIMARY_IN_VIEW = 150;
 
 // A phone-sized view keeps software rendering in headless Chromium quick.
 test.use({ viewport: { width: 360, height: 560 } });
@@ -122,6 +129,17 @@ for (const id of CORE_EXERCISE_IDS) {
     const middle = await captureCanvas(page);
     expect(changedFraction(start, middle), 't = 0 vs t = 0.5').toBeGreaterThan(MIN_CHANGED);
 
+    // The default view shows the primary muscles at the start and in the middle of the movement.
+    for (const [label, image] of [
+      ['t = 0', start],
+      ['t = 0.5', middle],
+    ] as const) {
+      expect(
+        glowPixels(image).primary,
+        `primary muscles (${item.primaryMuscles.join(', ')}) in the default view at ${label}`,
+      ).toBeGreaterThan(MIN_PRIMARY_IN_VIEW);
+    }
+
     // The wheel zooms in: the view changes and the glowing muscles get bigger.
     const box = await viewer(page).locator('canvas').boundingBox();
     expect(box, 'the 3D canvas is on screen').not.toBeNull();
@@ -178,6 +196,64 @@ test(`non-core exercise ${NON_CORE_EXERCISE_ID} glows on a still figure`, async 
 
   const glow = glowPixels(await captureCanvas(page));
   expect(glow.primary, `primary glow (${item.primaryMuscles.join(', ')})`).toBeGreaterThan(
-    MIN_GLOW_PIXELS,
+    MIN_PRIMARY_IN_VIEW,
   );
+});
+
+test(`non-core exercise ${NON_CORE_BACK_EXERCISE_ID} shows its back muscles without rotating`, async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const item = exercise(NON_CORE_BACK_EXERCISE_ID);
+  expect(catalog.animations.some((animation) => animation.exerciseId === item.id)).toBe(false);
+
+  await openApp(page, `#/exercises/${item.id}`);
+  await expectMuscleAttributes(page, item, false);
+  await waitForFrameAfter(page, 0);
+  await waitForIdle(page);
+  const glow = glowPixels(await captureCanvas(page));
+  expect(glow.primary, `primary glow (${item.primaryMuscles.join(', ')})`).toBeGreaterThan(
+    MIN_PRIMARY_IN_VIEW,
+  );
+});
+
+test('play/pause stops and resumes the movement, reset view brings the camera back', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await openApp(page, '#/exercises/barbell-squat');
+  await expect(viewer(page)).toHaveAttribute('data-animated', 'true');
+  await waitForFrameAfter(page, await waitForFrameAfter(page, 0));
+
+  // Pause: the view stops rendering and stays still.
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await expect(page.getByRole('button', { name: 'Play' })).toHaveAttribute('aria-pressed', 'true');
+  const idle = await waitForIdle(page);
+  const paused = await captureCanvas(page);
+  await page.waitForTimeout(1_500);
+  expect(await frameCount(page)).toBe(idle);
+
+  // Rotate, then reset the view: back to the same picture.
+  const box = await viewer(page).locator('canvas').boundingBox();
+  expect(box, 'the 3D canvas is on screen').not.toBeNull();
+  const centre = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+  await afterRender(page, async () => {
+    await page.mouse.move(centre.x, centre.y);
+    await page.mouse.down();
+    await page.mouse.move(centre.x + 140, centre.y + 30, { steps: 4 });
+    await page.mouse.up();
+  });
+  const rotated = await captureCanvas(page);
+  expect(changedFraction(paused, rotated), 'rotation').toBeGreaterThan(MIN_CHANGED);
+  await afterRender(page, () => page.getByRole('button', { name: 'Reset view' }).click());
+  const reset = await captureCanvas(page);
+  expect(changedFraction(paused, reset), 'reset view').toBeLessThan(MIN_CHANGED / 2);
+
+  // Play: the movement resumes.
+  await page.getByRole('button', { name: 'Play' }).click();
+  await expect(page.getByRole('button', { name: 'Pause' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  await waitForFrameAfter(page, await waitForFrameAfter(page, await frameCount(page)));
 });
