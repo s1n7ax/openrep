@@ -7,8 +7,8 @@ Thanks for helping! OpenRep has two kinds of contributions:
 - **Code**: the app itself (Svelte, TypeScript, three.js, Capacitor).
 
 Every pull request is checked automatically: formatting, lint, type checks,
-unit tests, the data validator, the end-to-end tests and the Android and iOS
-builds (`.github/workflows/ci.yml`). A pull request with malformed data fails.
+unit tests, the data validator, the full end-to-end suite and the Android and
+iOS builds (`.github/workflows/ci.yml`). A pull request with malformed data fails.
 
 ## Licence of contributions
 
@@ -166,7 +166,8 @@ npm ci
 npm run dev                 # the app in a browser, catalog served from data/
 ```
 
-Checks (the same ones CI runs):
+Checks (CI runs the same ones, with the full end-to-end suite instead of the
+smoke tests):
 
 ```sh
 npm run format              # or format:check
@@ -176,8 +177,15 @@ npm test                    # unit tests (Vitest)
 npm run generate:schema -- --check
 npm run validate:data
 npm run build
-npm run test:e2e            # end-to-end tests (Playwright, Chromium)
+npm run test:e2e:smoke      # end-to-end smoke tests (Playwright, Chromium)
 ```
+
+The smoke tests are the few end-to-end tests tagged `@smoke`: a plan copied
+from a schedule and edited, exercise search, logging a workout, and the app
+offline with its 3D view. They take well under a minute. CI runs the full
+end-to-end suite (`npm run test:e2e`, 10 minutes or more, mostly the 3D tests),
+which includes the smoke tests. To add a test to the smoke set, give
+it `{ tag: '@smoke' }`; keep the set under 2 minutes in CI.
 
 End-to-end tests build the app into `dist-e2e/` with a local catalog URL and
 run it with `vite preview`. Install the browser once with
@@ -199,9 +207,11 @@ Other scripts:
 | `npm run build:catalog -- --out <dir>` | Builds `catalog.json` and copies the images (`--json-only`: just the JSON).                                                                |
 | `npm run generate:schema`              | Regenerates `data/schema/*.v1.json` after changing a schema in `src/lib/schema/`.                                                          |
 | `npm run import:free-exercise-db`      | Re-imports free-exercise-db at the pinned commit (keeps existing images unless `--force`). Curated aliases live in `scripts/aliases.json`. |
-| `npm run generate:app-assets`          | Regenerates the app icons and splash screens from `resources/icon.svg`.                                                                    |
+| `npm run generate:app-assets`          | Regenerates the app icons and splash screens, and the store icon and feature graphic, from `resources/icon.svg`.                           |
+| `npm run generate:store-screenshots`   | Retakes the store screenshots in `fastlane/metadata/android/en-US/images/phoneScreenshots/` (Playwright).                                  |
 | `npm run generate:figure`              | Regenerates the 3D figure `src/lib/three/assets/figure.glb` from MakeHuman's pinned CC0 assets (see [The 3D figure](#the-3d-figure)).      |
 | `npm run check:apk-version -- <apk>`   | Checks that an APK's versionName and versionCode come from `package.json`'s version (needs `ANDROID_HOME`).                                |
+| `npm run release:store-files`          | Writes the store "what's new" text and the F-Droid recipe version for `package.json`'s version (run by the release workflow).              |
 
 ### NixOS notes
 
@@ -228,4 +238,6 @@ Other scripts:
   [Conventional Commits](https://www.conventionalcommits.org) (`feat(ui): …`,
   `fix(data): …`). Pull requests are squash-merged, and release-please builds
   the changelog and the next version from these messages (`feat` → minor,
-  `fix` → patch).
+  `fix` → patch). The changelog is also the "what's new" text on Google Play
+  and F-Droid, so write the subject for users. Releasing:
+  [docs/releasing.md](docs/releasing.md).

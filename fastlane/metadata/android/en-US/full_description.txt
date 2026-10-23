@@ -1,0 +1,15 @@
+OpenRep is a free, open-source gym companion. Open your plan at the gym, tap an exercise to see a 3D figure performing it with the targeted muscles glowing, and log your sets. No account, no ads, no tracking, and it works offline.
+
+• Plans: any number of workout plans with days and exercises. Per exercise: sets, reps (a number or a range such as 8–12) or a time, optional weight, rest and notes. Edit, reorder and delete plans, days and exercises.
+• Exercise catalog: over 870 exercises. Search by name or alternative name ("skull crusher" finds Lying Triceps Press) and filter by muscle and equipment. Add the ones that are missing as your own custom exercises.
+• Exercise pages: equipment, primary and secondary muscles, step-by-step instructions, photos and a 3D view you can rotate and zoom. Primary muscles glow strongly, secondary ones faintly. 30 core exercises (bench press, squat, deadlift, pull-up, plank and more) play the full movement.
+• Workout log: start a day of a plan, enter weights and reps, tick off sets and see what you did last time. History lists past workouts. Weights in kg or lb.
+• Community schedules: copy a schedule into your plans and edit it. Beginner Full Body, Push/Pull/Legs and Upper/Lower come with the app.
+• Catalog updates: when online, the app downloads the latest exercise catalog; the copy built into the app works offline from the first launch.
+• Backup: export everything (plans, custom exercises, history, settings) to one file and import it on this or another phone.
+
+Your plans, workouts and settings stay on your phone. The app collects no data. It goes online only to download catalog updates from GitHub, and when you choose to open GitHub to share a plan or an exercise with the project.
+
+Privacy policy: https://github.com/s1n7ax/openrep/blob/main/docs/privacy-policy.md
+
+OpenRep is free software under the GNU GPL v3.0. The exercise data is CC0. Source code, issues and contributions: https://github.com/s1n7ax/openrep

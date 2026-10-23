@@ -62,6 +62,9 @@ source with Xcode (see [Building](#building)).
   or the repository link. A Content-Security-Policy in the app allows no other
   network connections.
 
+The full [privacy policy](docs/privacy-policy.md) covers every build: Google
+Play, F-Droid, GitHub Releases and builds from source.
+
 ## Open data
 
 Exercises, animations and schedules are plain JSON files in [`data/`](data),
@@ -99,10 +102,13 @@ npx cap sync ios
 npx cap open ios   # then run it from Xcode
 ```
 
-The app is not in the app stores yet.
+The app is not in the app stores yet. Releases to Google Play and F-Droid are
+automated; [docs/releasing.md](docs/releasing.md) describes them and the
+one-time store setup.
 
 **Tests and checks**: `npm run format:check`, `npm run lint`, `npm run check`,
-`npm test`, `npm run validate:data`, `npm run test:e2e`. See
+`npm test`, `npm run validate:data`, `npm run test:e2e:smoke` (the end-to-end
+smoke tests; CI runs the full end-to-end suite, `npm run test:e2e`). See
 [CONTRIBUTING.md](CONTRIBUTING.md) for details and platform notes.
 
 ## Project layout
@@ -117,7 +123,9 @@ data/                exercises, animations, schedules (CC0)
 scripts/             catalog build, data validation, schema generation, tools
 e2e/                 end-to-end tests (Playwright)
 android/, ios/       Capacitor native projects
-docs/                data format documentation
+fastlane/metadata/   store listing for Google Play and F-Droid
+fdroid/              F-Droid build recipe
+docs/                data format, releasing, privacy policy
 ```
 
 ## Contributing

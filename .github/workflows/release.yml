@@ -1,20 +1,37 @@
 # Releases. On every push to main, release-please keeps a release pull request
 # open with the next version and changelog, worked out from the Conventional
 # Commits merged since the last release (release-please-config.json,
-# .release-please-manifest.json). Merging that pull request tags vX.Y.Z and
-# creates the GitHub release; the android job then builds the signed APK and
-# attaches it to the release.
+# .release-please-manifest.json). The store-files job then adds that version's
+# store files to the pull request (`npm run release:store-files`): the "what's
+# new" text for Google Play and F-Droid, from the changelog, and the version
+# of the F-Droid build recipe. They have to be in the release tag: F-Droid's
+# update checker and build read them from there. So the pull request is a
+# draft, which GitHub does not merge, whenever its store files may be missing:
+# from before release-please updates it until the store-files job has added
+# them and marked it ready.
+#
+# Merging that pull request tags vX.Y.Z and creates the GitHub release; the
+# android job then builds the signed APK and attaches it to the release, and
+# builds the signed AAB, which the play job uploads to Google Play's
+# production track (all users) with the store listing in
+# fastlane/metadata/android/. F-Droid builds the tag itself.
 #
 # Releases and tags created with GITHUB_TOKEN do not trigger other workflows,
 # so every build for a release runs here, gated on release-please's
 # release_created output. A job for another platform (e.g. iOS) goes next to
 # `android`, with the same `needs` and `if`.
 #
-# Repository secrets for the android job:
+# A failed play job leaves the GitHub release and its APK as they are: fix the
+# cause, then "Re-run failed jobs" on the run (it keeps the AAB). See
+# docs/releasing.md, which also covers the one-time store setup.
+#
+# Repository secrets:
 #   ANDROID_KEYSTORE_BASE64    the release keystore, base64-encoded
 #   ANDROID_KEYSTORE_PASSWORD  its password
 #   ANDROID_KEY_ALIAS          the alias of the signing key in it
 #   ANDROID_KEY_PASSWORD       that key's password
+#   PLAY_SERVICE_ACCOUNT_JSON  the JSON key of the Google Cloud service account
+#                              that may release the app in Play Console
 name: Release
 
 on:
@@ -40,15 +57,141 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
+    # Nothing may run after release-please here: once it has created a
+    # release, a failed step would skip the android and play jobs, and a
+    # re-run would not create the release (or start them) again.
     steps:
+      # release-please may force-push its branch below, which drops the store
+      # files; a draft cannot be merged until store-files has put them back.
+      # (New release pull requests start as drafts: release-please-config.json.)
+      # A failure here must not keep a merged release from being created; the
+      # release-tag job reports a tag that lacks its store files.
+      - name: Make the open release pull request a draft
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --label 'autorelease: pending' \
+            --json number,isDraft --jq '.[] | select(.isDraft | not) | .number' |
+            while read -r number; do
+              gh pr ready "$number" --repo "$GITHUB_REPOSITORY" --undo
+            done
+
       - uses: googleapis/release-please-action@v5
         id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+  # A job of its own, so that a failure here cannot affect the release jobs.
+  release-pr:
+    name: Find the open release pull request
+    needs: release-please
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      branch: ${{ steps.find.outputs.branch }}
+      number: ${{ steps.find.outputs.number }}
+    steps:
+      # Every run, not only when release-please changed the pull request, so
+      # a failed store-files job is made up for on the next push.
+      - name: Find the open release pull request
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --label 'autorelease: pending' \
+            --json number,headRefName --jq '.[0] // empty | "number=\(.number)\nbranch=\(.headRefName)"' |
+            tee -a "$GITHUB_OUTPUT"
+
+  store-files:
+    name: Store files in the release pull request
+    needs: release-pr
+    if: ${{ needs.release-pr.outputs.branch != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      BRANCH: ${{ needs.release-pr.outputs.branch }}
+      NUMBER: ${{ needs.release-pr.outputs.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.BRANCH }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write the store files of the version being released
+        run: npm run release:store-files
+
+      # release-please force-pushes its branch whenever the pull request
+      # changes, which drops this commit; this job runs right after it and
+      # commits the files again.
+      - name: Commit them to the release pull request
+        run: |
+          git add fastlane/metadata/android fdroid/build-metadata.yml
+          if git diff --cached --quiet; then
+            echo "The store files are up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git commit --quiet --message "chore: store files for $(node -p 'require("./package.json").version')"
+          git push --quiet origin "HEAD:$BRANCH"
+
+      # Only now may the pull request be merged: its head has the store files.
+      - name: Mark the release pull request ready to merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr ready "$NUMBER" --repo "$GITHUB_REPOSITORY"
+
+  release-tag:
+    name: Store files in the release tag
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The draft pull request makes this impossible unless it was marked
+      # ready by hand too early (or making it a draft failed): then say so.
+      - name: Check that F-Droid will see this release
+        run: |
+          npm run release:store-files
+          if [ -n "$(git status --porcelain -- fastlane/metadata/android fdroid/build-metadata.yml)" ]; then
+            git status --short -- fastlane/metadata/android fdroid/build-metadata.yml
+            echo "::error::$TAG lacks its store files (above), so F-Droid's update checker does not see this release and npm test fails on main. The release pull request was merged before the store-files job had added them. Follow \"When a release tag lacks its store files\" in docs/releasing.md."
+            exit 1
+          fi
+          echo "$TAG has its store files."
+
   android:
-    name: Signed Android APK
+    name: Signed Android APK and AAB
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
@@ -121,10 +264,6 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
-      - name: Remove the keystore
-        if: ${{ always() }}
-        run: rm -f "$RUNNER_TEMP/release.keystore"
-
       - name: Verify the signature and the version
         run: |
           # Only a signed build is named app-release.apk (unsigned:
@@ -143,3 +282,125 @@ jobs:
           sha256sum "$apk" > "$apk.sha256"
           cat "$apk.sha256"
           gh release upload "$TAG" "$apk" "$apk.sha256" --clobber
+
+      # After the APK is on the release, so nothing for Google Play can keep
+      # it from being published.
+      - name: Build the signed release AAB for Google Play
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease
+
+      - name: Remove the keystore
+        if: ${{ always() }}
+        run: rm -f "$RUNNER_TEMP/release.keystore"
+
+      # Play App Signing re-signs with this same key (docs/releasing.md), so
+      # installs from Google Play and from the GitHub release update each other.
+      - name: Check that the AAB is signed with the APK's certificate
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          aab=android/app/build/outputs/bundle/release/app-release.aab
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          # jarsigner fails on a broken signature; an unsigned AAB has no
+          # certificate for keytool to print.
+          jarsigner -verify "$aab" > /dev/null
+          apk_cert="$("$build_tools/apksigner" verify --print-certs "$apk" |
+            sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          aab_cert="$(keytool -printcert -jarfile "$aab" |
+            sed -n 's/^[[:space:]]*SHA256: //p' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+          echo "APK certificate SHA-256: $apk_cert"
+          echo "AAB certificate SHA-256: $aab_cert"
+          if [ -z "$aab_cert" ] || [ "$aab_cert" != "$apk_cert" ]; then
+            echo "::error::The AAB is not signed with the APK's certificate, so $TAG is not uploaded to Google Play."
+            exit 1
+          fi
+
+      - name: Keep the AAB for the play job
+        uses: actions/upload-artifact@v7
+        with:
+          name: openrep-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          overwrite: true
+          # Failed jobs can be re-run for 30 days.
+          retention-days: 30
+
+  play:
+    name: Google Play production release
+    needs: [release-please, android]
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+      VERSION: ${{ needs.release-please.outputs.version }}
+    steps:
+      - name: Check the Google Play secret
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error::Missing repository secret: PLAY_SERVICE_ACCOUNT_JSON. $TAG was not uploaded to Google Play; the GitHub release and its APK are not affected. Add the secret (docs/releasing.md) and re-run this job."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The store-files job put them in the tag; this covers a release pull
+      # request merged before that job had finished.
+      - name: Release notes from the changelog
+        run: npm run release:store-files -- --if-missing
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          # Installs the gems pinned in Gemfile.lock (fastlane) and caches them.
+          bundler-cache: true
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: openrep-aab
+          path: ${{ runner.temp }}/aab
+
+      # One Play edit: the AAB on the production track, released to all users
+      # (completed, no staged rollout), with its release notes, the listing
+      # texts and the images. The edit is committed only at the end, so a
+      # failed upload changes nothing on Google Play.
+      - name: Upload the release and the store listing
+        id: upload
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          # No usage reports to fastlane and no update check.
+          FASTLANE_OPT_OUT_USAGE: 'YES'
+          FASTLANE_SKIP_UPDATE_CHECK: 'YES'
+        run: >-
+          bundle exec fastlane supply
+          --package_name io.github.s1n7ax.openrep
+          --aab "$RUNNER_TEMP/aab/app-release.aab"
+          --version_name "$VERSION"
+          --track production
+          --release_status completed
+          --metadata_path fastlane/metadata/android
+          --sync_image_upload true
+
+      - name: Explain a failed upload
+        if: ${{ failure() && steps.upload.outcome == 'failure' }}
+        run: |
+          echo "::error::Uploading $TAG to Google Play failed (see the step above); nothing was changed on Google Play, and the GitHub release and its APK are not affected. Fix the cause (docs/releasing.md), then re-run this job."
+          exit 1

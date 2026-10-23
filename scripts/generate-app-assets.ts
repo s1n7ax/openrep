@@ -2,8 +2,10 @@
  * Generates the iOS and Android app icons and splash screens from the app
  * mark `resources/icon.svg` (white on transparent): renders the source
  * images @capacitor/assets expects into a temporary directory, then runs it
- * on the native projects. Run after changing the mark or the colours, and
- * commit the files it changes under `android/` and `ios/`.
+ * on the native projects. Also renders the store listing's icon and feature
+ * graphic (`fastlane/metadata/android/en-US/images/`). Run after changing the
+ * mark or the colours, and commit the files it changes under `android/`,
+ * `ios/` and `fastlane/`.
  *
  * Usage: `npm run generate:app-assets`
  */
@@ -11,7 +13,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import { REPO_ROOT } from './lib/paths.ts';
+import { LISTING_DIR, REPO_ROOT } from './lib/paths.ts';
 
 /** Pinned so the generated files only change when this script does. */
 const CAPACITOR_ASSETS = '@capacitor/assets@3.0.5';
@@ -56,6 +58,32 @@ async function compose(
   return canvas.composite([{ input: await renderMark(svg, markSize), left: offset, top: offset }]);
 }
 
+/** The store listing's 512 × 512 icon (Google Play masks the corners itself). */
+async function storeIcon(svg: Buffer): Promise<Image> {
+  return compose(svg, 512, 0.86, ICON_BACKGROUND);
+}
+
+/**
+ * The store listing's 1024 × 500 feature graphic: the mark and the app's name
+ * on the icon background, without transparency (Google Play requires none).
+ * The text comes as outlines (`resources/feature-graphic-text.svg`), so the
+ * image does not depend on the fonts installed.
+ */
+async function featureGraphic(svg: Buffer, text: Buffer): Promise<Image> {
+  const [width, height, markSize] = [1024, 500, 360];
+  const composed = await sharp({
+    create: { width, height, channels: 3, background: ICON_BACKGROUND },
+  })
+    .composite([
+      { input: await renderMark(svg, markSize), left: 80, top: (height - markSize) / 2 },
+      { input: text, left: 0, top: 0 },
+    ])
+    .png()
+    .toBuffer();
+  // Compositing adds an alpha channel; drop it (it is fully opaque).
+  return sharp(composed).removeAlpha();
+}
+
 /**
  * Where the source images are rendered. @capacitor/assets resolves
  * `--assetPath` against the project root, so it lives inside the repository
@@ -80,6 +108,13 @@ try {
   for (const [name, image] of sources) {
     await (await image).png().toFile(path.join(workDir, name));
   }
+
+  const storeImages = path.join(LISTING_DIR, 'images');
+  await mkdir(storeImages, { recursive: true });
+  await (await storeIcon(svg)).png().toFile(path.join(storeImages, 'icon.png'));
+  const text = await readFile(path.join(REPO_ROOT, 'resources', 'feature-graphic-text.svg'));
+  const graphic = await featureGraphic(svg, text);
+  await graphic.png().toFile(path.join(storeImages, 'featureGraphic.png'));
 
   const result = spawnSync(
     'npx',
