@@ -103,10 +103,11 @@ function sha256(data: Buffer): string {
 
 /**
  * Returns the contents of a pinned MakeHuman file, downloading it into
- * `cacheDir` first when it is missing.
+ * `cacheDir` first when it is missing or the cached copy does not match its
+ * pinned hash. Only a download that matches the hash is cached.
  *
  * @throws {AssetDownloadError} when the download fails.
- * @throws {AssetHashMismatchError} when the file does not match its pinned hash.
+ * @throws {AssetHashMismatchError} when the downloaded file does not match its pinned hash.
  */
 export async function readMakeHumanFile(cacheDir: string, file: string): Promise<string> {
   const expected = MAKEHUMAN_FILES[file];
@@ -116,25 +117,25 @@ export async function readMakeHumanFile(cacheDir: string, file: string): Promise
     throw new AssetDownloadError(message);
   }
   const local = path.join(cacheDir, MAKEHUMAN_COMMIT, file);
-  let data: Buffer | null = await readFile(local).catch(() => null);
-  if (!data) {
-    const url = RAW_BASE + file;
-    const response = await fetch(url);
-    if (!response.ok) {
-      const message = `Download of ${url} failed: HTTP ${response.status}`;
-      console.error(message);
-      throw new AssetDownloadError(message);
-    }
-    data = Buffer.from(await response.arrayBuffer());
-    await mkdir(path.dirname(local), { recursive: true });
-    await writeFile(local, data);
+  const cached = await readFile(local).catch(() => null);
+  if (cached && sha256(cached) === expected) return cached.toString('utf8');
+
+  const url = RAW_BASE + file;
+  const response = await fetch(url);
+  if (!response.ok) {
+    const message = `Download of ${url} failed: HTTP ${response.status}`;
+    console.error(message);
+    throw new AssetDownloadError(message);
   }
+  const data = Buffer.from(await response.arrayBuffer());
   const actual = sha256(data);
   if (actual !== expected) {
-    const message = `${file}: SHA-256 ${actual} does not match the pinned ${expected}`;
+    const message = `${url}: SHA-256 ${actual} does not match the pinned ${expected}`;
     console.error(message);
     throw new AssetHashMismatchError(message);
   }
+  await mkdir(path.dirname(local), { recursive: true });
+  await writeFile(local, data);
   return data.toString('utf8');
 }
 
