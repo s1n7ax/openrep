@@ -11,8 +11,9 @@
  */
 import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
-import { chromium, type Page } from '@playwright/test';
+import { chromium } from '@playwright/test';
 import { createServer } from 'vite';
+import { frameCount, waitForFrameAfter } from '../e2e/support/viewer.ts';
 import { LISTING_DIR, REPO_ROOT } from './lib/paths.ts';
 
 /** CSS pixels of the phone; × 3 gives 1080 × 1920, the 9:16 size Google Play recommends. */
@@ -62,27 +63,12 @@ try {
     console.log(path.relative(REPO_ROOT, file));
   }
 
-  /** Waits until the 3D view has drawn `frames` more frames. */
-  async function renderFrames(target: Page, frames: number): Promise<void> {
-    const viewer = target.getByTestId('exercise-viewer');
-    const before = Number((await viewer.getAttribute('data-frame', { timeout: 30_000 })) ?? 0);
-    await target.waitForFunction(
-      (until) =>
-        Number(
-          document.querySelector('[data-testid="exercise-viewer"]')?.getAttribute('data-frame') ??
-            0,
-        ) >= until,
-      before + frames,
-      { timeout: 60_000 },
-    );
-  }
-
   await page.goto(baseUrl);
 
-  // The exercise page of a core exercise, mid-movement.
+  // The exercise page of a core exercise, mid-movement (40 frames after it loaded).
   await page.goto(`${baseUrl}#/exercises/barbell-squat`);
   await page.getByTestId('exercise-name').waitFor();
-  await renderFrames(page, 40);
+  await waitForFrameAfter(page, (await frameCount(page)) + 39);
   await shoot('exercise-3d');
 
   // A plan copied from a starter schedule.
