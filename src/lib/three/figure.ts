@@ -50,7 +50,7 @@ const DEG = Math.PI / 180;
  */
 const FINGER_CURL: Record<HandShape, Record<Finger, [number, number, number]>> = {
   grip: {
-    thumb: [20, 35, 40],
+    thumb: [55, 40, 45],
     index: [70, 95, 55],
     middle: [75, 95, 55],
     ring: [78, 95, 55],
