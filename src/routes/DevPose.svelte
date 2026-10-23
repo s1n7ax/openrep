@@ -9,7 +9,12 @@
 
   let { route }: { route: DevPoseRoute } = $props();
 
-  const exercise = $derived(catalog.exercise(route.exerciseId));
+  const found = $derived(catalog.exercise(route.exerciseId));
+  const exercise = $derived(
+    found && route.glow
+      ? { ...found, primaryMuscles: route.glow.primary, secondaryMuscles: route.glow.secondary }
+      : found,
+  );
   const animation = $derived(catalog.animation(route.exerciseId));
 </script>
 

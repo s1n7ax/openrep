@@ -12,6 +12,7 @@ import {
   DirectionalLight,
   HemisphereLight,
   LinearFilter,
+  MathUtils,
   Mesh,
   MeshBasicMaterial,
   NeutralToneMapping,
@@ -31,18 +32,19 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { Muscle } from '../schema/common.ts';
 import type { Animation } from '../schema/animation.ts';
 import { AnimationSampler, createSampledPose } from './animation.ts';
+import { defaultViewDirection, FRONT_DEFAULT } from './defaultView.ts';
 import { createFigure, type Figure } from './figure.ts';
+import type { FigureAsset } from './figureAsset.ts';
 import { attachMuscles, type MuscleOverlays } from './muscles.ts';
 import { applyPose, createPoseResult } from './pose.ts';
 import { createProps, type PropsController } from './props.ts';
 import { STILL_POSE } from './stillPose.ts';
-import { smoothstep } from './surface.ts';
 
 export type ViewPreset = 'default' | 'front' | 'side' | 'back' | 'top';
 
 /** Camera directions (from the target) of the view presets. */
 const VIEW_DIRECTIONS: Record<ViewPreset, Vector3> = {
-  default: new Vector3(0.72, 0.36, 1).normalize(),
+  default: FRONT_DEFAULT,
   front: new Vector3(0, 0.2, 1).normalize(),
   side: new Vector3(1, 0.22, 0.32).normalize(),
   back: new Vector3(-0.5, 0.35, -1).normalize(),
@@ -72,7 +74,7 @@ function floorTexture(): DataTexture {
     for (let x = 0; x < size; x++) {
       const dx = (x + 0.5) / size - 0.5;
       const dy = (y + 0.5) / size - 0.5;
-      const alpha = 1 - smoothstep(0.25, 1, Math.sqrt(dx * dx + dy * dy) * 2);
+      const alpha = 1 - MathUtils.smoothstep(Math.sqrt(dx * dx + dy * dy) * 2, 0.25, 1);
       const i = (y * size + x) * 4;
       data[i] = 255;
       data[i + 1] = 255;
@@ -118,12 +120,13 @@ export class ExerciseViewer {
   private viewZoom = 1;
   private viewFocus: Vector3 | null = null;
   private customCamera: { position: Vector3; target: Vector3 } | null = null;
+  private defaultDirection = VIEW_DIRECTIONS.default;
   private disposed = false;
 
   private readonly canvas: HTMLCanvasElement;
   private readonly options: ViewerOptions;
 
-  constructor(canvas: HTMLCanvasElement, options: ViewerOptions = {}) {
+  constructor(canvas: HTMLCanvasElement, asset: FigureAsset, options: ViewerOptions = {}) {
     this.canvas = canvas;
     this.options = options;
     const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -141,12 +144,12 @@ export class ExerciseViewer {
     environment.dispose();
     pmrem.dispose();
     this.scene.environment = envTexture;
-    this.scene.environmentIntensity = 0.36;
+    this.scene.environmentIntensity = 0.3;
     this.disposables.push(envTexture);
 
-    const hemisphere = new HemisphereLight('#eef3ff', '#3b352f', 0.55);
+    const hemisphere = new HemisphereLight('#eef3ff', '#3b352f', 0.45);
     this.scene.add(hemisphere);
-    const key = new DirectionalLight('#fffaf4', 2.0);
+    const key = new DirectionalLight('#fffaf4', 2.3);
     key.position.set(2.2, 5, 2.6);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
@@ -160,10 +163,10 @@ export class ExerciseViewer {
     key.shadow.bias = -0.0004;
     key.shadow.normalBias = 0.02;
     this.scene.add(key, key.target);
-    const rim = new DirectionalLight('#a8c6ff', 1.5);
+    const rim = new DirectionalLight('#d6e2f5', 1.3);
     rim.position.set(-3, 2.6, -3.5);
     this.scene.add(rim);
-    const fill = new DirectionalLight('#ffe9d6', 0.35);
+    const fill = new DirectionalLight('#ffe9d6', 0.45);
     fill.position.set(-2.5, 1.2, 2.5);
     this.scene.add(fill);
     // Disposing the key light frees its 2048² shadow map.
@@ -194,7 +197,7 @@ export class ExerciseViewer {
     this.scene.add(floor, shadowCatcher);
     this.disposables.push(floorGeometry, texture, floorMaterial, shadowMaterial);
 
-    this.figure = createFigure();
+    this.figure = createFigure(asset);
     this.scene.add(this.figure.group);
     this.muscles = attachMuscles(this.figure);
     this.sampler = new AnimationSampler(STILL_POSE);
@@ -236,6 +239,7 @@ export class ExerciseViewer {
       this.props = createProps(animation.props, this.pose.pelvisPosition.clone());
       this.scene.add(this.props.group);
     }
+    this.defaultDirection = defaultViewDirection(content.primary);
     this.customCamera = animation?.camera
       ? {
           position: new Vector3(...animation.camera.position),
@@ -280,7 +284,10 @@ export class ExerciseViewer {
     } else {
       position = target
         .clone()
-        .addScaledVector(VIEW_DIRECTIONS[this.viewPreset], this.framedDistance / this.viewZoom);
+        .addScaledVector(
+          this.viewPreset === 'default' ? this.defaultDirection : VIEW_DIRECTIONS[this.viewPreset],
+          this.framedDistance / this.viewZoom,
+        );
     }
     this.camera.position.copy(position);
     this.controls.target.copy(target);

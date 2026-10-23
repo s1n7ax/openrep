@@ -78,7 +78,8 @@ on a still figure. To animate one:
      movement playing.
    - `http://localhost:5173/#/dev/pose/<id>?t=0.25` shows the figure full
      screen, frozen at loop time `t` (0–1). Optional: `view=front|side|back|top`,
-     `zoom=2` (closer) and `focus=x,y,z` (a world point to look at, e.g. a hand).
+     `zoom=2` (closer), `focus=x,y,z` (a world point to look at, e.g. a hand)
+     and `primary=chest,triceps` / `secondary=…` (light other muscle groups).
 
    The dev server builds the catalog from `data/` on every request and reloads
    the page when a file under `data/` changes.
@@ -96,8 +97,9 @@ on a still figure. To animate one:
 
 4. Check, at every column: feet on the floor or the machine, hands on the bar
    or handle, no limb passing through the body or the bench, a recognisable
-   start and end position, and a smooth loop (the last keyframe repeats the
-   first).
+   start and end position, a smooth loop (the last keyframe repeats the
+   first), and the primary muscles visible in the default view (set `camera`
+   if they are not).
 5. Run `npm test`. For every animation it checks that each IK target is reached
    within 2 cm, the loop closes, the figure is mid-movement at `t` 0.5 (not
    back at its start pose), and nothing sinks through the floor. Then run
@@ -134,6 +136,21 @@ and `src/lib/three/props.ts`):
   `rightHand`, in that hand; to `feet`, at the balls of the feet (the
   leg-extension and leg-curl roller rides on the shins). `cableFrom` draws a
   cable machine from that point to the prop.
+
+### The 3D figure
+
+The figure is a skinned glTF file, `src/lib/three/assets/figure.glb`, generated
+by `npm run generate:figure` (`scripts/figure/`) from MakeHuman's CC0 assets,
+which the script downloads once at a pinned commit and checks by SHA-256. It
+reshapes MakeHuman's body (lean, muscular, athletic), fits it to the animation
+rig without changing the rig (`src/lib/three/dimensions.ts`), maps MakeHuman's
+skin weights onto the rig's joints, smooths the face away, and paints and
+sculpts the muscles. Each muscle's outline is in `scripts/figure/muscles.ts`,
+drawn on torso and limb charts described in `scripts/figure/anatomy.ts`; it
+decides both where the muscle's group glows and the muscle definition carved
+into the body. After changing it, regenerate the figure, look at every group
+lit alone (`#/dev/pose/3-4-sit-up?primary=<group>`) and commit the new
+`figure.glb`.
 
 ## Development setup
 
@@ -192,6 +209,7 @@ Other scripts:
 | `npm run import:free-exercise-db`      | Re-imports free-exercise-db at the pinned commit (keeps existing images unless `--force`). Curated aliases live in `scripts/aliases.json`. |
 | `npm run generate:app-assets`          | Regenerates the app icons and splash screens, and the store icon and feature graphic, from `resources/icon.svg`.                           |
 | `npm run generate:store-screenshots`   | Retakes the store screenshots in `fastlane/metadata/android/en-US/images/phoneScreenshots/` (Playwright).                                  |
+| `npm run generate:figure`              | Regenerates the 3D figure `src/lib/three/assets/figure.glb` from MakeHuman's pinned CC0 assets (see [The 3D figure](#the-3d-figure)).      |
 | `npm run check:apk-version -- <apk>`   | Checks that an APK's versionName and versionCode come from `package.json`'s version (needs `ANDROID_HOME`).                                |
 | `npm run release:store-files`          | Writes the store "what's new" text and the F-Droid recipe version for `package.json`'s version (run by the release workflow).              |
 

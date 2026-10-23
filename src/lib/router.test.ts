@@ -92,6 +92,7 @@ describe('parseDevPoseRoute', () => {
       view: 'default',
       zoom: 1,
       focus: null,
+      glow: null,
     });
   });
 
@@ -112,6 +113,17 @@ describe('parseDevPoseRoute', () => {
       view: 'default',
       zoom: 1,
       focus: null,
+    });
+  });
+
+  it('reads a muscle glow override, dropping unknown muscles', () => {
+    expect(parseDevPoseRoute('#/dev/pose/plank?primary=chest,nope&secondary=')?.glow).toEqual({
+      primary: ['chest'],
+      secondary: [],
+    });
+    expect(parseDevPoseRoute('#/dev/pose/plank?secondary=lower%20back,traps')?.glow).toEqual({
+      primary: [],
+      secondary: ['lower back', 'traps'],
     });
   });
 

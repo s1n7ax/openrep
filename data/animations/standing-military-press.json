@@ -2,6 +2,7 @@
   "formatVersion": 1,
   "exerciseId": "standing-military-press",
   "durationSec": 3,
+  "camera": {"position": [3.2, 2.4, -1.4], "target": [0, 1.3, 0]},
   "props": [{"type": "barbell", "attach": "hands"}],
   "keyframes": [
     {
