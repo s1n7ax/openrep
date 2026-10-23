@@ -57,8 +57,9 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
-      release_pr_branch: ${{ steps.release-pr.outputs.branch }}
-      release_pr_number: ${{ steps.release-pr.outputs.number }}
+    # Nothing may run after release-please here: once it has created a
+    # release, a failed step would skip the android and play jobs, and a
+    # re-run would not create the release (or start them) again.
     steps:
       # release-please may force-push its branch below, which drops the store
       # files; a draft cannot be merged until store-files has put them back.
@@ -82,10 +83,22 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
+  # A job of its own, so that a failure here cannot affect the release jobs.
+  release-pr:
+    name: Find the open release pull request
+    needs: release-please
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      branch: ${{ steps.find.outputs.branch }}
+      number: ${{ steps.find.outputs.number }}
+    steps:
       # Every run, not only when release-please changed the pull request, so
       # a failed store-files job is made up for on the next push.
       - name: Find the open release pull request
-        id: release-pr
+        id: find
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -95,16 +108,16 @@ jobs:
 
   store-files:
     name: Store files in the release pull request
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_pr_branch != '' }}
+    needs: release-pr
+    if: ${{ needs.release-pr.outputs.branch != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
       pull-requests: write
     env:
-      BRANCH: ${{ needs.release-please.outputs.release_pr_branch }}
-      NUMBER: ${{ needs.release-please.outputs.release_pr_number }}
+      BRANCH: ${{ needs.release-pr.outputs.branch }}
+      NUMBER: ${{ needs.release-pr.outputs.number }}
     steps:
       - uses: actions/checkout@v7
         with:
