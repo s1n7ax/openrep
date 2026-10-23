@@ -3,7 +3,7 @@
  * time the day is started and in the history; switching to lb shows 60 kg as
  * 132.3 lb in both.
  */
-import { openApp } from './support/app.ts';
+import { goTo, openApp } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule, openPlan, startDay } from './support/plans.ts';
 
@@ -47,8 +47,8 @@ test(
     await expect(again.getByTestId('last-time')).toContainText('60 kg × 8, 60 kg × 8');
     await again.getByTestId('set-row').first().getByTestId('set-weight').fill('60');
 
-    // Switch to lb.
-    await page.getByTestId('tab-settings').click();
+    // Switch to lb (the workout is full screen, without the tab bar).
+    await goTo(page, '#/settings');
     await page.getByTestId('unit-lb').click();
     await expect(page.getByTestId('unit-lb')).toHaveAttribute('aria-pressed', 'true');
 

@@ -132,6 +132,8 @@ test('an update removing an exercise used in a plan keeps the plan working', asy
   const exercise = page.getByTestId('workout-exercise');
   await expect(exercise.getByTestId('workout-exercise-name')).toHaveText(removed.name);
   await expect(exercise.getByTestId('missing-note')).toContainText('No longer in catalog');
+  // Its page has no 3D view.
+  await expect(page.getByTestId('workout-page').getByTestId('workout-picture')).toHaveCount(0);
   const set = exercise.getByTestId('set-row').first();
   await set.getByTestId('set-weight').fill('14');
   await set.getByTestId('set-reps').fill('10');
