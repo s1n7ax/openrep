@@ -110,10 +110,12 @@ const _pivot = new Vector3();
 const _scale = new Vector3();
 const _deform = new Matrix4();
 const _axis = new Vector3();
+/** Inverse of the figure group's world matrix, for the update in progress. */
+const _groupInverse = new Matrix4();
 
-/** Rotation part of a bone's skinning transform (world × inverse bind). */
+/** Rotation part of a bone's skinning transform (world × inverse bind), in the group's space. */
 function deformRotation(bone: Bone, inverseBind: Matrix4, out: Quaternion): Quaternion {
-  _deform.multiplyMatrices(bone.matrixWorld, inverseBind);
+  _deform.multiplyMatrices(bone.matrixWorld, inverseBind).premultiply(_groupInverse);
   _deform.decompose(_pivot, out, _scale);
   return out;
 }
@@ -140,7 +142,7 @@ export function createFigure(asset: FigureAsset): Figure {
     const parent = spec.parent ? bones.get(spec.parent) : null;
     if (parent) parent.add(bone);
     else {
-      // Blend bones: placed every frame from world transforms.
+      // Blend bones: placed every frame from the posed joints.
       bone.matrixAutoUpdate = false;
       group.add(bone);
     }
@@ -211,8 +213,11 @@ export function createFigure(asset: FigureAsset): Figure {
     }
   }
 
+  // Blend bones are placed in the group's space, as the bind pose was, so the
+  // body skins the same wherever the group or its ancestors move.
   function updateBlendBones(): void {
-    group.updateMatrixWorld(true);
+    group.updateWorldMatrix(true, true);
+    _groupInverse.copy(group.matrixWorld).invert();
     for (const blend of BLEND_BONES) {
       const bone = bones.get(blend.name) as Bone;
       const parent = bones.get(blend.parent) as Bone;
@@ -248,9 +253,10 @@ export function createFigure(asset: FigureAsset): Figure {
         _blendQuat.copy(_parentQuat).multiply(_twist);
         parent.getWorldPosition(_pivot);
       }
-      // World transform such that world × inverse bind = rotate about the pivot.
+      // Group-space transform such that it × inverse bind = rotate about the pivot.
+      _pivot.applyMatrix4(_groupInverse);
       bone.matrix.compose(_pivot, _blendQuat, _scale.set(1, 1, 1));
-      bone.matrixWorld.copy(bone.matrix);
+      bone.matrixWorld.multiplyMatrices(group.matrixWorld, bone.matrix);
     }
   }
 
