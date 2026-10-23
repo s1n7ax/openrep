@@ -66,18 +66,11 @@ async function storeIcon(svg: Buffer): Promise<Image> {
 /**
  * The store listing's 1024 × 500 feature graphic: the mark and the app's name
  * on the icon background, without transparency (Google Play requires none).
+ * The text comes as outlines (`resources/feature-graphic-text.svg`), so the
+ * image does not depend on the fonts installed.
  */
-async function featureGraphic(svg: Buffer): Promise<Image> {
+async function featureGraphic(svg: Buffer, text: Buffer): Promise<Image> {
   const [width, height, markSize] = [1024, 500, 360];
-  const text = Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
-      `<text x="472" y="236" font-family="sans-serif" font-size="104" font-weight="700" ` +
-      `fill="#ffffff">OpenRep</text>` +
-      `<text x="476" y="306" font-family="sans-serif" font-size="34" fill="#ffffff" ` +
-      `fill-opacity="0.88">Gym plans, 3D exercises</text>` +
-      `<text x="476" y="350" font-family="sans-serif" font-size="34" fill="#ffffff" ` +
-      `fill-opacity="0.88">and a workout log</text></svg>`,
-  );
   const composed = await sharp({
     create: { width, height, channels: 3, background: ICON_BACKGROUND },
   })
@@ -119,7 +112,9 @@ try {
   const storeImages = path.join(LISTING_DIR, 'images');
   await mkdir(storeImages, { recursive: true });
   await (await storeIcon(svg)).png().toFile(path.join(storeImages, 'icon.png'));
-  await (await featureGraphic(svg)).png().toFile(path.join(storeImages, 'featureGraphic.png'));
+  const text = await readFile(path.join(REPO_ROOT, 'resources', 'feature-graphic-text.svg'));
+  const graphic = await featureGraphic(svg, text);
+  await graphic.png().toFile(path.join(storeImages, 'featureGraphic.png'));
 
   const result = spawnSync(
     'npx',
