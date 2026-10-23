@@ -1,6 +1,6 @@
 {
   "name": "openrep",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open-source gym companion app: plans, 3D exercise views and workout logging, offline and without an account.",
   "license": "GPL-3.0-only",
   "private": true,
