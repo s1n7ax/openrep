@@ -22,9 +22,12 @@ works offline.
   zoom. Primary muscles glow strongly, secondary ones faintly. 30 core
   exercises (bench press, squat, deadlift, pull-up, plank, …) play the full
   movement; every other exercise shows the glow on a still figure.
-- **Workout log**: start a day of a plan, enter weights and reps, tick off
-  sets and see what you did last time. Supersets are logged round by round. History lists past workouts. Weights
-  in kg or lb.
+- **Workout log**: start a day of a plan and go through it one exercise per
+  screen, its 3D view on top (swipe to the photos of exercises without an
+  animation) and its sets below; scroll to move to the next one. Enter weights
+  and reps, tick off sets and see what you did last time. Supersets are logged
+  round by round on one screen. History lists past workouts. Weights in kg or
+  lb.
 - **Community schedules**: browse schedules and copy one into your plans to
   edit it. Three starter schedules ship with the app: Beginner Full Body,
   Push/Pull/Legs and Upper/Lower.
