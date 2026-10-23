@@ -7,8 +7,8 @@ Thanks for helping! OpenRep has two kinds of contributions:
 - **Code**: the app itself (Svelte, TypeScript, three.js, Capacitor).
 
 Every pull request is checked automatically: formatting, lint, type checks,
-unit tests, the data validator, the end-to-end tests and the Android and iOS
-builds (`.github/workflows/ci.yml`). A pull request with malformed data fails.
+unit tests, the data validator, the full end-to-end suite and the Android and
+iOS builds (`.github/workflows/ci.yml`). A pull request with malformed data fails.
 
 ## Licence of contributions
 
@@ -149,7 +149,8 @@ npm ci
 npm run dev                 # the app in a browser, catalog served from data/
 ```
 
-Checks (the same ones CI runs):
+Checks (CI runs the same ones, with the full end-to-end suite instead of the
+smoke tests):
 
 ```sh
 npm run format              # or format:check
@@ -159,8 +160,15 @@ npm test                    # unit tests (Vitest)
 npm run generate:schema -- --check
 npm run validate:data
 npm run build
-npm run test:e2e            # end-to-end tests (Playwright, Chromium)
+npm run test:e2e:smoke      # end-to-end smoke tests (Playwright, Chromium)
 ```
+
+The smoke tests are the few end-to-end tests tagged `@smoke`: a plan copied
+from a schedule and edited, exercise search, logging a workout, and the app
+offline with its 3D view. They take well under a minute. CI runs the full
+end-to-end suite (`npm run test:e2e`, 10–20 minutes, most of it the 3D tests),
+which includes the smoke tests. To add a test to the smoke set, give
+it `{ tag: '@smoke' }`; keep the set under 2 minutes in CI.
 
 End-to-end tests build the app into `dist-e2e/` with a local catalog URL and
 run it with `vite preview`. Install the browser once with

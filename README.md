@@ -107,7 +107,8 @@ automated; [docs/releasing.md](docs/releasing.md) describes them and the
 one-time store setup.
 
 **Tests and checks**: `npm run format:check`, `npm run lint`, `npm run check`,
-`npm test`, `npm run validate:data`, `npm run test:e2e`. See
+`npm test`, `npm run validate:data`, `npm run test:e2e:smoke` (the end-to-end
+smoke tests; CI runs the full end-to-end suite, `npm run test:e2e`). See
 [CONTRIBUTING.md](CONTRIBUTING.md) for details and platform notes.
 
 ## Project layout
