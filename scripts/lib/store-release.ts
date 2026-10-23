@@ -130,11 +130,11 @@ function regroup(entries: { heading: string; item: string }[]): NotesGroup[] {
 /** The recipe fields that carry the version, with the value each gets. */
 function versionFields(version: string, versionCode: number): [RegExp, string][] {
   return [
-    [/^( {2}- versionName: ).*$/m, version],
-    [/^( {4}versionCode: ).*$/m, String(versionCode)],
-    [/^( {4}commit: ).*$/m, `v${version}`],
-    [/^(CurrentVersion: ).*$/m, version],
-    [/^(CurrentVersionCode: ).*$/m, String(versionCode)],
+    [/^( {2}- versionName: ).*$/gm, version],
+    [/^( {4}versionCode: ).*$/gm, String(versionCode)],
+    [/^( {4}commit: ).*$/gm, `v${version}`],
+    [/^(CurrentVersion: ).*$/gm, version],
+    [/^(CurrentVersionCode: ).*$/gm, String(versionCode)],
   ];
 }
 
@@ -148,8 +148,7 @@ function versionFields(version: string, versionCode: number): [RegExp, string][]
 export function stampFdroidRecipe(recipe: string, version: string, versionCode: number): string {
   let result = recipe;
   for (const [field, value] of versionFields(version, versionCode)) {
-    const global = new RegExp(field.source, 'gm');
-    const count = recipe.match(global)?.length ?? 0;
+    const count = recipe.match(field)?.length ?? 0;
     if (count !== 1) {
       throw new RecipeFormatError(
         `the F-Droid recipe must have exactly one line matching ${field.source}, found ${count}`,
