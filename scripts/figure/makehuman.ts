@@ -29,8 +29,6 @@ export const MAKEHUMAN_FILES: Readonly<Record<string, string>> = {
     'c171ff9cc95e96273beb3e3b1969a01988c2d4982ebc6fe04bf81cf72ee3b295',
   'targets/macrodetails/universal-male-young-maxmuscle-minweight.target':
     '5873f11edc96fde72a79ec35fa1d292a6a1a594b5eadfd82d59faf48834561de',
-  'targets/macrodetails/universal-male-young-averagemuscle-minweight.target':
-    'fac0d53b7051f4d1f06230d0b419e916eb5bae5ce67c031a9998fdde05229755',
   'targets/macrodetails/proportions/male-young-maxmuscle-averageweight-idealproportions.target':
     'd9452857903d18a2100ca26105d5a61083e7064fbe16f035863446728755ec20',
   'targets/macrodetails/proportions/male-young-maxmuscle-minweight-idealproportions.target':
