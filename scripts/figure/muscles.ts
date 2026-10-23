@@ -10,7 +10,8 @@
  * Back: C7 (0, 1.53), scapula from y 1.45 to its lower tip (0.09, 1.29),
  * acromion (0.18, 1.47), iliac crest y ≈ 1.04, buttock fold y ≈ 0.81.
  */
-import type { MuscleSpec, Outline, Segment } from './anatomy.ts';
+import type { MuscleSpec, Outline } from './anatomy.ts';
+import type { Segment } from './body.ts';
 
 const TORSO: readonly Segment[] = ['torso'];
 const TORSO_ARM: readonly Segment[] = ['torso', 'upperArm'];

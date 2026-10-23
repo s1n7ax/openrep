@@ -157,6 +157,76 @@ function torsoSplit(y: number): [number, number, number] {
   return [pelvis, Math.max(0, 1 - pelvis - chest), chest];
 }
 
+// ── Body segments ────────────────────────────────────────────────────────────
+
+export const SEGMENTS = [
+  'torso',
+  'neck',
+  'head',
+  'upperArm',
+  'forearm',
+  'hand',
+  'thigh',
+  'shin',
+  'foot',
+] as const;
+export type Segment = (typeof SEGMENTS)[number];
+
+/**
+ * The body segments a figure bone moves (blend bones count half for both
+ * sides): the limb fit warps by them, and muscles are gated by them.
+ */
+export function segmentOf(bone: string): [Segment, number][] {
+  const rest = bone.replace(/^(left|right)/, '');
+  switch (rest) {
+    case 'pelvis':
+    case 'spine':
+    case 'chest':
+      return [['torso', 1]];
+    case 'neck':
+      return [['neck', 1]];
+    case 'head':
+      return [['head', 1]];
+    case 'Shoulder':
+    case 'UpperArmTwist':
+      return [['upperArm', 1]];
+    case 'ShoulderBlend':
+      return [
+        ['torso', 0.5],
+        ['upperArm', 0.5],
+      ];
+    case 'ElbowBlend':
+      return [
+        ['upperArm', 0.5],
+        ['forearm', 0.5],
+      ];
+    case 'Elbow':
+    case 'ForearmTwist':
+      return [['forearm', 1]];
+    case 'Wrist':
+      return [['hand', 1]];
+    case 'Hip':
+      return [['thigh', 1]];
+    case 'HipBlend':
+      return [
+        ['torso', 0.5],
+        ['thigh', 0.5],
+      ];
+    case 'KneeBlend':
+      return [
+        ['thigh', 0.5],
+        ['shin', 0.5],
+      ];
+    case 'Knee':
+      return [['shin', 1]];
+    case 'Ankle':
+    case 'Toes':
+      return [['foot', 1]];
+    default:
+      return [['hand', 1]];
+  }
+}
+
 // ── Fit ──────────────────────────────────────────────────────────────────────
 
 /** Where a limb's mesh moves: `to + M (v − from)`. */
@@ -335,6 +405,7 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
   setWorld('neck', neck, lean2);
   setWorld('head', head, lean2);
 
+  /** Limb warps by `<side>:<segment>`. */
   const warps = new Map<string, Warp>();
   const none: Warp = { from: new Vector3(), to: new Vector3(), matrix: new Matrix4() };
   const report: string[] = [];
@@ -356,17 +427,17 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
     const wrist = elbow.clone().addScaledVector(foreDir, FOREARM_LENGTH);
     setWorld(`${side}Shoulder`, shoulder, boneFrame(upperDir, hinge));
     setWorld(`${side}Elbow`, elbow, boneFrame(foreDir, hinge));
-    warps.set(`${side}UpperArm`, {
+    warps.set(`${side}:upperArm`, {
       from: shoulderMh,
       to: shoulder,
       matrix: stretchAlong(upperDir, UPPER_ARM_LENGTH / shoulderMh.distanceTo(elbowMh)),
     });
-    warps.set(`${side}Forearm`, {
+    warps.set(`${side}:forearm`, {
       from: elbowMh,
       to: elbow,
       matrix: stretchAlong(foreDir, FOREARM_LENGTH / elbowMh.distanceTo(wristMh)),
     });
-    warps.set(`${side}Hand`, { from: wristMh, to: wrist, matrix: new Matrix4() });
+    warps.set(`${side}:hand`, { from: wristMh, to: wrist, matrix: new Matrix4() });
     report.push(
       `${side} shoulder: MakeHuman ${fmt(shoulderMh)} → rig ${fmt(shoulder)}`,
       `${side} upper arm ${shoulderMh.distanceTo(elbowMh).toFixed(3)} → ${UPPER_ARM_LENGTH}, ` +
@@ -421,12 +492,12 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
     const footForward = ballMh.clone().sub(ankleMh).setY(0).normalize();
     const footRotation = frameYZ(new Vector3(0, 1, 0), footForward);
     setWorld(`${side}Ankle`, ankle, footRotation);
-    warps.set(`${side}Thigh`, {
+    warps.set(`${side}:thigh`, {
       from: hipMh,
       to: hip,
       matrix: stretchAlong(thighDir, THIGH_LENGTH / hipMh.distanceTo(kneeMh)),
     });
-    warps.set(`${side}Shin`, {
+    warps.set(`${side}:shin`, {
       from: kneeMh,
       to: knee,
       matrix: stretchAlong(shinDir, SHIN_LENGTH / kneeMh.distanceTo(ankleMh)),
@@ -436,7 +507,7 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
     const footMatrix = stretchAlong(footForward, BALL_OFFSET / ballForward).premultiply(
       new Matrix4().makeScale(1, ANKLE_HEIGHT / ankleMh.y, 1),
     );
-    warps.set(`${side}Foot`, { from: ankleMh, to: ankle, matrix: footMatrix });
+    warps.set(`${side}:foot`, { from: ankleMh, to: ankle, matrix: footMatrix });
     const toes = new Vector3(TOE_JOINT.x, TOE_JOINT.y, TOE_JOINT.z).applyMatrix4(
       world.get(`${side}Ankle`) as Matrix4,
     );
@@ -453,53 +524,14 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
     setWorld(blend.name, new Vector3().setFromMatrixPosition(pivot), identity);
   }
 
-  // Warp each vertex by its limb share.
-  const warpOf = (bone: string): [Warp, number][] => {
-    const side = bone.startsWith('left') ? 'left' : bone.startsWith('right') ? 'right' : null;
-    const rest = side ? bone.slice(side.length) : bone;
-    const w = (name: string) => warps.get(`${side}${name}`) ?? none;
-    switch (rest) {
-      case 'Shoulder':
-      case 'UpperArmTwist':
-        return [[w('UpperArm'), 1]];
-      case 'ShoulderBlend':
-        return [
-          [none, 0.5],
-          [w('UpperArm'), 0.5],
-        ];
-      case 'ElbowBlend':
-        return [
-          [w('UpperArm'), 0.5],
-          [w('Forearm'), 0.5],
-        ];
-      case 'Elbow':
-      case 'ForearmTwist':
-        return [[w('Forearm'), 1]];
-      case 'Wrist':
-        return [[w('Hand'), 1]];
-      case 'Hip':
-        return [[w('Thigh'), 1]];
-      case 'HipBlend':
-        return [
-          [none, 0.5],
-          [w('Thigh'), 0.5],
-        ];
-      case 'KneeBlend':
-        return [
-          [w('Thigh'), 0.5],
-          [w('Shin'), 0.5],
-        ];
-      case 'Knee':
-        return [[w('Shin'), 1]];
-      case 'Ankle':
-      case 'Toes':
-        return [[w('Foot'), 1]];
-      default:
-        if (side && /^(Thumb|Index|Middle|Ring|Pinky)/.test(rest)) return [[w('Hand'), 1]];
-        return [[none, 1]];
-    }
-  };
-  const boneWarps = FIGURE_BONES.map((bone) => warpOf(bone.name));
+  // Warp each vertex by its limb share (the torso, neck and head stay).
+  const boneWarps = FIGURE_BONES.map((bone) => {
+    const side = /^(left|right)/.exec(bone.name)?.[1];
+    return segmentOf(bone.name).map(([segment, share]): [Warp, number] => [
+      (side && warps.get(`${side}:${segment}`)) || none,
+      share,
+    ]);
+  });
   const p = new Vector3();
   const sum = new Vector3();
   for (let v = 0; v < vertexCount; v++) {

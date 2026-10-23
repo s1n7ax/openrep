@@ -26,23 +26,11 @@ import {
   THIGH_LENGTH,
   UPPER_ARM_LENGTH,
 } from '../../src/lib/three/dimensions.ts';
-import type { BindBone } from './body.ts';
+import { SEGMENTS, segmentOf, type BindBone, type Segment } from './body.ts';
 import { smoothScalar, vertexNeighbours, vertexNormals, type PolyMesh } from './mesh.ts';
 
 export type LimbChart = 'upperArm' | 'forearm' | 'thigh' | 'shin' | 'neck';
 export type Chart = 'torso' | LimbChart;
-export const SEGMENTS = [
-  'torso',
-  'neck',
-  'head',
-  'upperArm',
-  'forearm',
-  'hand',
-  'thigh',
-  'shin',
-  'foot',
-] as const;
-export type Segment = (typeof SEGMENTS)[number];
 export type Outline = readonly (readonly [number, number])[];
 
 interface MuscleBase {
@@ -95,58 +83,6 @@ const LIMB_CHARTS: Record<LimbChart, { bone: string; length: number; radius: num
   shin: { bone: 'Knee', length: SHIN_LENGTH, radius: 0.05 },
   neck: { bone: 'neck', length: NECK_LENGTH, radius: 0.055 },
 };
-
-/** Figure bones of each body segment (blend bones count half for both sides). */
-function segmentOf(bone: string): [Segment, number][] {
-  const rest = bone.replace(/^(left|right)/, '');
-  switch (rest) {
-    case 'pelvis':
-    case 'spine':
-    case 'chest':
-      return [['torso', 1]];
-    case 'neck':
-      return [['neck', 1]];
-    case 'head':
-      return [['head', 1]];
-    case 'Shoulder':
-    case 'UpperArmTwist':
-      return [['upperArm', 1]];
-    case 'ShoulderBlend':
-      return [
-        ['torso', 0.5],
-        ['upperArm', 0.5],
-      ];
-    case 'ElbowBlend':
-      return [
-        ['upperArm', 0.5],
-        ['forearm', 0.5],
-      ];
-    case 'Elbow':
-    case 'ForearmTwist':
-      return [['forearm', 1]];
-    case 'Wrist':
-      return [['hand', 1]];
-    case 'Hip':
-      return [['thigh', 1]];
-    case 'HipBlend':
-      return [
-        ['torso', 0.5],
-        ['thigh', 0.5],
-      ];
-    case 'KneeBlend':
-      return [
-        ['thigh', 0.5],
-        ['shin', 0.5],
-      ];
-    case 'Knee':
-      return [['shin', 1]];
-    case 'Ankle':
-    case 'Toes':
-      return [['foot', 1]];
-    default:
-      return [['hand', 1]];
-  }
-}
 
 // ── Outline geometry ─────────────────────────────────────────────────────────
 
