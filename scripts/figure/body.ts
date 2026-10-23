@@ -9,7 +9,7 @@
  * A-pose); each limb's part of the mesh is then moved and stretched along the
  * limb so its joints land exactly on the rig's joints, blended by skin weight.
  */
-import { Matrix4, Quaternion, Vector3 } from 'three';
+import { MathUtils, Matrix4, Quaternion, Vector3 } from 'three';
 import {
   ANKLE_HEIGHT,
   BALL_OFFSET,
@@ -152,12 +152,8 @@ function mapBone(name: string): string {
 
 /** Pelvis / spine / chest share of a torso vertex by rest height (smooth bands). */
 function torsoSplit(y: number): [number, number, number] {
-  const smooth = (a: number, b: number, x: number) => {
-    const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-    return t * t * (3 - 2 * t);
-  };
-  const pelvis = 1 - smooth(0.97, 1.13, y);
-  const chest = smooth(1.17, 1.33, y);
+  const pelvis = 1 - MathUtils.smoothstep(y, 0.97, 1.13);
+  const chest = MathUtils.smoothstep(y, 1.17, 1.33);
   return [pelvis, Math.max(0, 1 - pelvis - chest), chest];
 }
 
