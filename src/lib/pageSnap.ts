@@ -15,6 +15,10 @@ export const PAGE_THRESHOLD = 0.2;
 /** Without scroll events for this long, a scroll (or its momentum) has ended. */
 const SETTLE_MS = 150;
 
+/** How long a snap takes, at the least and at the most. */
+const MIN_SNAP_MS = 180;
+const MAX_SNAP_MS = 400;
+
 /** Scroll positions are fractional; offsets are whole pixels. */
 const EPSILON = 1;
 
@@ -207,23 +211,26 @@ export class PageSnapper {
     if (Math.abs(top - this.#scroller.scrollTop) >= EPSILON) this.#scroller.scrollTop = top;
   }
 
-  /** Scrolls to `snap` with an ease-out; the scroll is locked meanwhile, which also stops momentum. */
+  /**
+   * Scrolls to `snap` with an ease-out, or at once with reduced motion. The
+   * scroll is locked meanwhile (with reduced motion, as long as the shortest
+   * snap), which also stops momentum.
+   */
   #animate(snap: Snap): void {
     const scroller = this.#scroller;
     const from = scroller.scrollTop;
     const distance = snap.top - from;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      scroller.scrollTop = snap.top;
-      this.#rest(snap.page);
-      return;
-    }
-    const duration = Math.min(400, Math.max(180, Math.abs(distance) * 0.5));
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const duration = reduced
+      ? MIN_SNAP_MS
+      : Math.min(MAX_SNAP_MS, Math.max(MIN_SNAP_MS, Math.abs(distance) * 0.5));
+    const ease = reduced ? () => 1 : (t: number) => 1 - (1 - t) ** 3;
     const start = performance.now();
     scroller.style.overflowY = 'hidden';
     this.#target = snap.page;
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
-      scroller.scrollTop = from + distance * (1 - (1 - t) ** 3);
+      scroller.scrollTop = from + distance * ease(t);
       if (t < 1) {
         this.#frame = requestAnimationFrame(step);
         return;
@@ -231,7 +238,7 @@ export class PageSnapper {
       this.#stopAnimation();
       this.#rest(snap.page);
     };
-    this.#frame = requestAnimationFrame(step);
+    step(start);
   }
 
   #stopAnimation(): void {

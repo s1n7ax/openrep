@@ -126,6 +126,19 @@ class FakeScroller {
     this.dispatch('scroll');
     this.dispatch('touchend');
   }
+
+  /**
+   * A fling's momentum scrolls on by `distance` a frame for `frames` frames,
+   * unless the scroll is locked (`overflow-y: hidden` stops it).
+   */
+  fling(distance: number, frames: number) {
+    for (let frame = 0; frame < frames; frame += 1) {
+      if (this.style.overflowY === 'hidden') return;
+      this.scrollTop += distance;
+      this.dispatch('scroll');
+      vi.advanceTimersByTime(16);
+    }
+  }
 }
 
 describe('PageSnapper', () => {
@@ -211,5 +224,17 @@ describe('PageSnapper', () => {
       expect(scroller.scrollTop).toBe(0);
       expect(changes).toEqual([1, 0]);
     });
+  });
+
+  it('with reduced motion, jumps to the next page and stops the fling there', () => {
+    reducedMotion = true;
+    const { scroller, changes } = pager();
+    scroller.drag(100);
+    scroller.fling(100, 15);
+    expect(scroller.scrollTop).toBe(800);
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(800);
+    expect(scroller.style.overflowY).toBe('');
+    expect(changes).toEqual([1]);
   });
 });
