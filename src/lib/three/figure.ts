@@ -102,6 +102,7 @@ function figureGeometry(asset: FigureAsset): BufferGeometry {
 const _parentQuat = new Quaternion();
 const _childQuat = new Quaternion();
 const _blendQuat = new Quaternion();
+const _relative = new Quaternion();
 const _twist = new Quaternion();
 const _swing = new Quaternion();
 const _inverseTwist = new Quaternion();
@@ -118,6 +119,16 @@ function deformRotation(bone: Bone, inverseBind: Matrix4, out: Quaternion): Quat
   _deform.multiplyMatrices(bone.matrixWorld, inverseBind).premultiply(_groupInverse);
   _deform.decompose(_pivot, out, _scale);
   return out;
+}
+
+/**
+ * The twist part of `rotation` about the unit `axis` (swing–twist split), or
+ * the identity when the rotation has no twist about it.
+ */
+function twistAbout(rotation: Quaternion, axis: Vector3, out: Quaternion): Quaternion {
+  const along = _axis.set(rotation.x, rotation.y, rotation.z).dot(axis);
+  out.set(axis.x * along, axis.y * along, axis.z * along, rotation.w);
+  return out.lengthSq() < 1e-12 ? out.identity() : out.normalize();
 }
 
 export function createFigure(asset: FigureAsset): Figure {
@@ -222,27 +233,17 @@ export function createFigure(asset: FigureAsset): Figure {
         child.getWorldPosition(_pivot);
       } else if (blend.kind === 'swing') {
         // Child rotation relative to the parent, split into swing and twist about the bone.
-        _twist.copy(_parentQuat).invert().multiply(_childQuat);
-        const axis = twistAxis.get(blend.name) as Vector3;
-        const along = _axis.set(_twist.x, _twist.y, _twist.z).dot(axis);
-        _swing.copy(_twist);
-        _twist.set(axis.x * along, axis.y * along, axis.z * along, _twist.w);
-        if (_twist.lengthSq() < 1e-12) _twist.identity();
-        else _twist.normalize();
+        _relative.copy(_parentQuat).invert().multiply(_childQuat);
+        twistAbout(_relative, twistAxis.get(blend.name) as Vector3, _twist);
         // swing = relative × twist⁻¹; keep a quarter of the twist.
-        _swing.multiply(_inverseTwist.copy(_twist).invert());
+        _swing.copy(_relative).multiply(_inverseTwist.copy(_twist).invert());
         _twist.slerp(_identity, 0.75);
         _blendQuat.copy(_parentQuat).multiply(_swing).multiply(_twist);
         child.getWorldPosition(_pivot);
       } else {
-        // Twist of the child relative to the parent about the bind-pose bone axis.
-        _twist.copy(_parentQuat).invert().multiply(_childQuat);
-        const axis = twistAxis.get(blend.name) as Vector3;
-        const along = _axis.set(_twist.x, _twist.y, _twist.z).dot(axis);
-        _twist.set(axis.x * along, axis.y * along, axis.z * along, _twist.w);
-        if (_twist.lengthSq() < 1e-12) _twist.identity();
-        else _twist.normalize();
-        _twist.slerp(_identity, 0.5);
+        // Half the twist of the child relative to the parent about the bind-pose bone axis.
+        _relative.copy(_parentQuat).invert().multiply(_childQuat);
+        twistAbout(_relative, twistAxis.get(blend.name) as Vector3, _twist).slerp(_identity, 0.5);
         _blendQuat.copy(_parentQuat).multiply(_twist);
         parent.getWorldPosition(_pivot);
       }
