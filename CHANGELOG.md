@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/s1n7ax/openrep/compare/v0.1.0...v0.2.0) (2026-10-23)
+
+
+### Features
+
+* high-quality sculpted 3D figure with anatomical muscle glow ([#4](https://github.com/s1n7ax/openrep/issues/4)) ([a40e1f8](https://github.com/s1n7ax/openrep/commit/a40e1f8c11485221a480dee774a09fac65b2f3e6))
+
 ## 0.1.0 (2026-10-22)
 
 
