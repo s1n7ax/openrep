@@ -5,9 +5,13 @@
  * muscles (`anatomy.ts`) and the baked cavity shading (`cavity.ts`).
  */
 import { Matrix4, Quaternion, Vector3 } from 'three';
-import { FIGURE_BONES, type FigureBoneData } from '../../src/lib/three/figureAsset.ts';
+import {
+  FIGURE_BONE_INDEX,
+  FIGURE_BONES,
+  type FigureBoneData,
+} from '../../src/lib/three/figureAsset.ts';
 import { paintMuscles, sculptMuscles, type PaintedMuscles } from './anatomy.ts';
-import { buildBody, type BindBone, type SourceReader } from './body.ts';
+import { buildBody, type SourceReader } from './body.ts';
 import { bakeCavity } from './cavity.ts';
 import { FigureBuildError } from './errors.ts';
 import { MUSCLE_SPECS } from './muscles.ts';
@@ -24,9 +28,6 @@ import {
 export interface BuiltFigure {
   /** Final (sculpted) mesh in the bind pose. */
   mesh: PolyMesh;
-  /** Skin weight per vertex per bone (`FIGURE_BONES` order). */
-  weights: Float64Array;
-  bind: BindBone[];
   muscles: PaintedMuscles;
   cavity: Uint8Array;
   skinIndex: Uint8Array;
@@ -106,8 +107,6 @@ export async function buildFigure(read: SourceReader): Promise<BuiltFigure> {
   const indices = Uint16Array.from(triangulate(mesh));
   return {
     mesh,
-    weights,
-    bind: body.bind,
     muscles,
     cavity,
     skinIndex,
@@ -125,14 +124,14 @@ const HIP_SMOOTHING = 6;
 
 /** Diffuses the hip-region skin weights over the mesh, so the groin bends without creases. */
 function smoothHipWeights(mesh: PolyMesh, weights: Float64Array, boneCount: number): void {
-  const hip = HIP_BONES.map((name) => FIGURE_BONES.findIndex((bone) => bone.name === name));
+  const hip = HIP_BONES.map((name) => FIGURE_BONE_INDEX.get(name) ?? 0);
   const count = mesh.positions.length / 3;
   const region: number[] = [];
   for (let v = 0; v < count; v++) {
     let share = 0;
     for (const b of hip) share += weights[v * boneCount + b] ?? 0;
     // Only vertices weighted to the hips alone (not the spine or the knees).
-    if (share > 0.999 && share > 0) region.push(v);
+    if (share > 0.999) region.push(v);
   }
   const neighbours = vertexNeighbours(mesh);
   const next = new Float64Array(hip.length);
@@ -167,7 +166,7 @@ function smoothCrotch(mesh: PolyMesh, weights: Float64Array, boneCount: number):
     strength[v] = across * along;
   }
   taubinSmooth(mesh.positions, vertexNeighbours(mesh), strength, 30);
-  const pelvis = FIGURE_BONES.findIndex((bone) => bone.name === 'pelvis');
+  const pelvis = FIGURE_BONE_INDEX.get('pelvis') ?? 0;
   for (let v = 0; v < count; v++) {
     const move = 0.7 * (strength[v] ?? 0);
     if (move <= 0) continue;
