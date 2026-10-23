@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/s1n7ax/openrep/compare/v0.3.0...v0.3.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* **release:** read the APK certificate from current apksigner output ([#8](https://github.com/s1n7ax/openrep/issues/8)) ([a640624](https://github.com/s1n7ax/openrep/commit/a640624f5fdb0ccc18ff655acb623be8f87672a2))
+
 ## [0.3.0](https://github.com/s1n7ax/openrep/compare/v0.2.0...v0.3.0) (2026-10-23)
 
 
