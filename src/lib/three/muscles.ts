@@ -5,10 +5,11 @@
  */
 import { MUSCLES, type Muscle } from '../schema/common.ts';
 import type { Figure } from './figure.ts';
+import type { GlowValue } from './figureMaterial.ts';
 
 export type GlowLevel = 'primary' | 'secondary' | 'none';
 
-const LEVEL_VALUE: Record<GlowLevel, number> = { none: 0, secondary: 1, primary: 2 };
+const LEVEL_VALUE: Record<GlowLevel, GlowValue> = { none: 0, secondary: 1, primary: 2 };
 
 export interface MuscleOverlays {
   /** Sets the glow of every group: listed groups glow, the rest go dark. */
