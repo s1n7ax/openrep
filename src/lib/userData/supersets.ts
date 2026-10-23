@@ -77,6 +77,11 @@ export function flattenBlocks<T extends Groupable>(blocks: readonly Block<T>[]):
   return blocks.flatMap((block) => (block.kind === 'exercise' ? [block.entry] : block.entries));
 }
 
+/** A key for `block` that is unique among the blocks of its day or session. */
+export function blockKey<T extends Groupable>(block: Block<T>): string {
+  return block.kind === 'exercise' ? `exercise-${block.entry.id}` : `superset-${block.superset.id}`;
+}
+
 /** Whether `block` holds the exercise with id `id`. */
 export function blockHasEntry<T extends Groupable>(block: Block<T>, id: string): boolean {
   return block.kind === 'exercise'

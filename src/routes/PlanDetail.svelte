@@ -24,7 +24,7 @@
   import { dayBlocks } from '../lib/userData/plans.ts';
   import { activeSession, findPlan, planStats } from '../lib/userData/selectors.ts';
   import { deleteSession, startSession } from '../lib/userData/sessions.ts';
-  import { supersetExerciseLabel } from '../lib/userData/supersets.ts';
+  import { blockKey, supersetExerciseLabel } from '../lib/userData/supersets.ts';
   import {
     formatSupersetExerciseTarget,
     formatSupersetSummary,
@@ -157,7 +157,7 @@
             <p class="empty-day">No exercises on this day yet.</p>
           {:else}
             <ol class="exercises">
-              {#each dayBlocks(day) as block (block.kind === 'exercise' ? `exercise-${block.entry.id}` : `superset-${block.superset.id}`)}
+              {#each dayBlocks(day) as block (blockKey(block))}
                 {#if block.kind === 'exercise'}
                   {@render exerciseItem(
                     block.entry,

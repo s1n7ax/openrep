@@ -26,7 +26,12 @@
     deleteSession,
     finishSession,
   } from '../lib/userData/sessions.ts';
-  import { groupBlocks, supersetExerciseLabel, supersetRounds } from '../lib/userData/supersets.ts';
+  import {
+    blockKey,
+    groupBlocks,
+    supersetExerciseLabel,
+    supersetRounds,
+  } from '../lib/userData/supersets.ts';
   import {
     formatReps,
     formatSupersetExerciseTarget,
@@ -136,7 +141,7 @@
     </div>
 
     <ol class="exercises">
-      {#each groupBlocks(session.exercises, session.supersets) as block (block.kind === 'exercise' ? `exercise-${block.entry.id}` : `superset-${block.superset.id}`)}
+      {#each groupBlocks(session.exercises, session.supersets) as block (blockKey(block))}
         {#if block.kind === 'exercise'}
           {@const exercise = block.entry}
           <li

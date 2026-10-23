@@ -17,7 +17,12 @@
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findSession } from '../lib/userData/selectors.ts';
   import { deleteSession } from '../lib/userData/sessions.ts';
-  import { groupBlocks, supersetExerciseLabel, supersetRounds } from '../lib/userData/supersets.ts';
+  import {
+    blockKey,
+    groupBlocks,
+    supersetExerciseLabel,
+    supersetRounds,
+  } from '../lib/userData/supersets.ts';
   import {
     formatSupersetExerciseTarget,
     formatSupersetSummary,
@@ -86,7 +91,7 @@
     </div>
 
     <ol class="exercises">
-      {#each groupBlocks(session.exercises, session.supersets) as block (block.kind === 'exercise' ? `exercise-${block.entry.id}` : `superset-${block.superset.id}`)}
+      {#each groupBlocks(session.exercises, session.supersets) as block (blockKey(block))}
         {#if block.kind === 'exercise'}
           {@const exercise = block.entry}
           <li class="exercise card" data-testid="history-exercise">

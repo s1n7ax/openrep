@@ -25,6 +25,7 @@
     renamePlan,
   } from '../lib/userData/plans.ts';
   import { findPlan } from '../lib/userData/selectors.ts';
+  import { blockKey } from '../lib/userData/supersets.ts';
 
   let { planId }: { planId: string } = $props();
 
@@ -153,7 +154,7 @@
           {#if day.exercises.length > 0}
             {@const blocks = dayBlocks(day)}
             <ol class="exercises">
-              {#each blocks as block, blockIndex (block.kind === 'exercise' ? `exercise-${block.entry.id}` : `superset-${block.superset.id}`)}
+              {#each blocks as block, blockIndex (blockKey(block))}
                 {@const last = blockIndex === blocks.length - 1}
                 {#if block.kind === 'exercise'}
                   <TargetEditor
