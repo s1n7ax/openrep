@@ -66,7 +66,6 @@ export function groupBlocks<T extends Groupable>(
       letters += 1;
     } else {
       blocks.push({ kind: 'exercise', entry, index });
-      end = index + 1;
     }
     index = end;
   }

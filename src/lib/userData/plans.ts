@@ -81,8 +81,9 @@ function supersetMemberIds(day: PlanDay, supersetId?: string): Set<string> {
 
 /**
  * The day with `exercises` and `supersets`, the grouping made consistent: a
- * superset left with one exercise is dropped and that exercise becomes a
- * normal one again. `supersets` is left out when there is none.
+ * superset left with fewer than two exercises is dropped, and an exercise
+ * left alone in one becomes a normal one again. `supersets` is left out when
+ * there is none.
  */
 function withExercises(
   day: PlanDay,
@@ -330,29 +331,22 @@ export function supersetWithNext(
     if (!first || !second) return day;
     const existing =
       first.kind === 'superset' ? first : second.kind === 'superset' ? second : undefined;
-    const lead = first.kind === 'superset' ? first.entries[0]! : first.entry;
+    const joined = flattenBlocks([first, second]);
+    const lead = joined[0]!;
     const target: Superset = existing
       ? existing.superset
       : lead.restSec === undefined
         ? { id: supersetId }
         : { id: supersetId, restSec: lead.restSec };
     const rounds = existing ? existing.entries[0]!.sets : lead.sets;
-    const joined = [first, second].flatMap((block) =>
-      (block.kind === 'exercise' ? [block.entry] : block.entries).map((entry) =>
-        joinSuperset(entry, target.id, rounds),
-      ),
-    );
     const exercises = [
       ...flattenBlocks(blocks.slice(0, index)),
-      ...joined,
+      ...joined.map((entry) => joinSuperset(entry, target.id, rounds)),
       ...flattenBlocks(blocks.slice(index + 2)),
     ];
-    const merged = new Set(
-      [first, second].flatMap((block) => (block.kind === 'superset' ? [block.superset.id] : [])),
-    );
-    const supersets = (day.supersets ?? []).filter(
-      (superset) => superset.id === target.id || !merged.has(superset.id),
-    );
+    // A superset merged into the first one is left without exercises, so
+    // `withExercises` drops it.
+    const supersets = day.supersets ?? [];
     return withExercises(day, exercises, existing ? supersets : [...supersets, target]);
   });
 }
