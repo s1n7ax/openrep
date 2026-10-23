@@ -228,6 +228,15 @@ export interface FittedBody {
   report: string[];
 }
 
+/**
+ * Shapes MakeHuman's base mesh, fits it to the rig and maps its skin weights
+ * onto the figure's bones. Errors thrown by `read` pass through.
+ *
+ * @throws {FigureBuildError} when the skeleton lacks a bone the fit needs, a
+ *   weighted bone maps to no figure bone, a vertex has no skin weight, or a
+ *   figure bone gets no bind pose.
+ * @throws {MakeHumanFormatError} when a MakeHuman file is not shaped as expected.
+ */
 export async function buildBody(read: SourceReader): Promise<FittedBody> {
   const base = parseBaseMesh(await read('3dobjs/base.obj'));
   const skeleton: MakeHumanSkeleton = parseSkeleton(await read('rigs/default.mhskel'));

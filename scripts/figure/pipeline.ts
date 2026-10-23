@@ -36,6 +36,15 @@ export interface BuiltFigure {
   report: string[];
 }
 
+/**
+ * Builds the figure's data from MakeHuman's files, read through `read`.
+ * Errors thrown by `read` pass through.
+ *
+ * @throws {FigureBuildError} when the files cannot make a figure (see
+ *   `buildBody` and `smoothHead`) or the mesh has too many vertices for
+ *   16-bit indices.
+ * @throws {MakeHumanFormatError} when a MakeHuman file is not shaped as expected.
+ */
 export async function buildFigure(read: SourceReader): Promise<BuiltFigure> {
   const body = await buildBody(read);
 
