@@ -6,14 +6,18 @@ import { openApp, readStoredUserData } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { createPlan } from './support/plans.ts';
 
-test('searching "skull crusher" lists Lying Triceps Press first', async ({ page }) => {
-  await openApp(page, '#/exercises');
-  await page.getByTestId('exercise-search').fill('skull crusher');
+test(
+  'searching "skull crusher" lists Lying Triceps Press first',
+  { tag: '@smoke' },
+  async ({ page }) => {
+    await openApp(page, '#/exercises');
+    await page.getByTestId('exercise-search').fill('skull crusher');
 
-  const first = page.getByTestId('exercise-row').first();
-  await expect(first).toHaveAttribute('data-exercise-id', 'lying-triceps-press');
-  await expect(first).toContainText('Lying Triceps Press');
-});
+    const first = page.getByTestId('exercise-row').first();
+    await expect(first).toHaveAttribute('data-exercise-id', 'lying-triceps-press');
+    await expect(first).toContainText('Lying Triceps Press');
+  },
+);
 
 test('a name not in the catalog creates a custom exercise on the plan day', async ({ page }) => {
   const name = 'zzqx nonexistent';
