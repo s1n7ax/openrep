@@ -17,7 +17,16 @@ own accounts, so no workflow can do them.
      section (plain text, at most 500 characters; longer notes end with a
      link to the GitHub release);
    - the version fields of the F-Droid recipe `fdroid/build-metadata.yml`.
-3. Merging the pull request tags `vX.Y.Z` and creates the GitHub release.
+
+   They must be in the release tag, so the pull request is a **draft**
+   whenever they may be missing: it starts as one, and every run of the
+   release workflow turns it back into one before release-please updates it.
+   GitHub does not merge drafts. Once the files are in, the `store-files` job
+   marks it **ready for review**, usually a minute or two after each push to
+   `main`. Wait for that; do not mark it ready yourself.
+
+3. Merging the pull request tags `vX.Y.Z` and creates the GitHub release. The
+   `release-tag` job checks that the tag has its store files.
 4. The `android` job builds the release from the tag, signs the APK with the
    release key and attaches `OpenRep-X.Y.Z.apk` and its `.sha256` to the
    release. Then it builds the signed AAB, checks that its certificate is the
@@ -34,6 +43,22 @@ own accounts, so no workflow can do them.
 
 versionName is the version. versionCode is major × 10000 + minor × 100 +
 patch (`android/app/build.gradle`), so 1.2.3 is 10203.
+
+### When a release tag lacks its store files
+
+The `release-tag` job fails with "vX.Y.Z lacks its store files". That happens
+only if the release pull request was merged while its store files were
+missing: it was marked ready by hand too early, or turning it into a draft
+failed (a warning on the `release-please` job). F-Droid's update checker reads
+the versionCode from the recipe in the tag, so it does not see this release,
+and `npm test` fails on `main` until the files are there. Google Play is not
+affected: the `play` job writes missing release notes itself.
+
+To recover, open a pull request from a branch of `main` with the output of
+`npm run release:store-files`, titled for example
+`fix(release): store files for X.Y.Z`, and merge it. As a `fix`, it starts the
+next (patch) release, which has its store files; F-Droid builds that one and
+skips X.Y.Z.
 
 ### When the Google Play upload fails
 
