@@ -1,8 +1,10 @@
 <!--
   Workout logging (`#/workout/:sessionId`): per exercise, set rows with
   weight (in the user's unit), reps or seconds and a done tick; what was done
-  last time; add and remove sets; the exercise name opens its page. Finish
-  saves the workout to history; Discard deletes it.
+  last time; add and remove sets; the exercise name opens its page. A
+  superset is one card whose rows go round by round (Round 1: A1, A2; Round
+  2: …); "Add round" adds a set to each of its exercises. Finish saves the
+  workout to history; Discard deletes it.
 -->
 <script lang="ts">
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
@@ -10,6 +12,7 @@
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import SetRow from '../components/SetRow.svelte';
+  import SupersetLabel from '../components/SupersetLabel.svelte';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { newId, nowIso } from '../lib/ids.ts';
   import { href, paths, router } from '../lib/router.ts';
@@ -17,8 +20,19 @@
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findSession, lastTimeFor } from '../lib/userData/selectors.ts';
-  import { addLoggedSet, deleteSession, finishSession } from '../lib/userData/sessions.ts';
-  import { formatReps, formatTargetWithRest } from '../lib/userData/targets.ts';
+  import {
+    addLoggedRound,
+    addLoggedSet,
+    deleteSession,
+    finishSession,
+  } from '../lib/userData/sessions.ts';
+  import { groupBlocks, supersetExerciseLabel, supersetRounds } from '../lib/userData/supersets.ts';
+  import {
+    formatReps,
+    formatSupersetExerciseTarget,
+    formatSupersetSummary,
+    formatTargetWithRest,
+  } from '../lib/userData/targets.ts';
   import { formatDay, formatSets, sessionSetCounts } from '../lib/userData/workoutText.ts';
 
   let { sessionId }: { sessionId: string } = $props();
@@ -40,8 +54,18 @@
     return reps === undefined ? '—' : formatReps(reps);
   }
 
+  /** Header of the reps / seconds column of a superset: "Reps", "Seconds" or both. */
+  function amountHeader(exercises: SessionExercise[]): string {
+    const modes = new Set(exercises.map(mode));
+    return modes.size > 1 ? 'Reps / s' : modes.has('time') ? 'Seconds' : 'Reps';
+  }
+
   function addSet(exercise: SessionExercise) {
     userData.update((data) => addLoggedSet(data, sessionId, exercise.id, newId()));
+  }
+
+  function addRound(supersetId: string) {
+    userData.update((data) => addLoggedRound(data, sessionId, supersetId, newId));
   }
 
   function finish() {
@@ -112,84 +136,124 @@
     </div>
 
     <ol class="exercises">
-      {#each session.exercises as exercise, exerciseIndex (exercise.id)}
-        {@const resolved = resolveExerciseRef(
-          exercise.exercise,
-          (id) => catalog.exercise(id),
-          userData.data.customExercises,
-        )}
-        {@const last = lastTimeFor(userData.data.sessions, exercise.exercise, sessionId)}
-        <li
-          class="exercise card"
-          data-testid="workout-exercise"
-          data-session-exercise-id={exercise.id}
-        >
-          <header class="head">
-            <span class="number" aria-hidden="true">{exerciseIndex + 1}</span>
-            <div class="titles">
-              {#if resolved.link}
-                <a class="name" href={resolved.link} data-testid="workout-exercise-name">
-                  {resolved.name}
-                  <Icon name="chevron-right" size={16} />
-                </a>
-              {:else}
-                <span class="name" data-testid="workout-exercise-name">{resolved.name}</span>
-              {/if}
-              {#if resolved.note}
-                <span class="missing" data-testid="missing-note">
-                  <Icon name="alert" size={14} />
-                  {resolved.note}
-                </span>
-              {/if}
-              <span class="target" data-testid="workout-target">
-                {formatTargetWithRest(exercise.target, unit)}
-              </span>
-              {#if exercise.target.notes}
-                <span class="notes">{exercise.target.notes}</span>
-              {/if}
-            </div>
-          </header>
-
-          {#if last}
-            <p class="last-time" data-testid="last-time">
-              <Icon name="history" size={16} />
-              <span>
-                <span class="last-label">Last time · {formatDay(last.session.startedAt)}:</span>
-                {formatSets(last.sets, unit)}
-              </span>
-            </p>
-          {/if}
-
-          <div class="columns" aria-hidden="true">
-            <span>Set</span>
-            <span>{unit}</span>
-            <span>{mode(exercise) === 'time' ? 'Seconds' : 'Reps'}</span>
-            <span>Done</span>
-            <span></span>
-          </div>
-          <ol class="sets">
-            {#each exercise.sets as set, index (set.id)}
-              <SetRow
-                {sessionId}
-                sessionExerciseId={exercise.id}
-                {set}
-                {index}
-                mode={mode(exercise)}
-                {unit}
-                amountPlaceholder={amountPlaceholder(exercise)}
-                canRemove={exercise.sets.length > 1}
-              />
-            {/each}
-          </ol>
-          <button
-            type="button"
-            class="btn btn-ghost add-set"
-            data-testid="set-add"
-            onclick={() => addSet(exercise)}
+      {#each groupBlocks(session.exercises, session.supersets) as block (block.kind === 'exercise' ? `exercise-${block.entry.id}` : `superset-${block.superset.id}`)}
+        {#if block.kind === 'exercise'}
+          {@const exercise = block.entry}
+          <li
+            class="exercise card"
+            data-testid="workout-exercise"
+            data-session-exercise-id={exercise.id}
           >
-            <Icon name="plus" size={20} /> Add set
-          </button>
-        </li>
+            {@render exerciseHead(
+              exercise,
+              String(block.index + 1),
+              formatTargetWithRest(exercise.target, unit),
+            )}
+
+            <div class="columns" aria-hidden="true">
+              <span>Set</span>
+              <span>{unit}</span>
+              <span>{mode(exercise) === 'time' ? 'Seconds' : 'Reps'}</span>
+              <span>Done</span>
+              <span></span>
+            </div>
+            <ol class="sets">
+              {#each exercise.sets as set, index (set.id)}
+                <SetRow
+                  {sessionId}
+                  sessionExerciseId={exercise.id}
+                  {set}
+                  {index}
+                  mode={mode(exercise)}
+                  {unit}
+                  amountPlaceholder={amountPlaceholder(exercise)}
+                  canRemove={exercise.sets.length > 1}
+                />
+              {/each}
+            </ol>
+            <button
+              type="button"
+              class="btn btn-ghost add-set"
+              data-testid="set-add"
+              onclick={() => addSet(exercise)}
+            >
+              <Icon name="plus" size={20} /> Add set
+            </button>
+          </li>
+        {:else}
+          {@const rounds = supersetRounds(block.entries)}
+          <li
+            class="exercise card superset"
+            data-testid="workout-superset"
+            data-superset-id={block.superset.id}
+          >
+            <div class="superset-head">
+              <SupersetLabel
+                letter={block.letter}
+                summary={formatSupersetSummary(rounds.length, block.superset.restSec)}
+                testid="workout-superset-summary"
+              />
+            </div>
+            <ol class="members">
+              {#each block.entries as exercise, position (exercise.id)}
+                <li
+                  class="member"
+                  data-testid="workout-superset-exercise"
+                  data-session-exercise-id={exercise.id}
+                >
+                  {@render exerciseHead(
+                    exercise,
+                    supersetExerciseLabel(block.letter, position),
+                    formatSupersetExerciseTarget(exercise.target, unit),
+                  )}
+                </li>
+              {/each}
+            </ol>
+
+            <div class="columns" aria-hidden="true">
+              <span></span>
+              <span>{unit}</span>
+              <span>{amountHeader(block.entries)}</span>
+              <span>Done</span>
+              <span></span>
+            </div>
+            {#each rounds as round, roundIndex (roundIndex)}
+              <section
+                class="round"
+                data-testid="workout-round"
+                data-round={roundIndex + 1}
+                aria-label={`Round ${roundIndex + 1}`}
+              >
+                <h3 class="round-title">Round {roundIndex + 1}</h3>
+                <ol class="sets">
+                  {#each round as row (row.set.id)}
+                    {@const label = supersetExerciseLabel(block.letter, row.position)}
+                    <SetRow
+                      {sessionId}
+                      sessionExerciseId={row.entry.id}
+                      set={row.set}
+                      index={row.setIndex}
+                      marker={label}
+                      name={`Round ${roundIndex + 1} ${label}`}
+                      mode={mode(row.entry)}
+                      {unit}
+                      amountPlaceholder={amountPlaceholder(row.entry)}
+                      canRemove={row.entry.sets.length > 1}
+                    />
+                  {/each}
+                </ol>
+              </section>
+            {/each}
+            <button
+              type="button"
+              class="btn btn-ghost add-set"
+              data-testid="round-add"
+              onclick={() => addRound(block.superset.id)}
+            >
+              <Icon name="plus" size={20} /> Add round
+            </button>
+          </li>
+        {/if}
       {/each}
     </ol>
 
@@ -213,6 +277,48 @@
     </div>
   {/if}
 </div>
+
+{#snippet exerciseHead(exercise: SessionExercise, label: string, target: string)}
+  {@const resolved = resolveExerciseRef(
+    exercise.exercise,
+    (id) => catalog.exercise(id),
+    userData.data.customExercises,
+  )}
+  {@const last = lastTimeFor(userData.data.sessions, exercise.exercise, sessionId)}
+  <header class="head">
+    <span class="number" aria-hidden="true" data-testid="workout-exercise-label">{label}</span>
+    <div class="titles">
+      {#if resolved.link}
+        <a class="name" href={resolved.link} data-testid="workout-exercise-name">
+          {resolved.name}
+          <Icon name="chevron-right" size={16} />
+        </a>
+      {:else}
+        <span class="name" data-testid="workout-exercise-name">{resolved.name}</span>
+      {/if}
+      {#if resolved.note}
+        <span class="missing" data-testid="missing-note">
+          <Icon name="alert" size={14} />
+          {resolved.note}
+        </span>
+      {/if}
+      <span class="target" data-testid="workout-target">{target}</span>
+      {#if exercise.target.notes}
+        <span class="notes">{exercise.target.notes}</span>
+      {/if}
+    </div>
+  </header>
+
+  {#if last}
+    <p class="last-time" data-testid="last-time">
+      <Icon name="history" size={16} />
+      <span>
+        <span class="last-label">Last time · {formatDay(last.session.startedAt)}:</span>
+        {formatSets(last.sets, unit)}
+      </span>
+    </p>
+  {/if}
+{/snippet}
 
 <ConfirmDialog
   open={confirming !== null}
@@ -288,8 +394,9 @@
     display: grid;
     flex: none;
     place-items: center;
-    width: 26px;
+    min-width: 26px;
     height: 26px;
+    padding: 0 var(--space-1);
     margin-top: 1px;
     border-radius: var(--radius-pill);
     background: var(--surface-2);
@@ -392,6 +499,43 @@
   .add-set {
     align-self: flex-start;
     margin-left: var(--space-1);
+  }
+
+  .superset {
+    border-left: 3px solid var(--accent);
+  }
+
+  .superset-head {
+    padding: 0 var(--space-2);
+  }
+
+  .members {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: var(--space-1) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .member {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .superset .number {
+    background: var(--accent-soft);
+    color: var(--accent-text);
+  }
+
+  .round-title {
+    margin: var(--space-2) var(--space-2) var(--space-1) var(--space-3);
+    color: var(--text-3);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
   .finish {

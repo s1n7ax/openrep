@@ -21,6 +21,10 @@
     sessionExerciseId: string;
     set: LoggedSet;
     index: number;
+    /** Shown in place of the set number, e.g. "A1" for an exercise of a superset. */
+    marker?: string;
+    /** Names the row for screen readers; default "Set <n>". */
+    name?: string;
     /** Whether the exercise is done for reps or held for a time. */
     mode: 'reps' | 'time';
     unit: Unit;
@@ -34,6 +38,8 @@
     sessionExerciseId,
     set,
     index,
+    marker,
+    name,
     mode,
     unit,
     amountPlaceholder,
@@ -94,11 +100,11 @@
     userData.update((data) => removeLoggedSet(data, sessionId, sessionExerciseId, set.id));
   }
 
-  const label = $derived(`Set ${index + 1}`);
+  const label = $derived(name ?? `Set ${index + 1}`);
 </script>
 
 <li class="set" class:done={set.done} data-testid="set-row" data-set-id={set.id}>
-  <span class="number" aria-hidden="true">{index + 1}</span>
+  <span class="number" aria-hidden="true" data-testid="set-marker">{marker ?? index + 1}</span>
   <input
     class="input"
     type="text"

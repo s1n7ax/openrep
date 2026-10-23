@@ -9,7 +9,9 @@ works offline.
 
 - **Plans**: any number of workout plans with days and exercises; per exercise
   sets, reps (a number or a range such as 8–12) or a time, optional weight,
-  rest and notes. Edit, reorder and delete plans, days and exercises.
+  rest and notes. Edit, reorder and delete plans, days and exercises. Group
+  two or more exercises into a superset (A1, A2, …) with one round count and
+  one rest after each round.
 - **Exercise catalog**: over 870 exercises, from the public-domain
   [free-exercise-db](https://github.com/yuhonas/free-exercise-db) plus community
   contributions. Search by name or alternative name ("skull crusher" finds
@@ -21,7 +23,7 @@ works offline.
   exercises (bench press, squat, deadlift, pull-up, plank, …) play the full
   movement; every other exercise shows the glow on a still figure.
 - **Workout log**: start a day of a plan, enter weights and reps, tick off
-  sets and see what you did last time. History lists past workouts. Weights
+  sets and see what you did last time. Supersets are logged round by round. History lists past workouts. Weights
   in kg or lb.
 - **Community schedules**: browse schedules and copy one into your plans to
   edit it. Three starter schedules ship with the app: Beginner Full Body,
