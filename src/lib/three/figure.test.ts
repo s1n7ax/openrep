@@ -1,14 +1,10 @@
-import { readFileSync } from 'node:fs';
 import { Euler, Group, Scene, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
+import { readFigureAsset } from '../../../tests/helpers/figureAsset.ts';
 import { createFigure, type Figure } from './figure.ts';
-import { parseFigureAsset } from './figureAsset.ts';
 import { createPoseResult } from './pose.ts';
 
-const file = readFileSync(new URL('./assets/figure.glb', import.meta.url));
-const asset = parseFigureAsset(
-  file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength),
-);
+const asset = readFigureAsset();
 
 /** Bends every joint with a blend bone: shoulders, elbows, forearm twist, hips, knees. */
 function bend(figure: Figure): void {

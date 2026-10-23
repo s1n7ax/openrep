@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
 import type { DirectionalLight, Light, WebGLRenderTarget } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { readFigureAsset } from '../../../tests/helpers/figureAsset.ts';
 
 /** The renderers the viewer created (three's WebGLRenderer needs a real WebGL context). */
 const renderers = vi.hoisted(() => [] as { dispose: () => void; forceContextLoss: () => void }[]);
@@ -66,13 +66,8 @@ describe('ExerciseViewer.dispose', () => {
 
   it('frees the lights, the shadow map and the WebGL context', async () => {
     const { ExerciseViewer } = await import('./viewer.ts');
-    const { parseFigureAsset } = await import('./figureAsset.ts');
-    const file = readFileSync(new URL('./assets/figure.glb', import.meta.url));
-    const asset = parseFigureAsset(
-      file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength),
-    );
     const canvas = { clientWidth: 300, clientHeight: 200 } as HTMLCanvasElement;
-    const viewer = new ExerciseViewer(canvas, asset);
+    const viewer = new ExerciseViewer(canvas, readFigureAsset());
     const renderer = renderers.at(-1)!;
 
     const lights: Light[] = [];

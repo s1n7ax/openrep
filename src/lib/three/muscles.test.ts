@@ -1,14 +1,10 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { readFigureAsset } from '../../../tests/helpers/figureAsset.ts';
 import { MUSCLES } from '../schema/common.ts';
 import { createFigure } from './figure.ts';
-import { parseFigureAsset } from './figureAsset.ts';
 import { attachMuscles } from './muscles.ts';
 
-const file = readFileSync(new URL('./assets/figure.glb', import.meta.url));
-const asset = parseFigureAsset(
-  file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength),
-);
+const asset = readFigureAsset();
 
 describe('muscle glow', () => {
   it('glows strongly for primary, faintly for secondary and not at all otherwise', () => {

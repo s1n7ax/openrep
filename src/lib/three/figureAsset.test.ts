@@ -1,18 +1,15 @@
-import { readFileSync, statSync } from 'node:fs';
+import { statSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { FIGURE_ASSET_URL, readFigureAsset } from '../../../tests/helpers/figureAsset.ts';
 import { MUSCLES } from '../schema/common.ts';
-import { FIGURE_BONES, NO_MUSCLE, parseFigureAsset } from './figureAsset.ts';
+import { FIGURE_BONES, NO_MUSCLE } from './figureAsset.ts';
 import { createRig, JOINT_NAMES } from './rig.ts';
 
-const url = new URL('./assets/figure.glb', import.meta.url);
-const file = readFileSync(url);
-const asset = parseFigureAsset(
-  file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength),
-);
+const asset = readFigureAsset();
 
 describe('figure asset', () => {
   it('adds no more than about 10 MB to the app', () => {
-    expect(statSync(url).size).toBeLessThan(10 * 1024 * 1024);
+    expect(statSync(FIGURE_ASSET_URL).size).toBeLessThan(10 * 1024 * 1024);
   });
 
   it('is skinned to the animation rig: same joints, same offsets', () => {
