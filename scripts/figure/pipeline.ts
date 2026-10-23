@@ -14,6 +14,7 @@ import { MUSCLE_SPECS } from './muscles.ts';
 import { smoothHead } from './head.ts';
 import {
   catmullClark,
+  largestFour,
   taubinSmooth,
   triangulate,
   vertexNeighbours,
@@ -47,17 +48,7 @@ export interface BuiltFigure {
  */
 export async function buildFigure(read: SourceReader): Promise<BuiltFigure> {
   const body = await buildBody(read);
-
-  // Skin weights per vertex per bone.
   const boneCount = FIGURE_BONES.length;
-  const baseCount = body.mesh.positions.length / 3;
-  const baseWeights = new Float64Array(baseCount * boneCount);
-  for (let v = 0; v < baseCount; v++) {
-    for (let i = 0; i < 4; i++) {
-      const weight = body.skinWeight[v * 4 + i] ?? 0;
-      if (weight > 0) baseWeights[v * boneCount + (body.skinIndex[v * 4 + i] ?? 0)] = weight;
-    }
-  }
 
   // A statue-like head: the face's features smoothed away (the mesh changes there).
   const headJoint = body.bind.find((bone) => bone.name === 'head')?.world.elements[13] ?? 0;
@@ -71,7 +62,7 @@ export async function buildFigure(read: SourceReader): Promise<BuiltFigure> {
       for (let b = 0; b < boneCount; b++) {
         denseWeights[v * boneCount + b] =
           (denseWeights[v * boneCount + b] ?? 0) +
-          (baseWeights[u * boneCount + b] ?? 0) / from.length;
+          (body.weights[u * boneCount + b] ?? 0) / from.length;
       }
     }
   }
@@ -196,13 +187,7 @@ function quantizeWeights(
   const skinIndex = new Uint8Array(vertexCount * 4);
   const skinWeight = new Uint8Array(vertexCount * 4);
   for (let v = 0; v < vertexCount; v++) {
-    const top: [number, number][] = [];
-    for (let b = 0; b < boneCount; b++) {
-      const weight = weights[v * boneCount + b] ?? 0;
-      if (weight > 1e-4) top.push([b, weight]);
-    }
-    top.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
-    const kept = top.slice(0, 4);
+    const kept = largestFour(weights, v * boneCount, boneCount, 1e-4);
     const total = kept.reduce((sum, [, weight]) => sum + weight, 0);
     // Largest-remainder rounding.
     const exact = kept.map(([, weight]) => (weight / total) * 255);

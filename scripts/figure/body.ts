@@ -46,7 +46,7 @@ import {
   type MakeHumanSkeleton,
 } from './makehuman.ts';
 import { FigureBuildError } from './errors.ts';
-import { flipFaces, quadMesh, signedVolume, type PolyMesh } from './mesh.ts';
+import { flipFaces, largestFour, quadMesh, signedVolume, type PolyMesh } from './mesh.ts';
 
 /** Reads a pinned MakeHuman file (see `makehuman.ts`). */
 export type SourceReader = (file: string) => Promise<string>;
@@ -283,9 +283,8 @@ export interface BindBone {
 
 export interface FittedBody {
   mesh: PolyMesh;
-  /** Four (bone index, weight) pairs per vertex, weights summing to 1. */
-  skinIndex: Uint16Array;
-  skinWeight: Float64Array;
+  /** Skin weight per vertex per bone (`FIGURE_BONES` order): at most four, summing to 1. */
+  weights: Float64Array;
   /** Bind-pose world matrix of every bone of `FIGURE_BONES`. */
   bind: BindBone[];
   /** Per-vertex head share (for smoothing away the face), 0–1. */
@@ -566,22 +565,12 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
   }
 
   // Keep the four largest weights per vertex.
-  const skinIndex = new Uint16Array(vertexCount * 4);
-  const skinWeight = new Float64Array(vertexCount * 4);
   for (let v = 0; v < vertexCount; v++) {
     const row = v * boneCount;
-    const top: [number, number][] = [];
-    for (let b = 0; b < boneCount; b++) {
-      const weight = dense[row + b] ?? 0;
-      if (weight > 1e-4) top.push([b, weight]);
-    }
-    top.sort((a, b) => b[1] - a[1]);
-    const kept = top.slice(0, 4);
+    const kept = largestFour(dense, row, boneCount, 1e-4);
     const total = kept.reduce((acc, [, weight]) => acc + weight, 0);
-    kept.forEach(([bone, weight], i) => {
-      skinIndex[v * 4 + i] = bone;
-      skinWeight[v * 4 + i] = weight / total;
-    });
+    dense.fill(0, row, row + boneCount);
+    for (const [bone, weight] of kept) dense[row + bone] = weight / total;
   }
 
   const bind = FIGURE_BONES.map((bone) => {
@@ -589,7 +578,7 @@ export async function buildBody(read: SourceReader): Promise<FittedBody> {
     if (!matrix) throw new FigureBuildError(`No bind pose for ${bone.name}`);
     return { name: bone.name, world: matrix };
   });
-  return { mesh, skinIndex, skinWeight, bind, headWeight, report };
+  return { mesh, weights: dense, bind, headWeight, report };
 }
 
 function fmt(v: Vector3): string {

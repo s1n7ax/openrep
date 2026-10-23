@@ -301,6 +301,25 @@ export function taubinSmooth(
   }
 }
 
+/**
+ * The (up to) four largest values above `threshold` in one vertex's row of a
+ * per-vertex attribute, `values[start .. start + size)`, as (index in the
+ * row, value) pairs: largest first, the lower index first on a tie.
+ */
+export function largestFour(
+  values: Float64Array,
+  start: number,
+  size: number,
+  threshold: number,
+): [number, number][] {
+  const list: [number, number][] = [];
+  for (let i = 0; i < size; i++) {
+    const value = values[start + i] ?? 0;
+    if (value > threshold) list.push([i, value]);
+  }
+  return list.sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 4);
+}
+
 /** Smooths a scalar field over the mesh (mean of neighbours), `passes` times. */
 export function smoothScalar(field: Float64Array, neighbours: number[][], passes: number): void {
   const next = new Float64Array(field.length);

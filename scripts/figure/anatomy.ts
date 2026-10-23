@@ -27,7 +27,13 @@ import {
   UPPER_ARM_LENGTH,
 } from '../../src/lib/three/dimensions.ts';
 import { SEGMENTS, segmentOf, type BindBone, type Segment } from './body.ts';
-import { smoothScalar, vertexNeighbours, vertexNormals, type PolyMesh } from './mesh.ts';
+import {
+  largestFour,
+  smoothScalar,
+  vertexNeighbours,
+  vertexNormals,
+  type PolyMesh,
+} from './mesh.ts';
 
 export type LimbChart = 'upperArm' | 'forearm' | 'thigh' | 'shin' | 'neck';
 export type Chart = 'torso' | LimbChart;
@@ -351,13 +357,8 @@ export function paintMuscles(
   const groups = new Uint8Array(count * 4).fill(NO_MUSCLE);
   const cover = new Uint8Array(count * 4);
   for (let v = 0; v < count; v++) {
-    const list: [number, number][] = [];
-    for (let g = 0; g < MUSCLES.length; g++) {
-      const c = groupCover[v * MUSCLES.length + g] ?? 0;
-      if (c > 1 / 255) list.push([g, c]);
-    }
-    list.sort((a, b) => b[1] - a[1] || a[0] - b[0]);
-    list.slice(0, 4).forEach(([g, c], i) => {
+    const top = largestFour(groupCover, v * MUSCLES.length, MUSCLES.length, 1 / 255);
+    top.forEach(([g, c], i) => {
       groups[v * 4 + i] = g;
       cover[v * 4 + i] = Math.round(Math.min(1, c) * 255);
     });
