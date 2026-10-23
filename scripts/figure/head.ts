@@ -12,6 +12,7 @@
  *    unchanged neck), and a few surface-bound relaxation passes even out the
  *    new triangles.
  */
+import { MathUtils } from 'three';
 import { FigureBuildError } from './errors.ts';
 import { compactVertices, vertexNeighbours, type PolyMesh } from './mesh.ts';
 
@@ -338,10 +339,7 @@ export function smoothHead(
   const out = compact.positions;
   const n = out.length / 3;
   const blend = new Float64Array(n);
-  for (let i = 0; i < n; i++) {
-    const t = Math.min(1, Math.max(0, (weightOf(i) - 0.5) / 0.4));
-    blend[i] = t * t * (3 - 2 * t);
-  }
+  for (let i = 0; i < n; i++) blend[i] = MathUtils.smoothstep(weightOf(i), 0.5, 0.9);
   const project = (i: number, amount: number) => {
     const [d, r] = polar([out[i * 3] ?? 0, out[i * 3 + 1] ?? 0, out[i * 3 + 2] ?? 0]);
     const radius = r + (evaluate(surface, d) - r) * amount;

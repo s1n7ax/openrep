@@ -4,6 +4,7 @@
  * light. Measured as how far a smoothed copy of the surface lies outside each
  * vertex, at two scales.
  */
+import { MathUtils } from 'three';
 import { taubinSmooth, vertexNeighbours, vertexNormals, type PolyMesh } from './mesh.ts';
 
 /** Depth (metres) of a crease that gets the full darkening. */
@@ -37,8 +38,8 @@ export function bakeCavity(mesh: PolyMesh): Uint8Array {
   const cavity = new Uint8Array(count);
   for (let v = 0; v < count; v++) {
     const crease = Math.max(0, (fine[v] ?? 0) + 0.3 * Math.max(0, broad[v] ?? 0));
-    const t = Math.min(1, crease / FULL_DEPTH);
-    cavity[v] = Math.round((1 - (1 - DARKEST) * t * t * (3 - 2 * t)) * 255);
+    const darken = MathUtils.smoothstep(crease, 0, FULL_DEPTH);
+    cavity[v] = Math.round((1 - (1 - DARKEST) * darken) * 255);
   }
   return cavity;
 }
