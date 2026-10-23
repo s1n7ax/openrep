@@ -147,11 +147,16 @@ describe('validateData with supersets', () => {
     });
     const push = { exerciseId: 'sample-push-up', reps: '8' };
     const file = 'schedules/superset-schedule.json';
-    expect(messagesFor(withFile('schedules', 'superset-schedule.json', superset(3, [push])), file)).toEqual([
+    expect(
+      messagesFor(withFile('schedules', 'superset-schedule.json', superset(3, [push])), file),
+    ).toEqual([
       'days[0].exercises[0].superset.exercises: Too small: expected array to have >=2 items',
     ]);
     expect(
-      messagesFor(withFile('schedules', 'superset-schedule.json', superset(21, [push, push])), file),
+      messagesFor(
+        withFile('schedules', 'superset-schedule.json', superset(21, [push, push])),
+        file,
+      ),
     ).toEqual(['days[0].exercises[0].superset.rounds: Too big: expected number to be <=20']);
     const withSets = superset(3, [{ ...push, sets: 3 }, push]);
     expect(messagesFor(withFile('schedules', 'superset-schedule.json', withSets), file)).toEqual([
@@ -161,7 +166,10 @@ describe('validateData with supersets', () => {
 
   it('keeps version 1 schedules free of supersets', () => {
     const schedule = { ...JSON.parse(supersetSchedule), formatVersion: 1 };
-    const messages = messagesFor(withFile('schedules', 'superset-schedule.json', schedule), 'schedules/superset-schedule.json');
+    const messages = messagesFor(
+      withFile('schedules', 'superset-schedule.json', schedule),
+      'schedules/superset-schedule.json',
+    );
     expect(messages.length).toBeGreaterThan(0);
     expect(messages[0]).toMatch(/^days\[0\]\.exercises\[0\]/);
   });

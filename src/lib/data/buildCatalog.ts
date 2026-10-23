@@ -64,6 +64,20 @@ export async function buildCatalog(data: ValidatedData, generatedAt: string): Pr
   const revision = await catalogRevision(content);
   // The fields in the format's order, so a version 1 catalog's file is as before.
   return content.formatVersion === 1
-    ? { formatVersion: 1, revision, generatedAt, exercises, animations, schedules: content.schedules }
-    : { formatVersion: 2, revision, generatedAt, exercises, animations, schedules: content.schedules };
+    ? {
+        formatVersion: 1,
+        revision,
+        generatedAt,
+        exercises,
+        animations,
+        schedules: content.schedules,
+      }
+    : {
+        formatVersion: 2,
+        revision,
+        generatedAt,
+        exercises,
+        animations,
+        schedules: content.schedules,
+      };
 }
