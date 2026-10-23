@@ -86,6 +86,16 @@ function shape(data: UserData): string[] {
   );
 }
 
+/** `data` with day "d1"'s exercises naming the given supersets, as a hand-edited backup could. */
+function withSupersetIds(data: UserData, supersetIds: Record<string, string>): UserData {
+  const plan = data.plans[0]!;
+  const exercises = day(data).exercises.map((entry) => {
+    const supersetId = supersetIds[entry.id];
+    return supersetId === undefined ? entry : { ...entry, supersetId };
+  });
+  return { ...data, plans: [{ ...plan, days: [{ ...day(data), exercises }] }] };
+}
+
 /** Bench and Flyes grouped (superset "s1"), then rounds 3 and rest 90 s. */
 function grouped(): UserData {
   return supersetWithNext(seeded(), 'p1', 'd1', 'e1', 's1', T1);
@@ -328,6 +338,46 @@ describe('superset plan updates', () => {
       notes: 'Slow',
       supersetId: 's1',
     });
+  });
+
+  it('edits an exercise naming a superset it is not grouped into as a normal exercise', () => {
+    // e3 names a superset that does not exist; e4 names s1 but is not next to it.
+    let data = withSupersetIds(grouped(), { e3: 'gone', e4: 's1' });
+    expect(shape(data)).toEqual(['A[e1,e2]', 'e3', 'e4']);
+    data = updatePlanExerciseTarget(
+      data,
+      'p1',
+      'd1',
+      'e3',
+      { sets: 4, reps: '10', restSec: 90 },
+      T1,
+    );
+    expect(day(data).exercises[2]).toEqual({
+      id: 'e3',
+      exercise: pushdown,
+      sets: 4,
+      reps: '10',
+      restSec: 90,
+    });
+    // The round count of s1 is only the sets of the exercises it groups.
+    data = setSupersetRounds(data, 'p1', 'd1', 's1', 5, T1);
+    expect(day(data).exercises.map((entry) => entry.sets)).toEqual([5, 5, 4, 3]);
+    data = updatePlanExerciseTarget(
+      data,
+      'p1',
+      'd1',
+      'e4',
+      { sets: 2, durationSec: 45, restSec: 30 },
+      T1,
+    );
+    expect(day(data).exercises[3]).toEqual({
+      id: 'e4',
+      exercise: plank,
+      sets: 2,
+      durationSec: 45,
+      restSec: 30,
+    });
+    expect(shape(data)).toEqual(['A[e1,e2]', 'e3', 'e4']);
   });
 });
 

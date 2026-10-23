@@ -65,6 +65,21 @@ export function dayBlocks(day: PlanDay): Block<PlanExercise>[] {
 }
 
 /**
+ * Ids of the exercises the day groups into a superset block (only into
+ * `supersetId`'s when given). An exercise naming a superset it is not grouped
+ * into is shown, and edited, as a normal exercise.
+ */
+function supersetMemberIds(day: PlanDay, supersetId?: string): Set<string> {
+  return new Set(
+    dayBlocks(day).flatMap((block) =>
+      block.kind === 'superset' && (supersetId === undefined || block.superset.id === supersetId)
+        ? block.entries.map((entry) => entry.id)
+        : [],
+    ),
+  );
+}
+
+/**
  * The day with `exercises` and `supersets`, the grouping made consistent: a
  * superset left with one exercise is dropped and that exercise becomes a
  * normal one again. `supersets` is left out when there is none.
@@ -189,7 +204,8 @@ export function addPlanExercise(
 /**
  * Replaces the target (sets, reps or duration, weight, rest, notes) of a day's
  * exercise. An exercise of a superset keeps the superset's round count as its
- * sets and has no rest of its own.
+ * sets and has no rest of its own; an exercise naming a superset it is not
+ * grouped into (see `dayBlocks`) is a normal exercise and leaves that superset.
  */
 export function updatePlanExerciseTarget(
   data: UserData,
@@ -200,12 +216,15 @@ export function updatePlanExerciseTarget(
   now: string,
 ): UserData {
   return updateDay(data, planId, dayId, now, (day) => {
+    const members = supersetMemberIds(day);
     let changed = false;
     const exercises = day.exercises.map((entry) => {
       if (entry.id !== planExerciseId) return entry;
       changed = true;
       const { id, exercise, supersetId } = entry;
-      if (supersetId === undefined) return { id, exercise, ...cleanTarget(target) };
+      if (supersetId === undefined || !members.has(id)) {
+        return { id, exercise, ...cleanTarget(target) };
+      }
       const memberTarget = cleanTarget({ ...target, sets: entry.sets, restSec: undefined });
       return { id, exercise, ...memberTarget, supersetId };
     });
@@ -388,7 +407,7 @@ export function ungroupSuperset(
   });
 }
 
-/** Sets the round count of a superset: the sets of each of its exercises. */
+/** Sets the round count of a superset: the sets of each exercise it groups. */
 export function setSupersetRounds(
   data: UserData,
   planId: string,
@@ -398,9 +417,10 @@ export function setSupersetRounds(
   now: string,
 ): UserData {
   return updateDay(data, planId, dayId, now, (day) => {
+    const members = supersetMemberIds(day, supersetId);
     let changed = false;
     const exercises = day.exercises.map((entry) => {
-      if (entry.supersetId !== supersetId || entry.sets === rounds) return entry;
+      if (!members.has(entry.id) || entry.sets === rounds) return entry;
       changed = true;
       return { ...entry, sets: rounds };
     });
