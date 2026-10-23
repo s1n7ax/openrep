@@ -2,6 +2,7 @@
   "formatVersion": 1,
   "exerciseId": "seated-dumbbell-press",
   "durationSec": 2.8,
+  "camera": {"position": [3.0,2.2,-1.5], "target": [0, 1.05, 0]},
   "props": [
     {"type": "bench", "attach": "none", "position": [0, 0, -0.45]},
     {"type": "dumbbell", "attach": "leftHand"},
