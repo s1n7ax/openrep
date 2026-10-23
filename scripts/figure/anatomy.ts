@@ -17,7 +17,7 @@
  * A muscle applies only on the body segments it lists, so a limb chart never
  * paints the torso by accident.
  */
-import { Matrix4, Vector3 } from 'three';
+import { MathUtils, Matrix4, Vector3 } from 'three';
 import { MUSCLES, type Muscle } from '../../src/lib/schema/common.ts';
 import { FIGURE_BONES, NO_MUSCLE, muscleIndex } from '../../src/lib/three/figureAsset.ts';
 import {
@@ -199,11 +199,6 @@ function signedDistance(polygon: number[], x: number, y: number): number {
   return inside ? best : -best;
 }
 
-function smoothstep(a: number, b: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
-}
-
 // ── Painting ─────────────────────────────────────────────────────────────────
 
 /** Glow edge half-width (metres): coverage goes 0 → 1 over twice this. */
@@ -277,7 +272,7 @@ export function createChartSampler(
       return {
         x: Math.abs(mesh.positions[v * 3] ?? 0),
         y: mesh.positions[v * 3 + 1] ?? 0,
-        front: smoothstep(-0.3, 0.3, normals[v * 3 + 2] ?? 0),
+        front: MathUtils.smoothstep(normals[v * 3 + 2] ?? 0, -0.3, 0.3),
       };
     },
     limb(chart, v) {
@@ -367,7 +362,7 @@ export function paintMuscles(
         ] as const) {
           if (!shape || share <= 0) continue;
           const d = distanceTo(shape, p.x, p.y, edge * 2);
-          cover += share * smoothstep(-edge, edge, d);
+          cover += share * MathUtils.smoothstep(d, -edge, edge);
           bulge += share * belly(d, spec.width);
         }
         return { cover, belly: bulge };
@@ -390,10 +385,10 @@ export function paintMuscles(
           ? Math.min(y - shape.minY, shape.maxY - y)
           : distanceTo(shape, x, y, edge * 2);
         const near =
-          (radius === Infinity ? 1 : 1 - smoothstep(radius - 0.01, radius + 0.01, p.r)) *
-          (midline === 0 ? 1 : smoothstep(midline - 0.006, midline + 0.006, p.midline));
+          (radius === Infinity ? 1 : 1 - MathUtils.smoothstep(p.r, radius - 0.01, radius + 0.01)) *
+          (midline === 0 ? 1 : MathUtils.smoothstep(p.midline, midline - 0.006, midline + 0.006));
         return {
-          cover: smoothstep(-edge, edge, d) * near,
+          cover: MathUtils.smoothstep(d, -edge, edge) * near,
           belly: belly(d, spec.width) * near,
         };
       };
@@ -405,7 +400,10 @@ export function paintMuscles(
       if (group >= 0 && m.cover > 0) {
         const i = v * MUSCLES.length + group;
         // The glow ends crisply where a body segment hands over to the next.
-        groupCover[i] = Math.max(groupCover[i] ?? 0, m.cover * smoothstep(0.2, 0.6, gate));
+        groupCover[i] = Math.max(
+          groupCover[i] ?? 0,
+          m.cover * MathUtils.smoothstep(gate, 0.2, 0.6),
+        );
       }
       if (spec.height !== 0 && m.belly > 0) {
         displacement[v] = (displacement[v] ?? 0) + spec.height * gate * m.belly;

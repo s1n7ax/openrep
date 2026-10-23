@@ -12,6 +12,7 @@ import {
   DirectionalLight,
   HemisphereLight,
   LinearFilter,
+  MathUtils,
   Mesh,
   MeshBasicMaterial,
   NeutralToneMapping,
@@ -65,11 +66,6 @@ export interface ExerciseContent {
   animation: Pick<Animation, 'durationSec' | 'keyframes' | 'props' | 'camera'> | null;
 }
 
-function smoothstep(edge0: number, edge1: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-}
-
 /** A radial falloff texture for the floor disc (opaque centre, transparent rim). */
 function floorTexture(): DataTexture {
   const size = 128;
@@ -78,7 +74,7 @@ function floorTexture(): DataTexture {
     for (let x = 0; x < size; x++) {
       const dx = (x + 0.5) / size - 0.5;
       const dy = (y + 0.5) / size - 0.5;
-      const alpha = 1 - smoothstep(0.25, 1, Math.sqrt(dx * dx + dy * dy) * 2);
+      const alpha = 1 - MathUtils.smoothstep(Math.sqrt(dx * dx + dy * dy) * 2, 0.25, 1);
       const i = (y * size + x) * 4;
       data[i] = 255;
       data[i + 1] = 255;
