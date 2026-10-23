@@ -149,10 +149,10 @@ export class PageSnapper {
     this.#clearSettle();
     // Grabbing the page mid-snap stops it there; the snap's page counts as
     // current, and the next scroll counts from where it stopped.
-    if (this.#frame !== null) {
-      const target = this.#target;
+    const target = this.#target;
+    if (target !== null) {
       this.#stopAnimation();
-      if (target !== null) this.#rest(target);
+      this.#rest(target);
       this.#grabbed = this.#scroller.scrollTop;
     }
   };
