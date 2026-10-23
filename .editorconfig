@@ -14,3 +14,8 @@ trim_trailing_whitespace = false
 [{LICENSE,data/LICENSE}]
 indent_style = unset
 indent_size = unset
+
+# Store listing texts are sent as they are (a final newline would be part of
+# the title or the release notes).
+[fastlane/metadata/**.txt]
+insert_final_newline = false
