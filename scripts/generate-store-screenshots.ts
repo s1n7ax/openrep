@@ -82,13 +82,10 @@ try {
   await page.getByTestId('plan-day').first().getByTestId('day-start').click();
   const exercise = page.getByTestId('workout-exercise').first();
   await exercise.waitFor();
-  for (const [index, [weight, reps]] of [
-    ['60', '8'],
-    ['60', '8'],
-  ].entries()) {
+  for (const index of [0, 1]) {
     const set = exercise.getByTestId('set-row').nth(index);
-    await set.getByTestId('set-weight').fill(weight!);
-    await set.getByTestId('set-reps').fill(reps!);
+    await set.getByTestId('set-weight').fill('60');
+    await set.getByTestId('set-reps').fill('8');
     await set.getByTestId('set-done').check();
   }
   await shoot('workout');
