@@ -18,10 +18,8 @@ const TORSO_ARM: readonly Segment[] = ['torso', 'upperArm'];
 const TORSO_THIGH: readonly Segment[] = ['torso', 'thigh'];
 const TORSO_NECK: readonly Segment[] = ['torso', 'neck'];
 const ARM: readonly Segment[] = ['upperArm'];
-const ARM_TORSO: readonly Segment[] = ['upperArm', 'torso'];
 const FOREARM: readonly Segment[] = ['forearm'];
 const THIGH: readonly Segment[] = ['thigh'];
-const THIGH_TORSO: readonly Segment[] = ['thigh', 'torso'];
 const SHIN: readonly Segment[] = ['shin'];
 const NECK_AREA: readonly Segment[] = ['neck', 'torso', 'head'];
 
@@ -136,7 +134,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
     name: 'deltoid',
     group: 'shoulders',
     chart: 'upperArm',
-    segments: ARM_TORSO,
+    segments: TORSO_ARM,
     thetaCenter: 90,
     radius: 0.085,
     outline: [
@@ -484,7 +482,7 @@ export const MUSCLE_SPECS: readonly MuscleSpec[] = [
     name: 'tensor fasciae latae',
     group: 'abductors',
     chart: 'thigh',
-    segments: THIGH_TORSO,
+    segments: TORSO_THIGH,
     outline: [
       [40, -0.12],
       [75, -0.14],
