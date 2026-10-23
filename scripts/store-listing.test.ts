@@ -8,10 +8,11 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { androidVersion } from './lib/android-version.ts';
-import { FDROID_RECIPE, LISTING_DIR, REPO_ROOT } from './lib/paths.ts';
+import { FDROID_RECIPE, LISTING_DIR, REPO_ROOT, REPO_URL } from './lib/paths.ts';
 import { RELEASE_NOTES_MAX_LENGTH, stampFdroidRecipe } from './lib/store-release.ts';
 
-const PRIVACY_POLICY_URL = 'https://github.com/s1n7ax/openrep/blob/main/docs/privacy-policy.md';
+/** The privacy policy, which the full description links on GitHub. */
+const PRIVACY_POLICY = 'docs/privacy-policy.md';
 
 async function text(name: string): Promise<string> {
   return readFile(path.join(LISTING_DIR, name), 'utf8');
@@ -38,9 +39,8 @@ describe('store listing texts', () => {
   });
 
   it('links the privacy policy, which exists', async () => {
-    expect(await text('full_description.txt')).toContain(PRIVACY_POLICY_URL);
-    const file = path.join(REPO_ROOT, PRIVACY_POLICY_URL.split('/blob/main/')[1]!);
-    expect((await stat(file)).isFile()).toBe(true);
+    expect(await text('full_description.txt')).toContain(`${REPO_URL}/blob/main/${PRIVACY_POLICY}`);
+    expect((await stat(path.join(REPO_ROOT, PRIVACY_POLICY))).isFile()).toBe(true);
   });
 
   it('has release notes within the limit for every versionCode', async () => {
