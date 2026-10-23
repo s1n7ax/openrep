@@ -75,8 +75,12 @@ export const MECHANICS = ['compound', 'isolation'] as const;
 export const mechanicSchema = z.enum(MECHANICS);
 export type Mechanic = z.infer<typeof mechanicSchema>;
 
+/** Fewest and most sets for one exercise in a plan or schedule. */
+export const MIN_SETS = 1;
+export const MAX_SETS = 20;
+
 /** Number of sets for one exercise in a plan or schedule. */
-export const setsSchema = z.int().min(1).max(20);
+export const setsSchema = z.int().min(MIN_SETS).max(MAX_SETS);
 
 /**
  * Target repetitions as text: a single number ("8") or an ascending range ("8-12").

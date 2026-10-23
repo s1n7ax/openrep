@@ -19,6 +19,7 @@
   import { supersetExerciseLabel } from '../lib/userData/supersets.ts';
   import { isValidRestText } from '../lib/userData/targets.ts';
   import Icon from './Icon.svelte';
+  import SetCountStepper from './SetCountStepper.svelte';
   import TargetEditor from './TargetEditor.svelte';
 
   interface Props {
@@ -133,28 +134,7 @@
   </div>
 
   <div class="row">
-    <div class="field">
-      <span class="field-label" id={`${id}-rounds`}>Rounds</span>
-      <div class="stepper" role="group" aria-labelledby={`${id}-rounds`}>
-        <button
-          type="button"
-          class="step-btn"
-          aria-label="Fewer rounds"
-          data-testid="superset-rounds-dec"
-          disabled={rounds <= 1}
-          onclick={() => setRounds(rounds - 1)}>−</button
-        >
-        <output class="rounds" aria-live="polite" data-testid="superset-rounds">{rounds}</output>
-        <button
-          type="button"
-          class="step-btn"
-          aria-label="More rounds"
-          data-testid="superset-rounds-inc"
-          disabled={rounds >= 20}
-          onclick={() => setRounds(rounds + 1)}>+</button
-        >
-      </div>
-    </div>
+    <SetCountStepper label="Rounds" value={rounds} testid="superset-rounds" onchange={setRounds} />
     <div class="field">
       <label class="field-label" for={`${id}-rest`}>Rest after each round (s)</label>
       <input
@@ -227,39 +207,6 @@
     grid-template-columns: auto 1fr;
     gap: var(--space-3);
     padding: 0 var(--space-4) 0 calc(var(--space-4) - 3px);
-  }
-
-  .stepper {
-    display: flex;
-    align-items: center;
-    height: var(--tap);
-    overflow: hidden;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-  }
-
-  .step-btn {
-    width: var(--tap);
-    height: 100%;
-    border: none;
-    background: var(--surface-2);
-    font-size: var(--text-xl);
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .step-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
-  .rounds {
-    min-width: 40px;
-    font-size: var(--text-lg);
-    font-weight: 750;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
   }
 
   .input {

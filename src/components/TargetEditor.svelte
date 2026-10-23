@@ -30,6 +30,7 @@
     isValidRestText,
   } from '../lib/userData/targets.ts';
   import Icon from './Icon.svelte';
+  import SetCountStepper from './SetCountStepper.svelte';
 
   interface Props {
     planId: string;
@@ -199,28 +200,7 @@
 
   <div class="row" class:single={member}>
     {#if !member}
-      <div class="field">
-        <span class="field-label" id={`${id}-sets`}>Sets</span>
-        <div class="stepper" role="group" aria-labelledby={`${id}-sets`}>
-          <button
-            type="button"
-            class="step-btn"
-            aria-label="Fewer sets"
-            data-testid="target-sets-dec"
-            disabled={entry.sets <= 1}
-            onclick={() => commit(entry.sets - 1)}>−</button
-          >
-          <output class="sets" aria-live="polite" data-testid="target-sets">{entry.sets}</output>
-          <button
-            type="button"
-            class="step-btn"
-            aria-label="More sets"
-            data-testid="target-sets-inc"
-            disabled={entry.sets >= 20}
-            onclick={() => commit(entry.sets + 1)}>+</button
-          >
-        </div>
-      </div>
+      <SetCountStepper label="Sets" value={entry.sets} testid="target-sets" onchange={commit} />
     {/if}
     <div class="field">
       <span class="field-label" id={`${id}-mode`}>Each set</span>
@@ -417,39 +397,6 @@
 
   .row.three.two {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .stepper {
-    display: flex;
-    align-items: center;
-    height: var(--tap);
-    overflow: hidden;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    background: var(--surface);
-  }
-
-  .step-btn {
-    width: var(--tap);
-    height: 100%;
-    border: none;
-    background: var(--surface-2);
-    font-size: var(--text-xl);
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .step-btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-
-  .sets {
-    min-width: 40px;
-    font-size: var(--text-lg);
-    font-weight: 750;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
   }
 
   .segmented {
