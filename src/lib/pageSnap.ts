@@ -43,6 +43,9 @@ function restEnd(page: PageBox, viewport: number): number {
  * - Between `current` and its neighbour: the neighbour once the scroll is
  *   past the threshold; back to `current` once the scroll has `settled`
  *   short of it; null (wait) while it may still be moving.
+ * - Between the same two pages as `grabbed`, the position where a snap to
+ *   `current` was grabbed and stopped: as above, but the threshold counts
+ *   from there, either way; short of it the snap goes on to `current`.
  * - Between two other pages (a jump, e.g. to a focused field): the page that
  *   covers more of the screen.
  */
@@ -52,6 +55,7 @@ export function snapTarget(
   position: number,
   current: number,
   settled: boolean,
+  grabbed: number | null = null,
 ): Snap | null {
   if (pages.length === 0) return null;
   for (const [index, page] of pages.entries()) {
@@ -62,18 +66,16 @@ export function snapTarget(
       // Whole pixels (scroll positions may be rounded), inside the pages.
       const lower = Math.floor(restEnd(above, viewport));
       const upper = Math.ceil(page.top);
+      const toAbove = { page: index - 1, top: lower };
+      const toBelow = { page: index, top: upper };
+      const stay = current === index - 1 ? toAbove : current === index ? toBelow : null;
+      if (stay === null) return position - lower < upper - position ? toAbove : toBelow;
+      // Where the scroll started: the edge of `current`, or where a snap was grabbed.
+      const from = grabbed !== null && grabbed > lower && grabbed < upper ? grabbed : stay.top;
       const threshold = PAGE_THRESHOLD * viewport;
-      if (index - 1 === current) {
-        if (position - lower > threshold) return { page: index, top: upper };
-        return settled ? { page: current, top: lower } : null;
-      }
-      if (index === current) {
-        if (upper - position > threshold) return { page: index - 1, top: lower };
-        return settled ? { page: current, top: upper } : null;
-      }
-      return position - lower < upper - position
-        ? { page: index - 1, top: lower }
-        : { page: index, top: upper };
+      if (position - from > threshold) return toBelow;
+      if (from - position > threshold) return toAbove;
+      return settled ? stay : null;
     }
   }
   return { page: pages.length - 1, top: position };
@@ -99,6 +101,8 @@ export class PageSnapper {
   #frame: number | null = null;
   /** The page an animated snap is heading for. */
   #target: number | null = null;
+  /** Where a snap was grabbed and stopped, until the pager snaps or rests again. */
+  #grabbed: number | null = null;
   #settleTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(scroller: HTMLElement, initial: number, options: PagerOptions) {
@@ -139,11 +143,13 @@ export class PageSnapper {
   readonly #onTouchStart = () => {
     this.#touching = true;
     this.#clearSettle();
-    // Grabbing the page mid-snap stops it there; the snap's page counts as current.
+    // Grabbing the page mid-snap stops it there; the snap's page counts as
+    // current, and the next scroll counts from where it stopped.
     if (this.#frame !== null) {
       const target = this.#target;
       this.#stopAnimation();
       if (target !== null) this.#rest(target);
+      this.#grabbed = this.#scroller.scrollTop;
     }
   };
 
@@ -168,10 +174,14 @@ export class PageSnapper {
       scroller.scrollTop,
       this.#current,
       settled,
+      this.#grabbed,
     );
     if (snap === null) {
       this.#settleTimer = setTimeout(() => this.#update(true), SETTLE_MS);
-    } else if (Math.abs(snap.top - scroller.scrollTop) < EPSILON) {
+      return;
+    }
+    this.#grabbed = null;
+    if (Math.abs(snap.top - scroller.scrollTop) < EPSILON) {
       this.#rest(snap.page);
       // Momentum within a tall page may still carry it past an edge.
       if (!settled) this.#settleTimer = setTimeout(() => this.#update(true), SETTLE_MS);
