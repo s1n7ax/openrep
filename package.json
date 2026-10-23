@@ -29,6 +29,7 @@
     "animation:fk-arms": "tsx scripts/animation-fk-arms.ts",
     "import:free-exercise-db": "tsx scripts/import-free-exercise-db.ts",
     "generate:app-assets": "tsx scripts/generate-app-assets.ts",
+    "generate:figure": "tsx scripts/figure/generate-figure.ts",
     "android:build": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
     "check:apk-version": "tsx scripts/check-apk-version.ts"
   },

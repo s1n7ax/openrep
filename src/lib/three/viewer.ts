@@ -31,18 +31,19 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { Muscle } from '../schema/common.ts';
 import type { Animation } from '../schema/animation.ts';
 import { AnimationSampler, createSampledPose } from './animation.ts';
+import { defaultViewDirection, FRONT_DEFAULT } from './defaultView.ts';
 import { createFigure, type Figure } from './figure.ts';
+import type { FigureAsset } from './figureAsset.ts';
 import { attachMuscles, type MuscleOverlays } from './muscles.ts';
 import { applyPose, createPoseResult } from './pose.ts';
 import { createProps, type PropsController } from './props.ts';
 import { STILL_POSE } from './stillPose.ts';
-import { smoothstep } from './surface.ts';
 
 export type ViewPreset = 'default' | 'front' | 'side' | 'back' | 'top';
 
 /** Camera directions (from the target) of the view presets. */
 const VIEW_DIRECTIONS: Record<ViewPreset, Vector3> = {
-  default: new Vector3(0.72, 0.36, 1).normalize(),
+  default: FRONT_DEFAULT,
   front: new Vector3(0, 0.2, 1).normalize(),
   side: new Vector3(1, 0.22, 0.32).normalize(),
   back: new Vector3(-0.5, 0.35, -1).normalize(),
@@ -62,6 +63,11 @@ export interface ExerciseContent {
   secondary: readonly Muscle[];
   /** The looping movement, or null for a still figure. */
   animation: Pick<Animation, 'durationSec' | 'keyframes' | 'props' | 'camera'> | null;
+}
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
 }
 
 /** A radial falloff texture for the floor disc (opaque centre, transparent rim). */
@@ -118,12 +124,13 @@ export class ExerciseViewer {
   private viewZoom = 1;
   private viewFocus: Vector3 | null = null;
   private customCamera: { position: Vector3; target: Vector3 } | null = null;
+  private defaultDirection = VIEW_DIRECTIONS.default;
   private disposed = false;
 
   private readonly canvas: HTMLCanvasElement;
   private readonly options: ViewerOptions;
 
-  constructor(canvas: HTMLCanvasElement, options: ViewerOptions = {}) {
+  constructor(canvas: HTMLCanvasElement, asset: FigureAsset, options: ViewerOptions = {}) {
     this.canvas = canvas;
     this.options = options;
     const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -194,7 +201,7 @@ export class ExerciseViewer {
     this.scene.add(floor, shadowCatcher);
     this.disposables.push(floorGeometry, texture, floorMaterial, shadowMaterial);
 
-    this.figure = createFigure();
+    this.figure = createFigure(asset);
     this.scene.add(this.figure.group);
     this.muscles = attachMuscles(this.figure);
     this.sampler = new AnimationSampler(STILL_POSE);
@@ -236,6 +243,7 @@ export class ExerciseViewer {
       this.props = createProps(animation.props, this.pose.pelvisPosition.clone());
       this.scene.add(this.props.group);
     }
+    this.defaultDirection = defaultViewDirection(content.primary);
     this.customCamera = animation?.camera
       ? {
           position: new Vector3(...animation.camera.position),
@@ -280,7 +288,10 @@ export class ExerciseViewer {
     } else {
       position = target
         .clone()
-        .addScaledVector(VIEW_DIRECTIONS[this.viewPreset], this.framedDistance / this.viewZoom);
+        .addScaledVector(
+          this.viewPreset === 'default' ? this.defaultDirection : VIEW_DIRECTIONS[this.viewPreset],
+          this.framedDistance / this.viewZoom,
+        );
     }
     this.camera.position.copy(position);
     this.controls.target.copy(target);

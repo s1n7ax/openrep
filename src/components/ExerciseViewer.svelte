@@ -51,11 +51,14 @@
   onMount(() => {
     let disposed = false;
     let instance: ExerciseViewer | null = null;
-    // three.js is loaded on demand so screens without a viewer stay light.
-    import('../lib/three/viewer.ts')
-      .then(({ ExerciseViewer }) => {
+    // three.js and the figure are loaded on demand so screens without a viewer stay light.
+    Promise.all([
+      import('../lib/three/viewer.ts'),
+      import('../lib/three/loadFigure.ts').then(({ loadFigureAsset }) => loadFigureAsset()),
+    ])
+      .then(([{ ExerciseViewer }, asset]) => {
         if (disposed || !canvas) return;
-        instance = new ExerciseViewer(canvas, { onFrame: (count) => (frames = count) });
+        instance = new ExerciseViewer(canvas, asset, { onFrame: (count) => (frames = count) });
         viewer = instance;
       })
       .catch((error: unknown) => {
