@@ -1,7 +1,8 @@
 <!--
   App shell: loads user data and the catalog, routes the location hash to a
-  screen, shows the bottom tab bar and app-wide notices, restores scroll
-  positions on back, and saves when the app goes to the background.
+  screen, shows the bottom tab bar (not during a workout, which is full
+  screen) and app-wide notices, restores scroll positions on back, and saves
+  when the app goes to the background.
 -->
 <script lang="ts">
   import { onMount, tick } from 'svelte';
@@ -34,6 +35,7 @@
   const ready = $derived(userData.status === 'ready' && catalog.status === 'ready');
   /** Remount the screen when the location changes (not for the dev route, which updates in place). */
   const screenKey = $derived(route.name === 'dev-pose' ? 'dev-pose' : JSON.stringify(route));
+  const fullScreen = $derived(route.name === 'workout');
 
   onMount(() => {
     const stopLifecycle = setupLifecycle({ onPause: () => void userData.flush() });
@@ -60,7 +62,12 @@
 {#if route.name === 'dev-pose'}
   <DevPose route={route.pose} />
 {:else}
-  <div class="app" data-testid="app" data-save-state={userData.saveState}>
+  <div
+    class="app"
+    class:full-screen={fullScreen}
+    data-testid="app"
+    data-save-state={userData.saveState}
+  >
     {#if catalog.status === 'error'}
       <main class="center" data-testid="catalog-error">
         <Icon name="alert" size={40} />
@@ -76,7 +83,7 @@
         <p class="wordmark">OpenRep</p>
       </main>
     {:else}
-      <main class="screen">
+      <main class="screen" data-testid="screen">
         {#key screenKey}
           {#if route.name === 'plans'}
             <PlansList />
@@ -146,7 +153,9 @@
         </div>
       {/if}
 
-      <TabBar active={tabOf(route)} />
+      {#if !fullScreen}
+        <TabBar active={tabOf(route)} />
+      {/if}
     {/if}
   </div>
 {/if}
@@ -158,6 +167,10 @@
 
   .screen {
     padding-bottom: calc(var(--tabbar-height) + var(--safe-bottom));
+  }
+
+  .full-screen .screen {
+    padding-bottom: 0;
   }
 
   .center {
@@ -221,6 +234,10 @@
     flex: 1;
     padding-top: 1px;
     font-size: var(--text-sm);
+  }
+
+  .full-screen .notice {
+    bottom: calc(var(--safe-bottom) + var(--space-3));
   }
 
   .notice a {

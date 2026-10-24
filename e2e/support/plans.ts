@@ -1,6 +1,7 @@
 /** Building plans through the UI. */
 import type { Page } from '@playwright/test';
 import { expect } from './fixtures.ts';
+import { waitForPictures } from './workout.ts';
 
 /** The id in a `#/plans/<id>…` location. */
 function planIdFrom(url: string): string {
@@ -58,7 +59,8 @@ export async function openPlan(page: Page, name: string): Promise<void> {
 /** Starts the day at `dayIndex` of the open plan; ends in the workout. */
 export async function startDay(page: Page, dayIndex: number): Promise<void> {
   await page.getByTestId('plan-day').nth(dayIndex).getByTestId('day-start').click();
-  await expect(page.getByTestId('workout-exercise').first()).toBeVisible();
+  await expect(page.getByTestId('workout-page').first()).toBeVisible();
+  await waitForPictures(page);
 }
 
 /** Text of every day of the open plan (names, exercises, targets, notes). */
