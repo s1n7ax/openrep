@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LoggedSet, Session, SessionExercise, Superset } from '../schema/userData.ts';
+import { blockKey } from './supersets.ts';
 import { tickOutcome } from './workoutTicks.ts';
 
 function sets(prefix: string, done: boolean[]): LoggedSet[] {
@@ -146,19 +147,23 @@ describe('tickOutcome: superset rest', () => {
 });
 
 describe('tickOutcome: completion', () => {
+  /** Key (`blockKey`) of the exercise or superset the tick completed; null for none. */
+  function completedKey(...args: Parameters<typeof tickOutcome>): string | null {
+    const { completed } = tickOutcome(...args);
+    return completed && blockKey(completed);
+  }
+
   it('completes an exercise when its last unticked set is ticked, in any order', () => {
     const value = session([exercise('bench', [true, true, true]), exercise('row', [false])]);
-    expect(tickOutcome(value, 'bench', 'bench2', 90).completed).toBe('exercise-bench');
+    expect(completedKey(value, 'bench', 'bench2', 90)).toBe('exercise-bench');
     const open = session([exercise('bench', [true, false, true]), exercise('row', [false])]);
     expect(tickOutcome(open, 'bench', 'bench3', 90).completed).toBeNull();
   });
 
   it('completes the last exercise of the workout too', () => {
     const value = session([exercise('bench', [true]), exercise('row', [true, true])]);
-    expect(tickOutcome(value, 'row', 'row2', 90)).toEqual({
-      restSec: null,
-      completed: 'exercise-row',
-    });
+    expect(tickOutcome(value, 'row', 'row2', 90).restSec).toBeNull();
+    expect(completedKey(value, 'row', 'row2', 90)).toBe('exercise-row');
   });
 
   it('completes a superset once, when all its rows are done', () => {
@@ -175,9 +180,7 @@ describe('tickOutcome: completion', () => {
     expect(tickOutcome(partly, 'squat', 'squat2', 90).completed).toBeNull();
     const done = structuredClone(partly);
     done.exercises[1]!.sets[1]!.done = true;
-    expect(tickOutcome(done, 'curl', 'curl2', 90)).toEqual({
-      restSec: 45,
-      completed: 'superset-a',
-    });
+    expect(tickOutcome(done, 'curl', 'curl2', 90).restSec).toBe(45);
+    expect(completedKey(done, 'curl', 'curl2', 90)).toBe('superset-a');
   });
 });

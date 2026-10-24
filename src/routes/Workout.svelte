@@ -229,11 +229,11 @@
     }
   }
 
-  /** "Goblet Squat done", "Superset A done": the celebration's text for the block with `key`. */
-  function doneLabel(key: string): string {
-    const block = blocks.find((candidate) => blockKey(candidate) === key);
-    if (block?.kind === 'superset') return `Superset ${block.letter} done`;
-    return block ? `${resolve(block.entry).name} done` : 'Done';
+  /** "Goblet Squat done", "Superset A done": the celebration's text for `block`. */
+  function doneLabel(block: Block<SessionExercise>): string {
+    return block.kind === 'superset'
+      ? `Superset ${block.letter} done`
+      : `${resolve(block.entry).name} done`;
   }
 
   function addSet(exercise: SessionExercise) {

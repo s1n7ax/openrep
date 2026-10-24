@@ -3,14 +3,20 @@
  * before the next set, and a celebration when the tick completes an exercise
  * (or a superset).
  */
-import type { Session } from '../schema/userData.ts';
-import { blockEntries, blockHasEntry, blockKey, groupBlocks, supersetRounds } from './supersets.ts';
+import type { Session, SessionExercise } from '../schema/userData.ts';
+import {
+  blockEntries,
+  blockHasEntry,
+  groupBlocks,
+  supersetRounds,
+  type Block,
+} from './supersets.ts';
 
 export interface TickOutcome {
   /** Seconds of rest to count down; null for none. */
   restSec: number | null;
-  /** Key (`blockKey`) of the exercise or superset the tick completed; null when it completed none. */
-  completed: string | null;
+  /** The exercise or superset the tick completed; null when it completed none. */
+  completed: Block<SessionExercise> | null;
 }
 
 const NOTHING: TickOutcome = { restSec: null, completed: null };
@@ -64,6 +70,6 @@ export function tickOutcome(
   const allDone = session.exercises.every((exercise) => exercise.sets.every((set) => set.done));
   const rests = endsRound && !lastOfWorkout && !allDone && restSec > 0;
 
-  const completed = entries.every((member) => member.sets.every((set) => set.done));
-  return { restSec: rests ? restSec : null, completed: completed ? blockKey(block) : null };
+  const completes = entries.every((member) => member.sets.every((set) => set.done));
+  return { restSec: rests ? restSec : null, completed: completes ? block : null };
 }
