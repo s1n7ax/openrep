@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LoggedSet, Session } from '../schema/userData.ts';
 import {
+  formatCountdown,
   formatDay,
   formatLoggedSet,
   formatMonth,
@@ -29,6 +30,17 @@ describe('formatLoggedSet', () => {
     expect(
       formatSets([set({ weightKg: 60, reps: 8 }), set({ weightKg: 62.5, reps: 6 })], 'kg'),
     ).toBe('60 kg × 8, 62.5 kg × 6');
+  });
+});
+
+describe('formatCountdown', () => {
+  it('shows minutes and two-digit seconds', () => {
+    expect(formatCountdown(90)).toBe('1:30');
+    expect(formatCountdown(60)).toBe('1:00');
+    expect(formatCountdown(120)).toBe('2:00');
+    expect(formatCountdown(5)).toBe('0:05');
+    expect(formatCountdown(0)).toBe('0:00');
+    expect(formatCountdown(3600)).toBe('60:00');
   });
 });
 

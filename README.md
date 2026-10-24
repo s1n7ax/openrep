@@ -24,10 +24,13 @@ works offline.
   movement; every other exercise shows the glow on a still figure.
 - **Workout log**: start a day of a plan and go through it one exercise per
   screen, its 3D view on top (swipe to the photos of exercises without an
-  animation) and its sets below; scroll to move to the next one. Enter weights
-  and reps, tick off sets and see what you did last time. Supersets are logged
-  round by round on one screen. History lists past workouts. Weights in kg or
-  lb.
+  animation) and its sets below; scroll to move to the next one. Sets start
+  filled with what you did last time; enter weights and reps and tick off
+  sets. Ticking a set starts a rest countdown (the plan's rest, or the default
+  rest from Settings) that shows when to start the next set, and finishing an
+  exercise plays a short celebration. Supersets are logged round by round on
+  one screen, with the rest after each round. History lists past workouts.
+  Weights in kg or lb.
 - **Community schedules**: browse schedules and copy one into your plans to
   edit it. Three starter schedules ship with the app: Beginner Full Body,
   Push/Pull/Legs and Upper/Lower.

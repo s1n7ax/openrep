@@ -1,7 +1,8 @@
 /**
  * Verifications "Backup round trip" and "Bad backup": an exported backup
- * restores everything exactly on a fresh install; invalid or corrupted files
- * are rejected and change nothing.
+ * restores everything exactly (settings such as the default rest included)
+ * on a fresh install; invalid or corrupted files are rejected and change
+ * nothing.
  */
 import { readFile } from 'node:fs/promises';
 import type { Page } from '@playwright/test';
@@ -40,6 +41,7 @@ test('export, then import on a fresh install, restores everything exactly', asyn
   expect(before?.customExercises).toHaveLength(1);
   expect(before?.sessions).toHaveLength(1);
   expect(before?.settings.unit).toBe('lb');
+  expect(before?.settings.defaultRestSec).toBe(120);
 
   const exported = await exportBackup(page);
   expect(exported.name).toMatch(/^openrep-backup-\d{4}-\d{2}-\d{2}\.json$/);
@@ -64,6 +66,7 @@ test('export, then import on a fresh install, restores everything exactly', asyn
 
   expect(await readStoredUserData(page)).toEqual(before);
   await expect(page.getByTestId('unit-lb')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('default-rest')).toHaveValue('120');
   await page.getByTestId('tab-plans').click();
   await expect(page.getByTestId('plan-link')).toContainText('Beginner Full Body');
   await page.getByTestId('tab-history').click();

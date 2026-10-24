@@ -4,8 +4,8 @@ import { expect } from './fixtures.ts';
 import { copySchedule, startDay } from './plans.ts';
 
 /**
- * A copied plan, a custom exercise, a finished workout and the unit set to
- * lb: something in every part of the user data.
+ * A copied plan, a custom exercise, a finished workout, the unit set to lb
+ * and a default rest of 120 s: something in every part of the user data.
  */
 export async function seedUserData(page: Page): Promise<void> {
   await copySchedule(page, 'beginner-full-body');
@@ -29,4 +29,5 @@ export async function seedUserData(page: Page): Promise<void> {
   await page.getByTestId('tab-settings').click();
   await page.getByTestId('unit-lb').click();
   await expect(page.getByTestId('unit-lb')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('default-rest').fill('120');
 }

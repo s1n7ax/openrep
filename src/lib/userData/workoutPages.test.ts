@@ -96,9 +96,12 @@ describe('hasEntries', () => {
     exercise('e1', [set('a', { weightKg: 60 }), set('b', { weightKg: 60 })], { target });
 
   it('is false for a workout as it started', () => {
-    expect(hasEntries(session([untouched()]))).toBe(false);
+    expect(hasEntries(session([untouched()]), [])).toBe(false);
     expect(
-      hasEntries(session([exercise('e1', [set('a')], { target: { sets: 1, durationSec: 30 } })])),
+      hasEntries(
+        session([exercise('e1', [set('a')], { target: { sets: 1, durationSec: 30 } })]),
+        [],
+      ),
     ).toBe(false);
   });
 
@@ -112,16 +115,39 @@ describe('hasEntries', () => {
     ]) {
       const entry = untouched();
       entry.sets[1] = { ...entry.sets[1]!, ...patch };
-      expect(hasEntries(session([entry])), JSON.stringify(patch)).toBe(true);
+      expect(hasEntries(session([entry]), []), JSON.stringify(patch)).toBe(true);
     }
   });
 
   it('is true once sets are added or removed', () => {
     const added = untouched();
     added.sets.push(set('c', { weightKg: 60 }));
-    expect(hasEntries(session([added]))).toBe(true);
+    expect(hasEntries(session([added]), [])).toBe(true);
     const removed = untouched();
     removed.sets.pop();
-    expect(hasEntries(session([removed]))).toBe(true);
+    expect(hasEntries(session([removed]), [])).toBe(true);
+  });
+
+  it('compares with the values filled in from last time', () => {
+    const last: Session = {
+      ...session([
+        exercise('old', [
+          set('x', { weightKg: 60, reps: 8, done: true }),
+          set('y', { weightKg: 62.5, reps: 6, done: true }),
+        ]),
+      ]),
+      id: 'old-session',
+      finishedAt: '2026-01-01T11:00:00.000Z',
+    };
+    const filled = () =>
+      exercise('e1', [set('a', { weightKg: 60, reps: 8 }), set('b', { weightKg: 62.5, reps: 6 })], {
+        target,
+      });
+    expect(hasEntries(session([filled()]), [last])).toBe(false);
+    // Without that history, the same values were typed in.
+    expect(hasEntries(session([filled()]), [])).toBe(true);
+    const edited = filled();
+    edited.sets[1] = { ...edited.sets[1]!, reps: 7 };
+    expect(hasEntries(session([edited]), [last])).toBe(true);
   });
 });

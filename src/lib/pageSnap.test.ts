@@ -95,12 +95,22 @@ class FakeScroller {
   readonly clientHeight = SCREEN;
   readonly style = { overflowY: '' };
   readonly children: { getBoundingClientRect: () => { top: number; height: number } }[];
+  readonly #boxes: PageBox[];
   readonly #listeners = new Map<string, (event: { touches: unknown[] }) => void>();
 
   constructor(boxes: readonly PageBox[]) {
-    this.children = boxes.map((box) => ({
+    this.#boxes = boxes.map((box) => ({ ...box }));
+    this.children = this.#boxes.map((box) => ({
       getBoundingClientRect: () => ({ top: box.top - this.scrollTop, height: box.height }),
     }));
+  }
+
+  /** Page `index` becomes `height` high; the pages below it move with it. */
+  resize(index: number, height: number) {
+    const box = this.#boxes[index]!;
+    const change = height - box.height;
+    box.height = height;
+    for (const below of this.#boxes.slice(index + 1)) below.top += change;
   }
 
   getBoundingClientRect() {
@@ -170,11 +180,14 @@ describe('PageSnapper', () => {
     vi.unstubAllGlobals();
   });
 
-  /** A pager over three screen-high pages, on the first; `changes` records its page changes. */
-  function pager() {
-    const scroller = new FakeScroller(pages(SCREEN, SCREEN, SCREEN));
+  /**
+   * A pager over `boxes` (three screen-high pages), on page `initial` (the
+   * first); `changes` records its page changes.
+   */
+  function pager(boxes = pages(SCREEN, SCREEN, SCREEN), initial = 0) {
+    const scroller = new FakeScroller(boxes);
     const changes: number[] = [];
-    const snapper = new PageSnapper(scroller as unknown as HTMLElement, 0, {
+    const snapper = new PageSnapper(scroller as unknown as HTMLElement, initial, {
       onPageChange: (page) => changes.push(page),
     });
     return { scroller, changes, snapper };
@@ -187,6 +200,18 @@ describe('PageSnapper', () => {
     expect(scroller.scrollTop).toBe(800);
     expect(scroller.style.overflowY).toBe('');
     expect(changes).toEqual([1]);
+  });
+
+  it('ends a snap on its page when a page above changes size meanwhile', () => {
+    // Snapping from page 1 to page 2 when the tall page 0 loses 76 px (the
+    // rest countdown's room, dismissed from outside the pages).
+    const { scroller, changes } = pager(pages(1200, SCREEN, SCREEN), 1);
+    scroller.drag(1200 + SCREEN / 3);
+    vi.advanceTimersByTime(50);
+    scroller.resize(0, 1200 - 76);
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(2000 - 76);
+    expect(changes).toEqual([2]);
   });
 
   describe('a snap grabbed mid-way', () => {

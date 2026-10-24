@@ -10,22 +10,39 @@
   the workout into history. Back (the arrow or Android's back button)
   discards it, asking first when anything was entered. A workout opens on
   the first exercise with sets left; the exercise name opens its page.
+  Ticking a set starts a rest countdown docked at the bottom, on every page
+  (lib/userData/workoutTicks.ts says when and how long), and completing an
+  exercise or superset plays a short celebration.
 -->
 <script module lang="ts">
+  import type { Session } from '../lib/schema/userData.ts';
+
   /** The page each workout was last on, to return to after viewing an exercise. */
   // Not state: it is read once, when the screen opens.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const lastPages = new Map<string, string>();
+
+  /**
+   * The sessions each workout's rows were filled in from (see `prefilledSet`),
+   * as they were when it first opened since the app started. Back compares the
+   * rows with them, so deleting that history meanwhile neither makes untouched
+   * rows look edited nor edits look untouched.
+   */
+  // Not state: it is read when leaving.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const startHistories = new Map<string, readonly Session[]>();
 </script>
 
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
+  import Celebration from '../components/Celebration.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import ExercisePicture from '../components/ExercisePicture.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import RestTimer from '../components/RestTimer.svelte';
   import SetRow from '../components/SetRow.svelte';
   import SupersetLabel from '../components/SupersetLabel.svelte';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
@@ -34,6 +51,7 @@
   import { href, paths, router } from '../lib/router.ts';
   import type { SessionExercise } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
+  import { restTimer } from '../lib/stores/restTimer.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findPlan, findSession, lastTimeFor } from '../lib/userData/selectors.ts';
   import {
@@ -57,6 +75,7 @@
     formatTargetWithRest,
   } from '../lib/userData/targets.ts';
   import { firstOpenPage, hasEntries, nextSupersetPosition } from '../lib/userData/workoutPages.ts';
+  import { tickOutcome } from '../lib/userData/workoutTicks.ts';
   import { formatDay, formatSets, sessionSetCounts } from '../lib/userData/workoutText.ts';
   import { firstSlideOf, hasPicture, pictureSlides } from '../lib/workoutPicture.ts';
 
@@ -71,6 +90,9 @@
 
   /** Key of the finish page, after the blocks' pages. */
   const FINISH = 'finish';
+
+  /** Space left between a focused field and the rest countdown below it. */
+  const REVEAL_GAP_PX = 8;
 
   function pageKey(index: number): string {
     const block = blocks[index];
@@ -91,10 +113,23 @@
   /** The page on the screen (`blocks.length` is the finish page). */
   let page = $state(0);
   show(initialPage());
+  rememberStartHistory();
   /** The confirmation being asked: discarding, or finishing with no set ticked. */
   let confirming = $state<'discard' | 'finish-empty' | null>(null);
   /** Discarded: nothing is shown while going back. */
   let discarded = $state(false);
+  /** The celebration playing, if any; a new `id` starts it over. */
+  let celebration = $state<{ id: number; label: string } | null>(null);
+
+  /** This workout's rest countdown, while the set that started it is ticked off. */
+  const rest = $derived.by(() => {
+    const current = restTimer.current;
+    if (current === null || current.sessionId !== sessionId) return null;
+    const set = session?.exercises
+      .find((exercise) => exercise.id === current.sessionExerciseId)
+      ?.sets.find((candidate) => candidate.id === current.setId);
+    return set?.done ? current : null;
+  });
 
   const pager: Attachment<HTMLElement> = (scroller) => {
     const snapper = new PageSnapper(
@@ -105,9 +140,42 @@
     return () => snapper.dispose();
   };
 
+  /** The rest countdown's dock, while it shows. */
+  let restDock = $state<HTMLElement | null>(null);
+
+  /**
+   * While the countdown shows, a field that gets focus, or that has it when
+   * the pages shrink (the keyboard opening), is scrolled just far enough to
+   * sit above the countdown: the browser counts a field under it as visible,
+   * as it floats over the pages. Never past the page, whose room below covers
+   * the countdown, so the page stays.
+   */
+  const revealFocused: Attachment<HTMLElement> = (scroller) => {
+    const reveal = () => {
+      const field = document.activeElement;
+      const typedIn = field instanceof HTMLInputElement && field.type !== 'checkbox';
+      if (restDock === null || !typedIn || !scroller.contains(field)) return;
+      const overlap = field.getBoundingClientRect().bottom - restDock.getBoundingClientRect().top;
+      if (overlap > 0) scroller.scrollTop += overlap + REVEAL_GAP_PX;
+    };
+    const observer = new ResizeObserver(reveal);
+    observer.observe(scroller);
+    scroller.addEventListener('focusin', reveal);
+    return () => {
+      observer.disconnect();
+      scroller.removeEventListener('focusin', reveal);
+    };
+  };
+
   function show(index: number) {
     page = index;
     lastPages.set(sessionId, pageKey(index));
+  }
+
+  function rememberStartHistory() {
+    if (inProgress && !startHistories.has(sessionId)) {
+      startHistories.set(sessionId, userData.data.sessions);
+    }
   }
 
   // Android's back button leaves the workout like the back arrow.
@@ -140,6 +208,34 @@
     );
   }
 
+  /**
+   * After a set was ticked off or un-ticked: any tick ends the countdown and
+   * may start the next one, or a celebration; un-ticking the set that started
+   * the countdown stops it.
+   */
+  function onSetDone(sessionExerciseId: string, setId: string, done: boolean) {
+    if (!done) {
+      if (restTimer.startedBy(sessionExerciseId, setId)) restTimer.stop();
+      return;
+    }
+    const current = findSession(userData.data, sessionId);
+    if (!current) return;
+    const { defaultRestSec } = userData.data.settings;
+    const outcome = tickOutcome(current, sessionExerciseId, setId, defaultRestSec);
+    if (outcome.restSec === null) restTimer.stop();
+    else restTimer.start({ sessionId, sessionExerciseId, setId, seconds: outcome.restSec });
+    if (outcome.completed !== null) {
+      celebration = { id: (celebration?.id ?? 0) + 1, label: doneLabel(outcome.completed) };
+    }
+  }
+
+  /** "Goblet Squat done", "Superset A done": the celebration's text for `block`. */
+  function doneLabel(block: Block<SessionExercise>): string {
+    return block.kind === 'superset'
+      ? `Superset ${block.letter} done`
+      : `${resolve(block.entry).name} done`;
+  }
+
   function addSet(exercise: SessionExercise) {
     userData.update((data) => addLoggedSet(data, sessionId, exercise.id, newId()));
   }
@@ -154,14 +250,22 @@
       return;
     }
     confirming = null;
-    lastPages.delete(sessionId);
+    forget();
     userData.update((data) => finishSession(data, sessionId, nowIso()));
     router.navigate(paths.historySession(sessionId), { replace: true });
   }
 
+  /** Drops what is kept in memory for this workout, once it is finished or discarded. */
+  function forget() {
+    lastPages.delete(sessionId);
+    startHistories.delete(sessionId);
+    restTimer.stop();
+  }
+
   /** Back: discards the workout, after asking when anything was entered. */
   function leave() {
-    if (session && hasEntries(session)) confirming = 'discard';
+    const history = startHistories.get(sessionId) ?? userData.data.sessions;
+    if (session && hasEntries(session, history)) confirming = 'discard';
     else discard();
   }
 
@@ -170,7 +274,7 @@
     const fallback = planId && findPlan(userData.data, planId) ? paths.plan(planId) : paths.plans();
     confirming = null;
     discarded = true;
-    lastPages.delete(sessionId);
+    forget();
     userData.update((data) => deleteSession(data, sessionId));
     router.back(fallback);
   }
@@ -204,7 +308,13 @@
     {/if}
   </div>
 {:else}
-  <div class="workout" data-testid="workout" data-session-id={sessionId} data-page={page}>
+  <div
+    class="workout"
+    class:resting={rest !== null}
+    data-testid="workout"
+    data-session-id={sessionId}
+    data-page={page}
+  >
     <header class="top">
       <div class="top-bar">
         <button
@@ -244,7 +354,7 @@
       </div>
     </header>
 
-    <div class="pages" data-testid="workout-pages" {@attach pager}>
+    <div class="pages" data-testid="workout-pages" {@attach pager} {@attach revealFocused}>
       {#each blocks as block, index (blockKey(block))}
         <section
           class="slot"
@@ -284,6 +394,7 @@
                     {unit}
                     amountPlaceholder={amountPlaceholder(exercise)}
                     canRemove={exercise.sets.length > 1}
+                    ondone={(done) => onSetDone(exercise.id, set.id, done)}
                   />
                 {/each}
               </ol>
@@ -355,6 +466,7 @@
                         {unit}
                         amountPlaceholder={amountPlaceholder(row.entry)}
                         canRemove={row.entry.sets.length > 1}
+                        ondone={(done) => onSetDone(row.entry.id, row.set.id, done)}
                       />
                     {/each}
                   </ol>
@@ -396,6 +508,19 @@
         </div>
       </section>
     </div>
+
+    {#if rest}
+      <div class="rest-dock" bind:this={restDock}>
+        {#key rest}
+          <RestTimer {rest} ondismiss={() => restTimer.stop()} />
+        {/key}
+      </div>
+    {/if}
+    {#if celebration}
+      {#key celebration.id}
+        <Celebration label={celebration.label} onend={() => (celebration = null)} />
+      {/key}
+    {/if}
   </div>
 {/if}
 
@@ -474,6 +599,8 @@
 <style>
   .workout {
     --picture-height: min(38dvh, 24rem);
+    /* The rest countdown and the gap below it. */
+    --rest-height: calc(64px + var(--space-3));
     position: fixed;
     inset: 0;
     display: flex;
@@ -567,6 +694,22 @@
     max-width: var(--page-max);
     margin: 0 auto;
     padding-bottom: calc(var(--space-6) + var(--safe-bottom));
+  }
+
+  /* Room below the content to scroll it out from under the rest countdown.
+     It is added at the bottom, so nothing on the screen moves. */
+  .resting .slot {
+    padding-bottom: calc(var(--space-6) + var(--safe-bottom) + var(--rest-height));
+  }
+
+  .rest-dock {
+    position: absolute;
+    right: calc(var(--space-3) + var(--safe-right));
+    bottom: calc(var(--space-3) + var(--safe-bottom));
+    left: calc(var(--space-3) + var(--safe-left));
+    z-index: 1;
+    max-width: calc(var(--page-max) - 2 * var(--space-3));
+    margin: 0 auto;
   }
 
   .exercise {

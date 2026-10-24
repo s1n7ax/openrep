@@ -1,5 +1,6 @@
 <!--
-  Settings (`#/settings`): weight unit; catalog status and "Update catalog";
+  Settings (`#/settings`): weight unit; default rest for workout countdowns;
+  catalog status and "Update catalog";
   backup export and import; how to contribute; about and licences.
 -->
 <script lang="ts">
@@ -22,13 +23,15 @@
   import type { Unit } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { setUnit } from '../lib/userData/settings.ts';
+  import { setDefaultRest, setUnit } from '../lib/userData/settings.ts';
+  import { isValidRestText } from '../lib/userData/targets.ts';
   import { formatDateTime } from '../lib/userData/workoutText.ts';
 
   const VERSION = __APP_VERSION__;
   const notices = parseNotices(noticesMarkdown);
 
   const unit = $derived(userData.data.settings.unit);
+  const defaultRestSec = $derived(userData.data.settings.defaultRestSec);
   const lastCheckedAt = $derived(userData.data.catalogMeta.lastCheckedAt);
 
   let fileInput: HTMLInputElement | undefined = $state();
@@ -43,6 +46,17 @@
 
   function chooseUnit(next: Unit) {
     userData.update((data) => setUnit(data, next));
+  }
+
+  /** The field as typed; shows the stored value again when it changes (a restored backup). */
+  let restText = $derived(String(defaultRestSec));
+  /** Whole seconds from 0 to 3600; unlike a plan's rest, it cannot be left empty. */
+  const restValid = $derived(restText.trim() !== '' && isValidRestText(restText));
+
+  function onRestInput() {
+    if (!restValid) return;
+    const seconds = Number(restText.trim());
+    userData.update((data) => setDefaultRest(data, seconds));
   }
 
   function clearBackupMessages() {
@@ -142,6 +156,38 @@
         >
       </div>
     </div>
+  </section>
+
+  <section class="group" aria-labelledby="settings-workouts">
+    <h2 class="section-title" id="settings-workouts">Workouts</h2>
+    <div class="card row">
+      <div class="row-text">
+        <label class="row-title" for="default-rest">Default rest</label>
+        <span class="row-sub" id="default-rest-hint">
+          Rest after a set when the plan gives none. 0 turns the countdown off.
+        </span>
+      </div>
+      <div class="seconds">
+        <input
+          id="default-rest"
+          class="input"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          aria-describedby="default-rest-hint"
+          aria-invalid={!restValid}
+          data-testid="default-rest"
+          bind:value={restText}
+          oninput={onRestInput}
+        />
+        <span class="unit" aria-hidden="true">s</span>
+      </div>
+    </div>
+    {#if !restValid}
+      <p class="field-error" aria-live="polite" data-testid="default-rest-error">
+        Default rest: whole seconds from 0 to 3600.
+      </p>
+    {/if}
   </section>
 
   <section class="group" aria-labelledby="settings-catalog">
@@ -383,6 +429,30 @@
     background: var(--surface);
     color: var(--text);
     box-shadow: var(--shadow-sm);
+  }
+
+  .seconds {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .seconds .input {
+    width: 84px;
+    padding: 0 var(--space-2);
+    font-weight: 650;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .unit {
+    color: var(--text-2);
+    font-weight: 650;
+  }
+
+  .field-error {
+    padding-left: var(--space-1);
   }
 
   .panel {

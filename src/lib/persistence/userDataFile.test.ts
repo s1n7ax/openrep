@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryFiles } from '../../../tests/helpers/memoryFiles.ts';
 import { emptyUserData, type UserData } from '../schema/userData.ts';
+import { setUnit } from '../userData/settings.ts';
 import { readWithFallback, writeFileAtomically } from './files.ts';
 import {
   corruptFileName,
@@ -15,7 +16,7 @@ const TMP = 'openrep/userdata.json.tmp';
 const CORRUPT = 'openrep/userdata.corrupt-2026-03-04T05-06-07-089Z.json';
 
 function dataWithUnit(unit: 'kg' | 'lb'): UserData {
-  return { ...emptyUserData(), settings: { unit } };
+  return setUnit(emptyUserData(), unit);
 }
 
 describe('writeFileAtomically', () => {
@@ -49,6 +50,14 @@ describe('loadUserDataFile', () => {
   it('starts empty on first launch', async () => {
     const loaded = await loadUserDataFile(new MemoryFiles(), NOW);
     expect(loaded).toEqual({ data: emptyUserData(), corruptFile: null });
+  });
+
+  it('loads a file saved before the default rest existed with a default rest of 90 s', async () => {
+    const { defaultRestSec: _defaultRestSec, ...settings } = dataWithUnit('lb').settings;
+    const files = new MemoryFiles({ [MAIN]: JSON.stringify({ ...emptyUserData(), settings }) });
+    const loaded = await loadUserDataFile(files, NOW);
+    expect(loaded.data.settings).toEqual({ unit: 'lb', defaultRestSec: 90 });
+    expect(loaded.corruptFile).toBeNull();
   });
 
   it('round-trips saved data', async () => {

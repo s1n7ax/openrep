@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { emptyUserData, userDataSchema, type UserData } from '../schema/userData.ts';
+import {
+  emptyUserData,
+  userDataSchema,
+  type LoggedSet,
+  type UserData,
+} from '../schema/userData.ts';
 import {
   createCustomExercise,
   deleteCustomExercise,
   normalizeCustomExerciseInput,
   updateCustomExercise,
 } from './customExercises.ts';
-import { addDay, addPlanExercise, createPlan } from './plans.ts';
+import { addDay, addPlanExercise, createPlan, supersetWithNext } from './plans.ts';
 import { activeSession, history, lastTimeFor, planStats, sameExercise } from './selectors.ts';
 import {
+  addLoggedRound,
   addLoggedSet,
   deleteSession,
   finishSession,
@@ -17,7 +23,7 @@ import {
   startSession,
   updateLoggedSet,
 } from './sessions.ts';
-import { setCatalogMeta, setUnit } from './settings.ts';
+import { setCatalogMeta, setDefaultRest, setUnit } from './settings.ts';
 import { defaultTarget, formatDuration, formatTarget, formatTargetWithRest } from './targets.ts';
 
 const T0 = '2026-01-01T10:00:00.000Z';
@@ -181,6 +187,173 @@ describe('sessions', () => {
   });
 });
 
+describe('autofill from last time', () => {
+  type Values = [number | null, number | null, number | null];
+
+  /** The weight, reps and seconds of each set of the active session's exercise at `index`. */
+  function values(data: UserData, index: number): Values[] {
+    return (activeSession(data)?.exercises[index]?.sets ?? []).map((set) => [
+      set.weightKg,
+      set.reps,
+      set.durationSec,
+    ]);
+  }
+
+  /**
+   * Starts day d1 as session `sessionId`, logs `logged` onto its exercise at
+   * `index` (one patch per set row, adding rows as needed) and finishes it.
+   */
+  function logAndFinish(
+    data: UserData,
+    sessionId: string,
+    index: number,
+    logged: Partial<LoggedSet>[],
+    now: [string, string],
+  ): UserData {
+    const ids = counter(`${sessionId}-`);
+    let next = startSession(data, { sessionId, planId: 'p1', dayId: 'd1' }, now[0], ids);
+    const exerciseId = activeSession(next)?.exercises[index]?.id ?? '';
+    for (const [row, patch] of logged.entries()) {
+      if (row >= (activeSession(next)?.exercises[index]?.sets.length ?? 0)) {
+        next = addLoggedSet(next, sessionId, exerciseId, ids());
+      }
+      const setId = activeSession(next)?.exercises[index]?.sets[row]?.id ?? '';
+      next = updateLoggedSet(next, sessionId, exerciseId, setId, patch);
+    }
+    return finishSession(next, sessionId, now[1]);
+  }
+
+  it("fills set n from last time's set n and later sets from its final set", () => {
+    let data = logAndFinish(
+      planData(),
+      's1',
+      0,
+      [
+        { weightKg: 60, reps: 8, done: true },
+        { weightKg: 62.5, reps: 6, done: true },
+        // Not ticked off: not part of last time.
+        { weightKg: 70, reps: 1, done: false },
+      ],
+      [T0, T1],
+    );
+    data = startSession(data, { sessionId: 's2', planId: 'p1', dayId: 'd1' }, T2, counter('x'));
+    expect(userDataSchema.safeParse(data).success).toBe(true);
+    // The plan has 3 sets; last time 2 were done.
+    expect(values(data, 0)).toEqual([
+      [60, 8, null],
+      [62.5, 6, null],
+      [62.5, 6, null],
+    ]);
+    const exercise = activeSession(data)?.exercises[0];
+    data = addLoggedSet(data, 's2', exercise?.id ?? '', 'added');
+    expect(values(data, 0).at(-1)).toEqual([62.5, 6, null]);
+    expect(activeSession(data)?.exercises[0]?.sets.at(-1)).toMatchObject({
+      id: 'added',
+      done: false,
+    });
+  });
+
+  it("fills sets added later from last time's set at their position", () => {
+    let data = logAndFinish(
+      planData(),
+      's1',
+      0,
+      [
+        { weightKg: 60, reps: 8, done: true },
+        { weightKg: 60, reps: 8, done: true },
+        { weightKg: 60, reps: 8, done: true },
+        { weightKg: 50, reps: 12, done: true },
+      ],
+      [T0, T1],
+    );
+    data = startSession(data, { sessionId: 's2', planId: 'p1', dayId: 'd1' }, T2, counter('x'));
+    const exerciseId = activeSession(data)?.exercises[0]?.id ?? '';
+    // Edited in this workout: an added set still copies last time's.
+    const third = activeSession(data)?.exercises[0]?.sets[2]?.id ?? '';
+    data = updateLoggedSet(data, 's2', exerciseId, third, { weightKg: 65, reps: 5 });
+    data = addLoggedSet(data, 's2', exerciseId, 'fourth');
+    data = addLoggedSet(data, 's2', exerciseId, 'fifth');
+    expect(values(data, 0).slice(3)).toEqual([
+      [50, 12, null],
+      [50, 12, null],
+    ]);
+  });
+
+  it('fills field by field, the amount the exercise is logged in only', () => {
+    // Squat: no weight entered last time; plank: seconds (and stray reps).
+    let data = logAndFinish(planData(), 's1', 0, [{ reps: 10, done: true }], [T0, T1]);
+    data = logAndFinish(
+      data,
+      's2',
+      1,
+      [{ weightKg: 10, durationSec: 45, reps: 3, done: true }],
+      [T2, T3],
+    );
+    data = startSession(
+      data,
+      { sessionId: 's3', planId: 'p1', dayId: 'd1' },
+      '2026-01-15T10:00:00.000Z',
+      counter('x'),
+    );
+    // The squat's weight is the target's (100 kg).
+    expect(values(data, 0)).toEqual([
+      [100, 10, null],
+      [100, 10, null],
+      [100, 10, null],
+    ]);
+    expect(values(data, 1)).toEqual([
+      [10, null, 45],
+      [10, null, 45],
+    ]);
+  });
+
+  it('fills as before for an exercise never done: target weight, no reps', () => {
+    let data = startSession(
+      planData(),
+      { sessionId: 's1', planId: 'p1', dayId: 'd1' },
+      T0,
+      counter('x'),
+    );
+    expect(values(data, 0)).toEqual([
+      [100, null, null],
+      [100, null, null],
+      [100, null, null],
+    ]);
+    const exerciseId = activeSession(data)?.exercises[0]?.id ?? '';
+    const first = activeSession(data)?.exercises[0]?.sets[2]?.id ?? '';
+    data = updateLoggedSet(data, 's1', exerciseId, first, { weightKg: 90, reps: 4 });
+    // Add set copies the previous row.
+    data = addLoggedSet(data, 's1', exerciseId, 'added');
+    expect(values(data, 0).at(-1)).toEqual([90, 4, null]);
+  });
+
+  it('logs autofilled values as they are when ticked', () => {
+    let data = logAndFinish(planData(), 's1', 0, [{ weightKg: 60, reps: 8, done: true }], [T0, T1]);
+    data = startSession(data, { sessionId: 's2', planId: 'p1', dayId: 'd1' }, T2, counter('x'));
+    const exercise = activeSession(data)?.exercises[0];
+    data = setLoggedSetDone(data, 's2', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', true);
+    expect(activeSession(data)?.exercises[0]?.sets[0]).toMatchObject({
+      weightKg: 60,
+      reps: 8,
+      done: true,
+    });
+  });
+
+  it('fills the rows of a new superset round from last time', () => {
+    let data = supersetWithNext(planData(), 'p1', 'd1', 'e1', 'ss', T0);
+    data = logAndFinish(data, 's1', 0, [{ weightKg: 80, reps: 6, done: true }], [T0, T1]);
+    data = startSession(data, { sessionId: 's2', planId: 'p1', dayId: 'd1' }, T2, counter('x'));
+    expect(activeSession(data)?.exercises.map((exercise) => exercise.supersetId)).toEqual([
+      'ss',
+      'ss',
+    ]);
+    data = addLoggedRound(data, 's2', 'ss', counter('round'));
+    expect(values(data, 0).at(-1)).toEqual([80, 6, null]);
+    // The plank was never done: its new row copies the previous one.
+    expect(values(data, 1).at(-1)).toEqual([null, null, null]);
+  });
+});
+
 describe('selectors', () => {
   function logged(): UserData {
     const ids = counter('id');
@@ -309,6 +482,27 @@ describe('settings', () => {
       lastCheckedAt: T0,
       revision: null,
     });
+  });
+
+  it('defaults the rest to 90 s and sets it', () => {
+    const data = emptyUserData();
+    expect(data.settings.defaultRestSec).toBe(90);
+    expect(setDefaultRest(data, 90)).toBe(data);
+    const changed = setDefaultRest(data, 120);
+    expect(changed.settings).toEqual({ unit: 'kg', defaultRestSec: 120 });
+    expect(userDataSchema.safeParse(changed).success).toBe(true);
+  });
+
+  it('accepts a default rest of 0 to 3600 whole seconds', () => {
+    const settings = emptyUserData().settings;
+    for (const value of [0, 1, 3600]) {
+      const parsed = userDataSchema.safeParse(setDefaultRest(emptyUserData(), value));
+      expect(parsed.success, String(value)).toBe(true);
+    }
+    for (const value of [-1, 3601, 1.5]) {
+      const data = { ...emptyUserData(), settings: { ...settings, defaultRestSec: value } };
+      expect(userDataSchema.safeParse(data).success, String(value)).toBe(false);
+    }
   });
 });
 
