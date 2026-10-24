@@ -149,24 +149,59 @@ export function updateLoggedSet(
 }
 
 /**
- * The exercise with a set row appended, not done: filled like a row made at
- * the start (see `prefilledSet`) when the exercise was done before, else with
- * the previous row's values.
+ * Changes the weight of one logged set. A set not done passes its new weight
+ * on to every later set of the exercise that is not done either, so straight
+ * sets take one change; a done set's weight changes alone, as correcting the
+ * log plans nothing.
  */
+export function setLoggedWeight(
+  data: UserData,
+  sessionId: string,
+  sessionExerciseId: string,
+  setId: string,
+  weightKg: number | null,
+): UserData {
+  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
+    const index = exercise.sets.findIndex((set) => set.id === setId);
+    const changedSet = exercise.sets[index];
+    if (!changedSet) return exercise;
+    let changed = false;
+    const sets = exercise.sets.map((set, position) => {
+      const applies = position === index || (!changedSet.done && position > index && !set.done);
+      if (!applies || set.weightKg === weightKg) return set;
+      changed = true;
+      return { ...set, weightKg };
+    });
+    return changed ? { ...exercise, sets } : exercise;
+  });
+}
+
+/**
+ * The values of a set row appended to `exercise` (`lastSets` as for
+ * `prefilledSet`): filled like a row made at the start when the exercise was
+ * done before, else with the previous row's values.
+ */
+export function addedSetValues(
+  exercise: SessionExercise,
+  lastSets: readonly LoggedSet[],
+): SetValues {
+  const previous = exercise.sets.at(-1);
+  return lastSets.length > 0
+    ? prefilledSet(exercise.target, lastSets, exercise.sets.length)
+    : {
+        weightKg: previous?.weightKg ?? exercise.target.weightKg ?? null,
+        reps: previous?.reps ?? null,
+        durationSec: previous?.durationSec ?? null,
+      };
+}
+
+/** The exercise with a set row appended, not done, filled as `addedSetValues` says. */
 function withNewSet(
   exercise: SessionExercise,
   setId: string,
   lastSets: readonly LoggedSet[],
 ): SessionExercise {
-  const previous = exercise.sets.at(-1);
-  const values: SetValues =
-    lastSets.length > 0
-      ? prefilledSet(exercise.target, lastSets, exercise.sets.length)
-      : {
-          weightKg: previous?.weightKg ?? exercise.target.weightKg ?? null,
-          reps: previous?.reps ?? null,
-          durationSec: previous?.durationSec ?? null,
-        };
+  const values = addedSetValues(exercise, lastSets);
   return { ...exercise, sets: [...exercise.sets, { id: setId, ...values, done: false }] };
 }
 
@@ -217,6 +252,44 @@ export function removeLoggedSet(
   return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
     const sets = exercise.sets.filter((set) => set.id !== setId);
     return sets.length === exercise.sets.length ? exercise : { ...exercise, sets };
+  });
+}
+
+/** Removes the last set of an exercise; an exercise keeps at least one. */
+export function removeLastLoggedSet(
+  data: UserData,
+  sessionId: string,
+  sessionExerciseId: string,
+): UserData {
+  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) =>
+    exercise.sets.length > 1 ? { ...exercise, sets: exercise.sets.slice(0, -1) } : exercise,
+  );
+}
+
+/**
+ * Removes a superset's last round: the set each of its exercises has in that
+ * round (see `supersetRounds`). A superset keeps at least one round.
+ */
+export function removeLastLoggedRound(
+  data: UserData,
+  sessionId: string,
+  supersetId: string,
+): UserData {
+  return updateSession(data, sessionId, (session) => {
+    const rounds = Math.max(
+      0,
+      ...session.exercises
+        .filter((exercise) => exercise.supersetId === supersetId)
+        .map((exercise) => exercise.sets.length),
+    );
+    if (rounds <= 1) return session;
+    let changed = false;
+    const exercises = session.exercises.map((exercise) => {
+      if (exercise.supersetId !== supersetId || exercise.sets.length < rounds) return exercise;
+      changed = true;
+      return { ...exercise, sets: exercise.sets.slice(0, -1) };
+    });
+    return changed ? { ...session, exercises } : session;
   });
 }
 

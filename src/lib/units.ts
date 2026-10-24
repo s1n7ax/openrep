@@ -50,3 +50,18 @@ export function parseWeight(text: string, unit: Unit): ParsedWeight {
   if (!Number.isFinite(kg) || kg > MAX_WEIGHT_KG) return { ok: false };
   return { ok: true, kg };
 }
+
+/** How much one − / + press changes a weight, in each unit: the smallest common pair of plates. */
+export const WEIGHT_STEP: Readonly<Record<Unit, number>> = { kg: 2.5, lb: 5 };
+
+/**
+ * A weight stored in kilograms after one − (`direction` -1) or + (1) press,
+ * stepping by `WEIGHT_STEP` in `unit`, within 0 and `MAX_WEIGHT_KG`. No
+ * weight goes up to one step and stays empty going down.
+ */
+export function stepWeight(kg: number | null, unit: Unit, direction: 1 | -1): number | null {
+  if (kg === null) return direction > 0 ? toKg(WEIGHT_STEP[unit], unit) : null;
+  // Rounded in `unit`, so repeated steps do not collect floating-point noise.
+  const value = Math.round((fromKg(kg, unit) + direction * WEIGHT_STEP[unit]) * 100) / 100;
+  return Math.min(MAX_WEIGHT_KG, toKg(Math.max(0, value), unit));
+}
