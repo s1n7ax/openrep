@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/s1n7ax/openrep/compare/v0.4.0...v0.5.0) (2026-10-24)
+
+
+### Features
+
+* **workout:** one exercise per screen ([#11](https://github.com/s1n7ax/openrep/issues/11)) ([#13](https://github.com/s1n7ax/openrep/issues/13)) ([5ffc284](https://github.com/s1n7ax/openrep/commit/5ffc284cd257515f915aac53667b80114c19688a))
+
 ## [0.4.0](https://github.com/s1n7ax/openrep/compare/v0.3.1...v0.4.0) (2026-10-24)
 
 
