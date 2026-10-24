@@ -54,6 +54,13 @@ const VIEW_DIRECTIONS: Record<ViewPreset, Vector3> = {
 const FOV = 30;
 const FLOOR_RADIUS = 3;
 
+/**
+ * The share of the canvas on the screen from which it counts as visible. A
+ * canvas just below the screen (the next workout page) touches its edge, or
+ * overlaps it by a fraction of a pixel, which counts as intersecting.
+ */
+const VISIBLE_RATIO = 0.01;
+
 export interface ViewerOptions {
   /** Called after every rendered frame with the total frame count. */
   onFrame?: (frames: number) => void;
@@ -214,10 +221,15 @@ export class ExerciseViewer {
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
-    this.intersectionObserver = new IntersectionObserver((entries) => {
-      this.visible = entries.some((entry) => entry.isIntersecting);
-      this.updateLoop();
-    });
+    this.intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        this.visible = entries.some(
+          (entry) => entry.isIntersecting && entry.intersectionRatio >= VISIBLE_RATIO,
+        );
+        this.updateLoop();
+      },
+      { threshold: VISIBLE_RATIO },
+    );
     this.intersectionObserver.observe(canvas);
     document.addEventListener('visibilitychange', this.onVisibilityChange);
     this.resize();

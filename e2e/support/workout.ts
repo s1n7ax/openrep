@@ -13,6 +13,30 @@ interface Point {
 /** Chromium starts scrolling only after the finger has moved this far. */
 const TOUCH_SLOP = 16;
 
+/** Software WebGL takes seconds to start a 3D view, holding up the page meanwhile. */
+const PICTURE_START_TIMEOUT_MS = 60_000;
+
+/**
+ * Waits until the workout screen is shown and every 3D view on it has
+ * started (rendered a frame). The screen starts the views of the page on the
+ * screen and its neighbours when it opens and after every page change.
+ */
+export async function waitForPictures(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const pages = document.querySelector('[data-testid="workout-pages"]');
+      return (
+        pages !== null &&
+        Array.from(pages.querySelectorAll('[data-testid="exercise-viewer"]')).every(
+          (viewer) => Number(viewer.getAttribute('data-frame')) > 0,
+        )
+      );
+    },
+    undefined,
+    { timeout: PICTURE_START_TIMEOUT_MS },
+  );
+}
+
 /** The page of the block at `index`; `workoutPage(page, blocks)` is the finish page. */
 export function workoutPage(page: Page, index: number): Locator {
   return page.locator(
@@ -60,6 +84,7 @@ export async function scrollWorkout(page: Page, fraction: number): Promise<void>
 /** Waits until the pager rests on page `index` and it fills the screen (all of it, or of a tall one, part). */
 export async function expectOnPage(page: Page, index: number): Promise<void> {
   await expect(page.getByTestId('workout')).toHaveAttribute('data-page', String(index));
+  await waitForPictures(page);
   await expect
     .poll(() =>
       workoutPage(page, index).evaluate((element) => {

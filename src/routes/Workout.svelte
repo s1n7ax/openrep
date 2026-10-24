@@ -555,6 +555,9 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* Composited: otherwise Chromium ignores swipes after a snap (which turns
+       scrolling off and on) until something on the pages repaints. */
+    will-change: scroll-position;
   }
 
   .slot {

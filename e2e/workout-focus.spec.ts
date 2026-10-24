@@ -20,6 +20,8 @@ import {
 } from './support/workout.ts';
 
 test.use({ hasTouch: true });
+// Every page change starts 3D views, which takes seconds with software WebGL.
+test.describe.configure({ timeout: 120_000 });
 
 const GOBLET = { id: 'goblet-squat', name: 'Goblet Squat' };
 const CURL = { id: 'dumbbell-bicep-curl', name: 'Dumbbell Bicep Curl' };

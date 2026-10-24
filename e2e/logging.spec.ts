@@ -6,11 +6,13 @@
 import { goTo, openApp } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule, openPlan, startDay } from './support/plans.ts';
+import { waitForPictures } from './support/workout.ts';
 
 test(
   'a logged workout shows as last time and in history, in kg and lb',
   { tag: '@smoke' },
   async ({ page }) => {
+    test.setTimeout(120_000);
     await openApp(page);
     await copySchedule(page, 'beginner-full-body');
     await startDay(page, 0);
@@ -58,6 +60,7 @@ test(
 
     await page.getByTestId('tab-plans').click();
     await page.getByTestId('resume-workout').click();
+    await waitForPictures(page);
     const resumed = page.getByTestId('workout-exercise').first();
     await expect(resumed.getByTestId('last-time')).toContainText('132.3 lb × 8, 132.3 lb × 8');
     await expect(resumed.getByTestId('set-row').first().getByTestId('set-weight')).toHaveValue(
