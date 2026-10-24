@@ -49,7 +49,7 @@ export function tickOutcome(
   const entries = blockEntries(block);
   const entry = entries.find((candidate) => candidate.id === sessionExerciseId);
   const setIndex = entry?.sets.findIndex((set) => set.id === setId) ?? -1;
-  if (!entry || setIndex === -1 || !entry.sets[setIndex]!.done) return NOTHING;
+  if (!entry?.sets[setIndex]?.done) return NOTHING;
 
   let restSec: number;
   let endsRound: boolean;
