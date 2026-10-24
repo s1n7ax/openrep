@@ -4,6 +4,7 @@
  * exercise of a superset is next, and whether going back would lose anything.
  */
 import type { Session, SessionExercise } from '../schema/userData.ts';
+import { lastSetsFor, prefilledSet } from './sessions.ts';
 import { blockEntries, supersetRounds, type Block } from './supersets.ts';
 
 /**
@@ -32,19 +33,22 @@ export function nextSupersetPosition(entries: readonly SessionExercise[]): numbe
 
 /**
  * Whether anything was entered since the workout started: a set ticked off,
- * reps or seconds typed in, a weight other than the target's, or sets added
- * or removed.
+ * a weight, reps or seconds other than the row started with (see
+ * `prefilledSet`; `sessions` holds the history it was filled from), or sets
+ * added or removed.
  */
-export function hasEntries(session: Session): boolean {
-  return session.exercises.some(
-    (exercise) =>
-      exercise.sets.length !== exercise.target.sets ||
-      exercise.sets.some(
-        (set) =>
-          set.done ||
-          set.reps !== null ||
-          set.durationSec !== null ||
-          set.weightKg !== (exercise.target.weightKg ?? null),
-      ),
-  );
+export function hasEntries(session: Session, sessions: readonly Session[]): boolean {
+  return session.exercises.some((exercise) => {
+    if (exercise.sets.length !== exercise.target.sets) return true;
+    const lastSets = lastSetsFor(sessions, exercise.exercise, session.id);
+    return exercise.sets.some((set, index) => {
+      if (set.done) return true;
+      const start = prefilledSet(exercise.target, lastSets, index);
+      return (
+        set.weightKg !== start.weightKg ||
+        set.reps !== start.reps ||
+        set.durationSec !== start.durationSec
+      );
+    });
+  });
 }

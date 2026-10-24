@@ -161,7 +161,7 @@
 
   /** Back: discards the workout, after asking when anything was entered. */
   function leave() {
-    if (session && hasEntries(session)) confirming = 'discard';
+    if (session && hasEntries(session, userData.data.sessions)) confirming = 'discard';
     else discard();
   }
 
