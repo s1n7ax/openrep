@@ -7,6 +7,7 @@
  * and a tap still does.
  */
 import type { Locator, Page } from '@playwright/test';
+import { SCROLL_SETTLE_MS } from '../src/lib/hold.ts';
 import { androidBack, asAndroid } from './support/android.ts';
 import { openApp, readStoredUserData } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
@@ -73,6 +74,30 @@ async function visibleRow(page: Page): Promise<Locator> {
     if (box && box.y > 300 && box.y + box.height < 700) return row;
   }
   throw new Error('No row on the screen');
+}
+
+/**
+ * Waits until the page has gone SCROLL_SETTLE_MS without scrolling: a press
+ * any sooner stops the scroll instead of holding a row.
+ */
+async function scrollSettled(page: Page): Promise<void> {
+  await page.evaluate(
+    (settleMs) =>
+      new Promise<void>((resolve) => {
+        let timer = setTimeout(settled, settleMs);
+        // Scroll events come with the next frame: one still to come restarts the wait.
+        window.addEventListener('scroll', restart, { capture: true, passive: true });
+        function restart() {
+          clearTimeout(timer);
+          timer = setTimeout(settled, settleMs);
+        }
+        function settled() {
+          window.removeEventListener('scroll', restart, { capture: true });
+          resolve();
+        }
+      }),
+    SCROLL_SETTLE_MS,
+  );
 }
 
 /**
@@ -319,6 +344,7 @@ test('closing the preview leaves the list as it was', async ({ page }) => {
     ['Android back', () => androidBack(page)],
   ];
   for (const [how, close] of closes) {
+    await scrollSettled(page);
     await hold(page, await visibleRow(page));
     await expect(preview(page), how).toBeVisible();
     await close();
