@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/s1n7ax/openrep/compare/v0.3.1...v0.4.0) (2026-10-24)
+
+
+### Features
+
+* supersets in plans, workouts, history and community schedules ([#10](https://github.com/s1n7ax/openrep/issues/10)) ([36bc2cb](https://github.com/s1n7ax/openrep/commit/36bc2cb68ec0cc67f4b88ae93b13694dad16adec))
+
 ## [0.3.1](https://github.com/s1n7ax/openrep/compare/v0.3.0...v0.3.1) (2026-10-23)
 
 
