@@ -6,7 +6,13 @@
 import { goTo, openApp } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule, openPlan, startDay } from './support/plans.ts';
-import { changeAmounts, tickSet, typeWeight, waitForPictures } from './support/workout.ts';
+import {
+  changeAmounts,
+  setCircle,
+  tickSet,
+  typeWeight,
+  waitForPictures,
+} from './support/workout.ts';
 
 test(
   'a logged workout shows as last time and in history, in kg and lb',
@@ -21,6 +27,8 @@ test(
     const first = page.getByTestId('workout-exercise').first();
     await expect(first.getByTestId('workout-exercise-name')).toHaveText('Goblet Squat');
     await expect(first.getByTestId('last-time')).toHaveCount(0);
+    // 10-12 reps and no history: the circles show the low end.
+    await expect(setCircle(first, 0).getByTestId('set-amount')).toHaveText('10');
     // The weight of the first set carries to the sets after it.
     await typeWeight(first, 0, '60');
     await changeAmounts(first, { 0: '8', 1: '8' });

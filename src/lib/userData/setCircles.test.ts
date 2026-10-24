@@ -27,9 +27,10 @@ describe('what a set circle shows', () => {
     expect(shownAmount(set('a', { reps: 0 }), EIGHT)).toBe('0');
   });
 
-  it('shows the planned amount while none is entered', () => {
+  it('shows the planned amount while none is entered, a range at its low end', () => {
     expect(shownAmount(set('a'), EIGHT)).toBe('8');
-    expect(shownAmount(set('a'), RANGE)).toBe('8–12');
+    expect(shownAmount(set('a'), RANGE)).toBe('8');
+    expect(plannedAmount(RANGE)).toBe('8');
     expect(shownAmount(set('a', { reps: 5 }), HOLD)).toBe('30');
     expect(plannedAmount({})).toBe('—');
   });

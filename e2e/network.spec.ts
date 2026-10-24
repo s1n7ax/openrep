@@ -51,7 +51,8 @@ test('a full flow only talks to the app itself and the catalog', async ({ page, 
   await typeWeight(exercise, 0, '40');
   await tickSet(exercise, 0);
   await page.getByTestId('workout-finish').click();
-  await expect(page.getByTestId('history-set').first()).toContainText('40 kg');
+  // Goblet Squat is 10-12 reps: the tick logs the range's low end.
+  await expect(page.getByTestId('history-set').first()).toContainText('40 kg × 10');
 
   // Settings: catalog update and backup export.
   await page.getByTestId('tab-settings').click();

@@ -11,6 +11,7 @@ import type {
 } from '../schema/userData.ts';
 import { cleanTarget } from './plans.ts';
 import { lastTimeFor } from './selectors.ts';
+import { plannedReps } from './targets.ts';
 
 function updateSession(
   data: UserData,
@@ -313,8 +314,8 @@ export function deleteSession(data: UserData, sessionId: string): UserData {
 }
 
 /**
- * Ticks a set off (or un-ticks it). Ticking fills an empty reps field from a
- * single-number reps target ("8", not a range like "8-12") and an empty
+ * Ticks a set off (or un-ticks it). Ticking fills empty reps from the reps
+ * target, a range's low end ("10-12" → 10, see `plannedReps`), and an empty
  * duration from a timed target, so a set done as planned takes one tap.
  */
 export function setLoggedSetDone(
@@ -334,7 +335,7 @@ export function setLoggedSetDone(
       return {
         ...set,
         done,
-        reps: set.reps ?? (reps !== undefined && /^\d+$/.test(reps) ? Number(reps) : null),
+        reps: set.reps ?? plannedReps(reps),
         durationSec: set.durationSec ?? durationSec ?? null,
       };
     });

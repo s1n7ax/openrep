@@ -158,18 +158,26 @@ describe('sessions', () => {
     );
   });
 
-  it('leaves reps empty when the target is a range', () => {
+  it("fills empty reps from a range's low end, keeping reps already entered", () => {
     let data = addPlanExercise(
       planData(),
       'p1',
       'd2',
-      { id: 'e9', exercise: squat, target: { sets: 1, reps: '8-12' } },
+      { id: 'e9', exercise: squat, target: { sets: 2, reps: '10-12' } },
       T0,
     );
     data = startSession(data, { sessionId: 's1', planId: 'p1', dayId: 'd2' }, T0, counter('id'));
     const exercise = data.sessions[0]?.exercises[0];
-    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', true);
-    expect(data.sessions[0]?.exercises[0]?.sets[0]).toMatchObject({ done: true, reps: null });
+    const [first, second] = exercise?.sets ?? [];
+    // Started without history: nothing is filled in until ticked.
+    expect(first).toMatchObject({ done: false, reps: null });
+    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', first?.id ?? '', true);
+    data = updateLoggedSet(data, 's1', exercise?.id ?? '', second?.id ?? '', { reps: 12 });
+    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', second?.id ?? '', true);
+    expect(data.sessions[0]?.exercises[0]?.sets.map((set) => [set.done, set.reps])).toEqual([
+      [true, 10],
+      [true, 12],
+    ]);
   });
 
   it('finishes and deletes sessions, clearing the active one', () => {

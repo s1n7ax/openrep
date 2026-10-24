@@ -9,7 +9,7 @@ import {
   type PlanTarget,
 } from '../schema/userData.ts';
 import { supersetRounds, type RoundSet } from './supersets.ts';
-import { formatReps } from './targets.ts';
+import { plannedReps } from './targets.ts';
 
 /** Whether an exercise is done for reps or held for seconds. */
 export type AmountKind = 'reps' | 'time';
@@ -36,10 +36,14 @@ export function loggedAmount(set: Amounts, kind: AmountKind): number | null {
   return kind === 'time' ? set.durationSec : set.reps;
 }
 
-/** The planned amount, shown while none is entered: "8", "8–12", "30"; "—" when the target has none. */
+/**
+ * The planned amount, shown while none is entered and logged by a tick (see
+ * `setLoggedSetDone`): "8", "10" for a range "10-12", "30"; "—" when the
+ * target has none.
+ */
 export function plannedAmount(target: Target): string {
-  if (amountKind(target) === 'time') return String(target.durationSec);
-  return target.reps === undefined ? '—' : formatReps(target.reps);
+  const planned = amountKind(target) === 'time' ? target.durationSec : plannedReps(target.reps);
+  return planned === undefined || planned === null ? '—' : String(planned);
 }
 
 /** What a set's circle shows: the reps or seconds logged, else the planned ones. */
@@ -51,8 +55,7 @@ export function shownAmount(set: Amounts, target: Target): string {
 /** What − / + start from while nothing is entered: the target (a range's low end), else 0. */
 export function amountBase(target: Target): number {
   if (amountKind(target) === 'time') return target.durationSec ?? 0;
-  const low = Number(target.reps?.split('-')[0]);
-  return Number.isInteger(low) ? low : 0;
+  return plannedReps(target.reps) ?? 0;
 }
 
 /** An amount (`null` for none entered) after one − (`direction` -1) or + (1) press, within 0 and the most a set takes. */
