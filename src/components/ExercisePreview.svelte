@@ -47,9 +47,11 @@
   let failedImages = $state<string[]>([]);
 
   // Each preview starts on the first photo and takes the next every PHOTO_MS.
+  // It loads its photos afresh: one that failed offline may load by now.
   $effect(() => {
     const count = photos.length;
     shown = 0;
+    failedImages = [];
     if (count < 2) return;
     const timer = setInterval(() => (shown = (shown + 1) % count), PHOTO_MS);
     return () => clearInterval(timer);

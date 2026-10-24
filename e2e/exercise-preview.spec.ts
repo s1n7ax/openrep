@@ -200,7 +200,8 @@ test(
 
 test('a photo that cannot load says it is unavailable offline', async ({ page }) => {
   // Not an image: it fails to load, as an image not on the device does offline.
-  await page.route(`**/catalog/images/${CURL.id}/**`, (route) =>
+  const images = `**/catalog/images/${CURL.id}/**`;
+  await page.route(images, (route) =>
     route.fulfill({ status: 200, contentType: 'image/webp', body: 'offline' }),
   );
   await openApp(page, '#/exercises');
@@ -210,6 +211,18 @@ test('a photo that cannot load says it is unavailable offline', async ({ page })
   const photos = preview(page).getByTestId('preview-photos');
   await expect(photos.getByText('Photo unavailable offline')).toHaveCount(2);
   await expect(photos.getByText('Photo unavailable offline').first()).toBeVisible();
+
+  // Back online, the next preview shows the photos.
+  await page.unroute(images);
+  await preview(page).getByTestId('preview-close').click();
+  await hold(page, exerciseRow(page, CURL.id));
+  await expect(photos.locator('img')).toHaveCount(2);
+  for (const photo of await photos.locator('img').all()) {
+    await expect
+      .poll(() => photo.evaluate((image: HTMLImageElement) => image.naturalWidth))
+      .toBeGreaterThan(0);
+  }
+  await expect(photos.getByText('Photo unavailable offline')).toHaveCount(0);
 });
 
 test('holding a custom exercise or one without photos shows the still figure with its muscles', async ({
