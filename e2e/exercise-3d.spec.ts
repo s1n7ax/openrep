@@ -71,7 +71,7 @@ const CORE_EXERCISE_IDS = [
   'lying-rear-delt-raise',
   'dips-chest-version',
   'hanging-leg-raise',
-  'mountain-climbers',
+  'seated-one-arm-cable-pulley-rows',
   'alternating-renegade-row',
   'superman',
   'dumbbell-lunges',
