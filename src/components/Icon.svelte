@@ -24,7 +24,8 @@
     | 'cube'
     | 'send'
     | 'link'
-    | 'unlink';
+    | 'unlink'
+    | 'timer';
 </script>
 
 <script lang="ts">
@@ -108,6 +109,9 @@
     <path
       d="m15.5 12.5 3-3a3.9 3.9 0 0 0-5.5-5.5l-3 3M8.5 11.5l-3 3a3.9 3.9 0 0 0 5.5 5.5l3-3M4 4l16 16"
     />
+  {:else if name === 'timer'}
+    <circle cx="12" cy="13.5" r="7.5" />
+    <path d="M12 9.5v4l2.5 1.5M9.5 2.75h5M18.25 6.75l1.5-1.5" />
   {/if}
 </svg>
 

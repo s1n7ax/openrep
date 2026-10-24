@@ -42,6 +42,12 @@ export function formatSessionDuration(startedAt: string, finishedAt: string | nu
   return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
 }
 
+/** A countdown's time left: 90 → "1:30", 5 → "0:05", 3600 → "60:00". */
+export function formatCountdown(totalSec: number): string {
+  const minutes = Math.floor(totalSec / 60);
+  return `${minutes}:${String(totalSec % 60).padStart(2, '0')}`;
+}
+
 /** Sets marked done and all sets of a session. */
 export function sessionSetCounts(session: Session): { done: number; total: number } {
   let done = 0;

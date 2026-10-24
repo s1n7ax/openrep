@@ -10,6 +10,8 @@
   the workout into history. Back (the arrow or Android's back button)
   discards it, asking first when anything was entered. A workout opens on
   the first exercise with sets left; the exercise name opens its page.
+  Ticking a set starts a rest countdown docked at the bottom, on every page
+  (lib/userData/workoutTicks.ts says when and how long).
 -->
 <script module lang="ts">
   /** The page each workout was last on, to return to after viewing an exercise. */
@@ -26,6 +28,7 @@
   import ExercisePicture from '../components/ExercisePicture.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import RestTimer from '../components/RestTimer.svelte';
   import SetRow from '../components/SetRow.svelte';
   import SupersetLabel from '../components/SupersetLabel.svelte';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
@@ -34,6 +37,7 @@
   import { href, paths, router } from '../lib/router.ts';
   import type { SessionExercise } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
+  import { restTimer } from '../lib/stores/restTimer.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findPlan, findSession, lastTimeFor } from '../lib/userData/selectors.ts';
   import {
@@ -57,6 +61,7 @@
     formatTargetWithRest,
   } from '../lib/userData/targets.ts';
   import { firstOpenPage, hasEntries, nextSupersetPosition } from '../lib/userData/workoutPages.ts';
+  import { tickOutcome } from '../lib/userData/workoutTicks.ts';
   import { formatDay, formatSets, sessionSetCounts } from '../lib/userData/workoutText.ts';
   import { firstSlideOf, hasPicture, pictureSlides } from '../lib/workoutPicture.ts';
 
@@ -95,6 +100,16 @@
   let confirming = $state<'discard' | 'finish-empty' | null>(null);
   /** Discarded: nothing is shown while going back. */
   let discarded = $state(false);
+
+  /** This workout's rest countdown, while the set that started it is ticked off. */
+  const rest = $derived.by(() => {
+    const current = restTimer.current;
+    if (current === null || current.sessionId !== sessionId) return null;
+    const set = session?.exercises
+      .find((exercise) => exercise.id === current.sessionExerciseId)
+      ?.sets.find((candidate) => candidate.id === current.setId);
+    return set?.done ? current : null;
+  });
 
   const pager: Attachment<HTMLElement> = (scroller) => {
     const snapper = new PageSnapper(
@@ -140,6 +155,23 @@
     );
   }
 
+  /**
+   * After a set was ticked off or un-ticked: any tick ends the countdown and
+   * may start the next one; un-ticking the set that started it stops it.
+   */
+  function onSetDone(sessionExerciseId: string, setId: string, done: boolean) {
+    if (!done) {
+      if (restTimer.startedBy(sessionExerciseId, setId)) restTimer.stop();
+      return;
+    }
+    const current = findSession(userData.data, sessionId);
+    if (!current) return;
+    const { defaultRestSec } = userData.data.settings;
+    const outcome = tickOutcome(current, sessionExerciseId, setId, defaultRestSec);
+    if (outcome.restSec === null) restTimer.stop();
+    else restTimer.start({ sessionId, sessionExerciseId, setId, seconds: outcome.restSec });
+  }
+
   function addSet(exercise: SessionExercise) {
     userData.update((data) => addLoggedSet(data, sessionId, exercise.id, newId()));
   }
@@ -155,6 +187,7 @@
     }
     confirming = null;
     lastPages.delete(sessionId);
+    restTimer.stop();
     userData.update((data) => finishSession(data, sessionId, nowIso()));
     router.navigate(paths.historySession(sessionId), { replace: true });
   }
@@ -171,6 +204,7 @@
     confirming = null;
     discarded = true;
     lastPages.delete(sessionId);
+    restTimer.stop();
     userData.update((data) => deleteSession(data, sessionId));
     router.back(fallback);
   }
@@ -204,7 +238,13 @@
     {/if}
   </div>
 {:else}
-  <div class="workout" data-testid="workout" data-session-id={sessionId} data-page={page}>
+  <div
+    class="workout"
+    class:resting={rest !== null}
+    data-testid="workout"
+    data-session-id={sessionId}
+    data-page={page}
+  >
     <header class="top">
       <div class="top-bar">
         <button
@@ -284,6 +324,7 @@
                     {unit}
                     amountPlaceholder={amountPlaceholder(exercise)}
                     canRemove={exercise.sets.length > 1}
+                    ondone={(done) => onSetDone(exercise.id, set.id, done)}
                   />
                 {/each}
               </ol>
@@ -355,6 +396,7 @@
                         {unit}
                         amountPlaceholder={amountPlaceholder(row.entry)}
                         canRemove={row.entry.sets.length > 1}
+                        ondone={(done) => onSetDone(row.entry.id, row.set.id, done)}
                       />
                     {/each}
                   </ol>
@@ -396,6 +438,14 @@
         </div>
       </section>
     </div>
+
+    {#if rest}
+      <div class="rest-dock">
+        {#key rest}
+          <RestTimer {rest} ondismiss={() => restTimer.stop()} />
+        {/key}
+      </div>
+    {/if}
   </div>
 {/if}
 
@@ -474,6 +524,8 @@
 <style>
   .workout {
     --picture-height: min(38dvh, 24rem);
+    /* The rest countdown and the gap below it. */
+    --rest-height: calc(64px + var(--space-3));
     position: fixed;
     inset: 0;
     display: flex;
@@ -567,6 +619,22 @@
     max-width: var(--page-max);
     margin: 0 auto;
     padding-bottom: calc(var(--space-6) + var(--safe-bottom));
+  }
+
+  /* Room below the content to scroll it out from under the rest countdown.
+     It is added at the bottom, so nothing on the screen moves. */
+  .resting .slot {
+    padding-bottom: calc(var(--space-6) + var(--safe-bottom) + var(--rest-height));
+  }
+
+  .rest-dock {
+    position: absolute;
+    right: calc(var(--space-3) + var(--safe-right));
+    bottom: calc(var(--space-3) + var(--safe-bottom));
+    left: calc(var(--space-3) + var(--safe-left));
+    z-index: 1;
+    max-width: calc(var(--page-max) - 2 * var(--space-3));
+    margin: 0 auto;
   }
 
   .exercise {

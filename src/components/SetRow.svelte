@@ -31,6 +31,8 @@
     /** Placeholder for the reps or seconds field (the target). */
     amountPlaceholder: string;
     canRemove: boolean;
+    /** Called after the set was ticked off (`true`) or un-ticked (`false`). */
+    ondone?: (done: boolean) => void;
   }
 
   let {
@@ -44,6 +46,7 @@
     unit,
     amountPlaceholder,
     canRemove,
+    ondone,
   }: Props = $props();
 
   /** A whole number typed in a field: null when empty, undefined when not valid. */
@@ -94,6 +97,7 @@
   function onDoneChange(event: Event & { currentTarget: HTMLInputElement }) {
     const done = event.currentTarget.checked;
     userData.update((data) => setLoggedSetDone(data, sessionId, sessionExerciseId, set.id, done));
+    ondone?.(done);
   }
 
   function remove() {
