@@ -244,18 +244,6 @@ export function addLoggedRound(
   });
 }
 
-export function removeLoggedSet(
-  data: UserData,
-  sessionId: string,
-  sessionExerciseId: string,
-  setId: string,
-): UserData {
-  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
-    const sets = exercise.sets.filter((set) => set.id !== setId);
-    return sets.length === exercise.sets.length ? exercise : { ...exercise, sets };
-  });
-}
-
 /** Removes the last set of an exercise; an exercise keeps at least one. */
 export function removeLastLoggedSet(
   data: UserData,

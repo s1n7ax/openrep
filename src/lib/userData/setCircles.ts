@@ -36,14 +36,19 @@ export function loggedAmount(set: Amounts, kind: AmountKind): number | null {
   return kind === 'time' ? set.durationSec : set.reps;
 }
 
+/** The reps (a range's low end) or seconds the target plans; null when it has none. */
+function planned(target: Target): number | null {
+  return amountKind(target) === 'time' ? (target.durationSec ?? null) : plannedReps(target.reps);
+}
+
 /**
  * The planned amount, shown while none is entered and logged by a tick (see
  * `setLoggedSetDone`): "8", "10" for a range "10-12", "30"; "—" when the
  * target has none.
  */
 export function plannedAmount(target: Target): string {
-  const planned = amountKind(target) === 'time' ? target.durationSec : plannedReps(target.reps);
-  return planned === undefined || planned === null ? '—' : String(planned);
+  const amount = planned(target);
+  return amount === null ? '—' : String(amount);
 }
 
 /** What a set's circle shows: the reps or seconds logged, else the planned ones. */
@@ -54,8 +59,7 @@ export function shownAmount(set: Amounts, target: Target): string {
 
 /** What − / + start from while nothing is entered: the target (a range's low end), else 0. */
 export function amountBase(target: Target): number {
-  if (amountKind(target) === 'time') return target.durationSec ?? 0;
-  return plannedReps(target.reps) ?? 0;
+  return planned(target) ?? 0;
 }
 
 /** An amount (`null` for none entered) after one − (`direction` -1) or + (1) press, within 0 and the most a set takes. */

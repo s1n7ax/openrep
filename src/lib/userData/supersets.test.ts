@@ -19,7 +19,7 @@ import { activeSession, lastTimeFor } from './selectors.ts';
 import {
   addLoggedRound,
   finishSession,
-  removeLoggedSet,
+  removeLastLoggedSet,
   setLoggedSetDone,
   startSession,
 } from './sessions.ts';
@@ -438,8 +438,7 @@ describe('superset workouts', () => {
   it('keeps rounds when a set of one exercise is removed', () => {
     let data = started();
     const session = activeSession(data)!;
-    const flyesSets = session.exercises[1]!.sets;
-    data = removeLoggedSet(data, 'w1', session.exercises[1]!.id, flyesSets[2]!.id);
+    data = removeLastLoggedSet(data, 'w1', session.exercises[1]!.id);
     const after = activeSession(data)!;
     const superset = groupBlocks(after.exercises, after.supersets)[0]!;
     expect(

@@ -55,12 +55,10 @@
 
   const entries = $derived(block ? blockEntries(block) : []);
   const isSuperset = $derived(block?.kind === 'superset');
+  /** The sets, round by round (for an exercise on its own, one per round). */
+  const rounds = $derived(supersetRounds(entries));
   /** Sets of the exercise, or rounds of the superset. */
-  const count = $derived(
-    block?.kind === 'superset'
-      ? supersetRounds(block.entries).length
-      : (block?.entry.sets.length ?? 0),
-  );
+  const count = $derived(rounds.length);
   const title = $derived(
     block === null
       ? ''
@@ -133,10 +131,7 @@
     if (block === null) return;
     const current = block;
     // A countdown started by a set removed goes with it.
-    const removed =
-      current.kind === 'superset'
-        ? (supersetRounds(current.entries).at(-1) ?? [])
-        : current.entry.sets.slice(-1).map((set) => ({ entry: current.entry, set }));
+    const removed = rounds.at(-1) ?? [];
     if (removed.some(({ entry, set }) => restTimer.startedBy(entry.id, set.id))) restTimer.stop();
     userData.update((data) =>
       current.kind === 'superset'

@@ -21,7 +21,6 @@ import {
   addedSetValues,
   removeLastLoggedRound,
   removeLastLoggedSet,
-  removeLoggedSet,
   setLoggedSetDone,
   setLoggedWeight,
   startSession,
@@ -119,7 +118,7 @@ describe('sessions', () => {
       durationSec: null,
       done: false,
     });
-    data = removeLoggedSet(data, 's1', exerciseId, sets[0]?.id ?? '');
+    data = removeLastLoggedSet(data, 's1', exerciseId);
     sets = data.sessions[0]?.exercises[0]?.sets ?? [];
     expect(sets).toHaveLength(3);
     expect(userDataSchema.safeParse(data).success).toBe(true);
@@ -273,7 +272,7 @@ describe('changing weights and removing the last set or round', () => {
     // The plank's rounds follow the squat's: 3 each.
     expect(lengths(data)).toEqual([3, 3]);
     // An uneven superset: only the exercises that have a set in the last round lose it.
-    data = removeLoggedSet(data, 's1', plankEx?.id ?? '', plankEx?.sets[2]?.id ?? '');
+    data = removeLastLoggedSet(data, 's1', plankEx?.id ?? '');
     data = removeLastLoggedRound(data, 's1', 'ss');
     expect(lengths(data)).toEqual([2, 2]);
     expect(activeSession(data)?.exercises[0]?.sets.map((set) => set.id)).toEqual(

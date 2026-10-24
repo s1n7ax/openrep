@@ -98,9 +98,7 @@
     const currentUnit = unit;
     untrack(() => {
       const typed = parseWeight(weightText, currentUnit);
-      if (setId !== weightTextFor || !typed.ok || typed.kg !== kg) {
-        weightText = kg === null ? '' : formatWeight(kg, currentUnit);
-      }
+      if (setId !== weightTextFor || !typed.ok || typed.kg !== kg) weightText = formatKg(kg);
       weightTextFor = setId;
     });
   });

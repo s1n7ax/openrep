@@ -33,14 +33,18 @@
   /** What − / + step from. */
   const current = $derived(value ?? amountBase(target));
 
-  let text = $state(untrack(() => (value === null ? '' : String(value))));
+  function format(amount: number | null): string {
+    return amount === null ? '' : String(amount);
+  }
+
+  let text = $state(untrack(() => format(value)));
   const valid = $derived(parseAmount(text, kind) !== undefined);
 
   // Show values changed with − / +.
   $effect(() => {
     const stored = value;
     untrack(() => {
-      if (parseAmount(text, kind) !== stored) text = stored === null ? '' : String(stored);
+      if (parseAmount(text, kind) !== stored) text = format(stored);
     });
   });
 
@@ -78,7 +82,7 @@
     bind:value={text}
     oninput={onInput}
     onfocus={(event) => event.currentTarget.select()}
-    onblur={() => (text = value === null ? '' : String(value))}
+    onblur={() => (text = format(value))}
     onkeydown={onKeydown}
   />
   <button
