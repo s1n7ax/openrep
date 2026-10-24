@@ -250,11 +250,16 @@
       return;
     }
     confirming = null;
+    forget();
+    userData.update((data) => finishSession(data, sessionId, nowIso()));
+    router.navigate(paths.historySession(sessionId), { replace: true });
+  }
+
+  /** Drops what is kept in memory for this workout, once it is finished or discarded. */
+  function forget() {
     lastPages.delete(sessionId);
     startHistories.delete(sessionId);
     restTimer.stop();
-    userData.update((data) => finishSession(data, sessionId, nowIso()));
-    router.navigate(paths.historySession(sessionId), { replace: true });
   }
 
   /** Back: discards the workout, after asking when anything was entered. */
@@ -269,9 +274,7 @@
     const fallback = planId && findPlan(userData.data, planId) ? paths.plan(planId) : paths.plans();
     confirming = null;
     discarded = true;
-    lastPages.delete(sessionId);
-    startHistories.delete(sessionId);
-    restTimer.stop();
+    forget();
     userData.update((data) => deleteSession(data, sessionId));
     router.back(fallback);
   }
