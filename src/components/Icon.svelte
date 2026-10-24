@@ -9,6 +9,8 @@
     | 'chevron-up'
     | 'chevron-down'
     | 'plus'
+    | 'minus'
+    | 'more'
     | 'close'
     | 'search'
     | 'trash'
@@ -55,6 +57,12 @@
     <path d="m6 9.5 6 6 6-6" />
   {:else if name === 'plus'}
     <path d="M12 5v14M5 12h14" />
+  {:else if name === 'minus'}
+    <path d="M5 12h14" />
+  {:else if name === 'more'}
+    <circle cx="5.5" cy="12" r="1.75" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.75" fill="currentColor" stroke="none" />
+    <circle cx="18.5" cy="12" r="1.75" fill="currentColor" stroke="none" />
   {:else if name === 'close'}
     <path d="m6.5 6.5 11 11m0-11-11 11" />
   {:else if name === 'search'}

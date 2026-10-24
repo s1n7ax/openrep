@@ -10,14 +10,17 @@
   interface Props {
     open: boolean;
     title: string;
+    /** A line under the title. */
+    subtitle?: string;
     /** Called when the user dismisses the dialog (backdrop, Escape, back button). */
     onclose: () => void;
     children?: Snippet;
-    actions: Snippet;
+    /** Buttons at the bottom; a dialog without them is closed by dismissing it or by its content. */
+    actions?: Snippet;
     testid?: string;
   }
 
-  let { open, title, onclose, children, actions, testid = 'dialog' }: Props = $props();
+  let { open, title, subtitle, onclose, children, actions, testid = 'dialog' }: Props = $props();
 
   let dialog: HTMLDialogElement | undefined = $state();
   const titleId = $props.id();
@@ -52,11 +55,18 @@
   onclick={onBackdropClick}
 >
   <div class="content">
-    <h2 id={titleId} class="title">{title}</h2>
+    <header>
+      <h2 id={titleId} class="title">{title}</h2>
+      {#if subtitle}
+        <p class="subtitle" data-testid={`${testid}-subtitle`}>{subtitle}</p>
+      {/if}
+    </header>
     {#if children}
       <div class="body">{@render children()}</div>
     {/if}
-    <div class="actions">{@render actions()}</div>
+    {#if actions}
+      <div class="actions">{@render actions()}</div>
+    {/if}
   </div>
 </dialog>
 
@@ -94,6 +104,13 @@
     font-size: var(--text-xl);
     font-weight: 750;
     line-height: 1.25;
+  }
+
+  .subtitle {
+    margin-top: 2px;
+    color: var(--text-2);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
   }
 
   .body {
