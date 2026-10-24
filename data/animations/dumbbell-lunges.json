@@ -30,7 +30,7 @@
         "rightShoulder": [0, 0, -8],
         "rightElbow": [-4, 0, 0],
         "leftFoot": {"target": [0.11, 0, 0.145], "pole": [0.14, 0.5, 1]},
-        "rightFoot": {"target": [-0.11, 0.11, 0.645], "pole": [-0.2, 0.6, 1.9]}
+        "rightFoot": {"target": [-0.11, 0.025, 0.645], "pole": [-0.2, 0.6, 1.9]}
       }
     },
     {
@@ -43,7 +43,7 @@
         "rightShoulder": [0, 0, -8],
         "rightElbow": [-4, 0, 0],
         "leftFoot": {"target": [0.11, 0, 0.145], "pole": [0.14, 0.3, 1.1]},
-        "rightFoot": {"target": [-0.11, 0.05, 1.145], "pole": [-0.2, 0.6, 2.545]}
+        "rightFoot": {"target": [-0.11, 0.02, 1.145], "pole": [-0.2, 0.6, 2.545]}
       }
     },
     {
@@ -109,7 +109,7 @@
         "rightShoulder": [0, 0, -8],
         "rightElbow": [-4, 0, 0],
         "leftFoot": {"target": [0.11, 0, 0.145], "pole": [0.14, 0.3, 1.1]},
-        "rightFoot": {"target": [-0.11, 0.05, 1.145], "pole": [-0.2, 0.6, 2.545]}
+        "rightFoot": {"target": [-0.11, 0.02, 1.145], "pole": [-0.2, 0.6, 2.545]}
       }
     },
     {
@@ -122,7 +122,7 @@
         "rightShoulder": [0, 0, -8],
         "rightElbow": [-4, 0, 0],
         "leftFoot": {"target": [0.11, 0, 0.145], "pole": [0.14, 0.5, 1]},
-        "rightFoot": {"target": [-0.11, 0.11, 0.645], "pole": [-0.2, 0.6, 1.9]}
+        "rightFoot": {"target": [-0.11, 0.025, 0.645], "pole": [-0.2, 0.6, 1.9]}
       }
     },
     {
