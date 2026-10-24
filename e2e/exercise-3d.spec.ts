@@ -74,7 +74,7 @@ const CORE_EXERCISE_IDS = [
   'mountain-climbers',
   'alternating-renegade-row',
   'superman',
-  'front-barbell-squat',
+  'dumbbell-lunges',
   'bodyweight-squat',
   'dumbbell-rear-lunge',
   'sumo-deadlift',
