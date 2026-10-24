@@ -15,10 +15,22 @@
   exercise or superset plays a short celebration.
 -->
 <script module lang="ts">
+  import type { Session } from '../lib/schema/userData.ts';
+
   /** The page each workout was last on, to return to after viewing an exercise. */
   // Not state: it is read once, when the screen opens.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const lastPages = new Map<string, string>();
+
+  /**
+   * The sessions each workout's rows were filled in from (see `prefilledSet`),
+   * as they were when it first opened since the app started. Back compares the
+   * rows with them, so deleting that history meanwhile neither makes untouched
+   * rows look edited nor edits look untouched.
+   */
+  // Not state: it is read when leaving.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const startHistories = new Map<string, readonly Session[]>();
 </script>
 
 <script lang="ts">
@@ -98,6 +110,7 @@
   /** The page on the screen (`blocks.length` is the finish page). */
   let page = $state(0);
   show(initialPage());
+  rememberStartHistory();
   /** The confirmation being asked: discarding, or finishing with no set ticked. */
   let confirming = $state<'discard' | 'finish-empty' | null>(null);
   /** Discarded: nothing is shown while going back. */
@@ -127,6 +140,12 @@
   function show(index: number) {
     page = index;
     lastPages.set(sessionId, pageKey(index));
+  }
+
+  function rememberStartHistory() {
+    if (inProgress && !startHistories.has(sessionId)) {
+      startHistories.set(sessionId, userData.data.sessions);
+    }
   }
 
   // Android's back button leaves the workout like the back arrow.
@@ -202,6 +221,7 @@
     }
     confirming = null;
     lastPages.delete(sessionId);
+    startHistories.delete(sessionId);
     restTimer.stop();
     userData.update((data) => finishSession(data, sessionId, nowIso()));
     router.navigate(paths.historySession(sessionId), { replace: true });
@@ -209,7 +229,8 @@
 
   /** Back: discards the workout, after asking when anything was entered. */
   function leave() {
-    if (session && hasEntries(session, userData.data.sessions)) confirming = 'discard';
+    const history = startHistories.get(sessionId) ?? userData.data.sessions;
+    if (session && hasEntries(session, history)) confirming = 'discard';
     else discard();
   }
 
@@ -219,6 +240,7 @@
     confirming = null;
     discarded = true;
     lastPages.delete(sessionId);
+    startHistories.delete(sessionId);
     restTimer.stop();
     userData.update((data) => deleteSession(data, sessionId));
     router.back(fallback);

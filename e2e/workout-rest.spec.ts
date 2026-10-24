@@ -123,6 +123,63 @@ test('a workout starts with what was done last time', async ({ page }) => {
   await expect(page.getByTestId('history-set').nth(3)).toContainText('62.5 kg × 6');
 });
 
+test('back compares with what the workout was filled in with, even after that session is deleted', async ({
+  page,
+}) => {
+  await openApp(page);
+  await createPlanWith(page, 'Push', [BENCH]);
+  await page.getByTestId('editor-done').click();
+  // Bench 50 kg × 10, then 60 kg × 8.
+  for (const [weight, reps] of [
+    ['50', '10'],
+    ['60', '8'],
+  ]) {
+    await startDay(page, 0);
+    const row = workoutPage(page, 0).getByTestId('set-row').first();
+    await row.getByTestId('set-weight').fill(weight!);
+    await row.getByTestId('set-reps').fill(reps!);
+    await row.getByTestId('set-done').check();
+    await page.getByTestId('workout-finish').click();
+    await expect(page.getByTestId('history-sets')).toHaveText('1 of 3');
+    await openPlan(page, 'Push');
+  }
+  await startDay(page, 0);
+  const rows = workoutPage(page, 0).getByTestId('set-row');
+  await expectValues(rows.nth(0), '60', '8');
+
+  // The session it was filled in from is deleted: "Last time" is now the one before.
+  await goTo(page, '#/history');
+  await page.getByTestId('history-row').first().click();
+  await page.getByTestId('history-delete').click();
+  await page.getByTestId('confirm-ok').click();
+  await expect(page.getByTestId('history-row')).toHaveCount(1);
+  await page.getByTestId('tab-plans').click();
+  await page.getByTestId('resume-workout').click();
+  await expect(workoutPage(page, 0).getByTestId('last-time')).toContainText('50 kg × 10');
+  for (const index of [0, 1, 2]) await expectValues(rows.nth(index), '60', '8');
+
+  /** Types `weight` and `reps` into every row. */
+  async function fillRows(weight: string, reps: string): Promise<void> {
+    for (const index of [0, 1, 2]) {
+      await rows.nth(index).getByTestId('set-weight').fill(weight);
+      await rows.nth(index).getByTestId('set-reps').fill(reps);
+    }
+  }
+
+  // The values of the session before were typed in: back asks.
+  await fillRows('50', '10');
+  await page.getByTestId('back-button').click();
+  await expect(page.getByTestId('confirm-dialog')).toBeVisible();
+  await page.getByTestId('confirm-cancel').click();
+
+  // As filled in: back discards without asking.
+  await fillRows('60', '8');
+  await page.getByTestId('back-button').click();
+  await expect(page.getByTestId('workout')).toHaveCount(0);
+  await expect(page.getByTestId('confirm-dialog')).not.toBeVisible();
+  await expect(page.getByTestId('resume-workout')).toHaveCount(0);
+});
+
 test("the countdown runs for the plan's rest, else the default rest from Settings", async ({
   page,
 }) => {
