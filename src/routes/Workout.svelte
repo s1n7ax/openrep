@@ -11,7 +11,8 @@
   discards it, asking first when anything was entered. A workout opens on
   the first exercise with sets left; the exercise name opens its page.
   Ticking a set starts a rest countdown docked at the bottom, on every page
-  (lib/userData/workoutTicks.ts says when and how long).
+  (lib/userData/workoutTicks.ts says when and how long), and completing an
+  exercise or superset plays a short celebration.
 -->
 <script module lang="ts">
   /** The page each workout was last on, to return to after viewing an exercise. */
@@ -23,6 +24,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
+  import Celebration from '../components/Celebration.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import ExercisePicture from '../components/ExercisePicture.svelte';
@@ -100,6 +102,8 @@
   let confirming = $state<'discard' | 'finish-empty' | null>(null);
   /** Discarded: nothing is shown while going back. */
   let discarded = $state(false);
+  /** The celebration playing, if any; a new `id` starts it over. */
+  let celebration = $state<{ id: number; label: string } | null>(null);
 
   /** This workout's rest countdown, while the set that started it is ticked off. */
   const rest = $derived.by(() => {
@@ -157,7 +161,8 @@
 
   /**
    * After a set was ticked off or un-ticked: any tick ends the countdown and
-   * may start the next one; un-ticking the set that started it stops it.
+   * may start the next one, or a celebration; un-ticking the set that started
+   * the countdown stops it.
    */
   function onSetDone(sessionExerciseId: string, setId: string, done: boolean) {
     if (!done) {
@@ -170,6 +175,16 @@
     const outcome = tickOutcome(current, sessionExerciseId, setId, defaultRestSec);
     if (outcome.restSec === null) restTimer.stop();
     else restTimer.start({ sessionId, sessionExerciseId, setId, seconds: outcome.restSec });
+    if (outcome.completed !== null) {
+      celebration = { id: (celebration?.id ?? 0) + 1, label: doneLabel(outcome.completed) };
+    }
+  }
+
+  /** "Goblet Squat done", "Superset A done": the celebration's text for the block with `key`. */
+  function doneLabel(key: string): string {
+    const block = blocks.find((candidate) => blockKey(candidate) === key);
+    if (block?.kind === 'superset') return `Superset ${block.letter} done`;
+    return block ? `${resolve(block.entry).name} done` : 'Done';
   }
 
   function addSet(exercise: SessionExercise) {
@@ -445,6 +460,11 @@
           <RestTimer {rest} ondismiss={() => restTimer.stop()} />
         {/key}
       </div>
+    {/if}
+    {#if celebration}
+      {#key celebration.id}
+        <Celebration label={celebration.label} onend={() => (celebration = null)} />
+      {/key}
     {/if}
   </div>
 {/if}
