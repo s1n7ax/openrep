@@ -2,7 +2,7 @@
  * A finger on the touch screen, pressing and dragging. Needs a touch screen:
  * `test.use({ hasTouch: true })`.
  */
-import type { CDPSession, Locator, Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect } from './fixtures.ts';
 
 export interface Point {
@@ -27,7 +27,7 @@ export async function centreOf(locator: Locator): Promise<Point> {
 /** Puts a finger down at `at` (a point, or the centre of an element). */
 export async function fingerDown(page: Page, at: Point | Locator): Promise<Finger> {
   let point = 'x' in at ? at : await centreOf(at);
-  const cdp: CDPSession = await page.context().newCDPSession(page);
+  const cdp = await page.context().newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
   return {
     async move(to) {
