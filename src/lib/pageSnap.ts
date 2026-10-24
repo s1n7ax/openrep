@@ -201,25 +201,37 @@ export class PageSnapper {
     this.#options.onPageChange(page);
   }
 
+  /**
+   * The scroll position `offset` into page `index` as the pages are laid out
+   * now, short of where the page would stop filling the screen; null when
+   * there is no such page.
+   */
+  #positionIn(index: number, offset: number): number | null {
+    const page = this.#boxes()[index];
+    if (!page) return null;
+    return Math.min(page.top + Math.max(0, offset), restEnd(page, this.#scroller.clientHeight));
+  }
+
   /** Back within the current page after a size change, at the same place in it. */
   #keepPage(): void {
     if (this.#touching || this.#frame !== null) return;
-    const page = this.#boxes()[this.#current];
-    if (!page) return;
-    const end = restEnd(page, this.#scroller.clientHeight);
-    const top = Math.min(page.top + Math.max(0, this.#offset), end);
-    if (Math.abs(top - this.#scroller.scrollTop) >= EPSILON) this.#scroller.scrollTop = top;
+    const top = this.#positionIn(this.#current, this.#offset);
+    if (top !== null && Math.abs(top - this.#scroller.scrollTop) >= EPSILON) {
+      this.#scroller.scrollTop = top;
+    }
   }
 
   /**
    * Scrolls to `snap` with an ease-out, or at once with reduced motion. The
    * scroll is locked meanwhile (with reduced motion, as long as the shortest
-   * snap), which also stops momentum.
+   * snap), which also stops momentum. Pages that change size meanwhile (a
+   * tap outside them, say) move the end along with its page.
    */
   #animate(snap: Snap): void {
     const scroller = this.#scroller;
     const from = scroller.scrollTop;
     const distance = snap.top - from;
+    const offset = snap.top - (this.#boxes()[snap.page]?.top ?? 0);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const duration = reduced
       ? MIN_SNAP_MS
@@ -230,7 +242,8 @@ export class PageSnapper {
     this.#target = snap.page;
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
-      scroller.scrollTop = from + distance * ease(t);
+      const to = this.#positionIn(snap.page, offset) ?? snap.top;
+      scroller.scrollTop = from + (to - from) * ease(t);
       if (t < 1) {
         this.#frame = requestAnimationFrame(step);
         return;
