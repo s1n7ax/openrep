@@ -10,9 +10,7 @@
       "pose": {
         "pelvis": {"position": [0, 0.142, 0.15], "rotation": [-94, 0, 0]},
         "spine": [4, 0, 0],
-        "chest": [0, 0, 0],
         "neck": [6, 0, 0],
-        "head": [0, 0, 0],
         "leftShoulder": [-88, 0, 4],
         "leftElbow": [-6, 0, 0],
         "leftWrist": [0, 0, 0],
@@ -32,9 +30,7 @@
       "pose": {
         "pelvis": {"position": [0, 0.142, 0.15], "rotation": [-94, 0, 0]},
         "spine": [4, 0, 0],
-        "chest": [0, 0, 0],
         "neck": [6, 0, 0],
-        "head": [0, 0, 0],
         "leftShoulder": [-88, 0, 4],
         "leftElbow": [-6, 0, 0],
         "leftWrist": [0, 0, 0],
@@ -54,9 +50,7 @@
       "pose": {
         "pelvis": {"position": [0, 0.142, 0.15], "rotation": [-94, 0, 0]},
         "spine": [4, 0, 0],
-        "chest": [0, 0, 0],
         "neck": [6, 0, 0],
-        "head": [0, 0, 0],
         "leftShoulder": [-88, 0, 4],
         "leftElbow": [-6, 0, 0],
         "leftWrist": [0, 0, 0],
@@ -76,9 +70,7 @@
       "pose": {
         "pelvis": {"position": [0, 0.142, 0.15], "rotation": [-94, 0, 0]},
         "spine": [4, 0, 0],
-        "chest": [0, 0, 0],
         "neck": [6, 0, 0],
-        "head": [0, 0, 0],
         "leftShoulder": [-88, 0, 4],
         "leftElbow": [-6, 0, 0],
         "leftWrist": [0, 0, 0],
@@ -98,9 +90,7 @@
       "pose": {
         "pelvis": {"position": [0, 0.142, 0.15], "rotation": [-94, 0, 0]},
         "spine": [4, 0, 0],
-        "chest": [0, 0, 0],
         "neck": [6, 0, 0],
-        "head": [0, 0, 0],
         "leftShoulder": [-88, 0, 4],
         "leftElbow": [-6, 0, 0],
         "leftWrist": [0, 0, 0],
@@ -120,9 +110,7 @@
       "pose": {
         "pelvis": {"position": [0, 0.142, 0.15], "rotation": [-94, 0, 0]},
         "spine": [4, 0, 0],
-        "chest": [0, 0, 0],
         "neck": [6, 0, 0],
-        "head": [0, 0, 0],
         "leftShoulder": [-88, 0, 4],
         "leftElbow": [-6, 0, 0],
         "leftWrist": [0, 0, 0],
@@ -142,9 +130,7 @@
       "pose": {
         "pelvis": {"position": [0, 0.142, 0.15], "rotation": [-94, 0, 0]},
         "spine": [4, 0, 0],
-        "chest": [0, 0, 0],
         "neck": [6, 0, 0],
-        "head": [0, 0, 0],
         "leftShoulder": [-88, 0, 4],
         "leftElbow": [-6, 0, 0],
         "leftWrist": [0, 0, 0],
