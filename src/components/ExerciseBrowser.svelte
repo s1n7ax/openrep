@@ -262,8 +262,8 @@
       <img
         src={catalog.imageUrl(exercise.images[0])}
         alt=""
-        width="56"
-        height="56"
+        width="72"
+        height="72"
         loading="lazy"
         decoding="async"
       />
@@ -443,8 +443,8 @@
     display: grid;
     flex: none;
     place-items: center;
-    width: 56px;
-    height: 56px;
+    width: 72px;
+    height: 72px;
     overflow: hidden;
     border-radius: var(--radius-md);
     background: var(--surface-2);
