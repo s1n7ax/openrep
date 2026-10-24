@@ -11,7 +11,7 @@ async function freshStore() {
 }
 
 function dataWithUnit(unit: 'kg' | 'lb'): UserData {
-  return { ...emptyUserData(), settings: { unit } };
+  return { ...emptyUserData(), settings: { ...emptyUserData().settings, unit } };
 }
 
 describe('userData.replaceAll', () => {
@@ -55,7 +55,7 @@ describe('userData.replaceAll', () => {
       expect(files.files.get(MAIN)).toBe(JSON.stringify(dataWithUnit('lb')));
 
       // Later changes are saved again.
-      userData.update((data) => ({ ...data, settings: { unit: 'kg' } }));
+      userData.update((data) => ({ ...data, settings: { ...data.settings, unit: 'kg' } }));
       await userData.flush();
       expect(files.files.get(MAIN)).toBe(JSON.stringify(dataWithUnit('kg')));
     });

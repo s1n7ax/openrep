@@ -146,7 +146,14 @@ export const sessionSchema = z.object({
 });
 export type Session = z.infer<typeof sessionSchema>;
 
-export const settingsSchema = z.object({ unit: unitSchema });
+/** Rest a countdown runs for when the plan gives the exercise (or superset) none, in seconds. */
+export const DEFAULT_REST_SEC = 90;
+
+export const settingsSchema = z.object({
+  unit: unitSchema,
+  /** Rest after a set when the plan has none; missing in files saved before it existed. */
+  defaultRestSec: restSecSchema.default(DEFAULT_REST_SEC),
+});
 export type Settings = z.infer<typeof settingsSchema>;
 
 export const catalogMetaSchema = z.object({
@@ -173,7 +180,7 @@ export type UserData = z.infer<typeof userDataSchema>;
 export function emptyUserData(): UserData {
   return {
     formatVersion: 1,
-    settings: { unit: 'kg' },
+    settings: { unit: 'kg', defaultRestSec: DEFAULT_REST_SEC },
     plans: [],
     customExercises: [],
     sessions: [],

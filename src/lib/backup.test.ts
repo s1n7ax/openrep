@@ -14,7 +14,7 @@ import { emptyUserData, type UserData } from './schema/userData.ts';
 import { createCustomExercise } from './userData/customExercises.ts';
 import { addPlanExercise, createPlan } from './userData/plans.ts';
 import { finishSession, startSession, updateLoggedSet } from './userData/sessions.ts';
-import { setCatalogMeta, setUnit } from './userData/settings.ts';
+import { setCatalogMeta, setDefaultRest, setUnit } from './userData/settings.ts';
 
 const T0 = '2026-02-03T08:00:00.000Z';
 const T1 = '2026-02-03T09:00:00.000Z';
@@ -72,6 +72,7 @@ function richData(): UserData {
   });
   data = finishSession(data, 's1', T1);
   data = setUnit(data, 'lb');
+  data = setDefaultRest(data, 120);
   return setCatalogMeta(data, { lastCheckedAt: T1 });
 }
 
@@ -98,6 +99,14 @@ describe('backup', () => {
       data,
     });
     expect(restored.data).toEqual(data);
+    expect(restored.data.settings.defaultRestSec).toBe(120);
+  });
+
+  it('restores a backup made before the default rest existed with a default rest of 90 s', () => {
+    const backup = createBackup(richData(), T1);
+    const { defaultRestSec: _defaultRestSec, ...settings } = backup.data.settings;
+    const text = serializeBackup({ ...backup, data: { ...backup.data, settings } as UserData });
+    expect(parseBackup(text).data.settings).toEqual({ unit: 'lb', defaultRestSec: 90 });
   });
 
   it('accepts a file with a byte order mark', () => {

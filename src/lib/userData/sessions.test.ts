@@ -17,7 +17,7 @@ import {
   startSession,
   updateLoggedSet,
 } from './sessions.ts';
-import { setCatalogMeta, setUnit } from './settings.ts';
+import { setCatalogMeta, setDefaultRest, setUnit } from './settings.ts';
 import { defaultTarget, formatDuration, formatTarget, formatTargetWithRest } from './targets.ts';
 
 const T0 = '2026-01-01T10:00:00.000Z';
@@ -309,6 +309,27 @@ describe('settings', () => {
       lastCheckedAt: T0,
       revision: null,
     });
+  });
+
+  it('defaults the rest to 90 s and sets it', () => {
+    const data = emptyUserData();
+    expect(data.settings.defaultRestSec).toBe(90);
+    expect(setDefaultRest(data, 90)).toBe(data);
+    const changed = setDefaultRest(data, 120);
+    expect(changed.settings).toEqual({ unit: 'kg', defaultRestSec: 120 });
+    expect(userDataSchema.safeParse(changed).success).toBe(true);
+  });
+
+  it('accepts a default rest of 0 to 3600 whole seconds', () => {
+    const settings = emptyUserData().settings;
+    for (const value of [0, 1, 3600]) {
+      const parsed = userDataSchema.safeParse(setDefaultRest(emptyUserData(), value));
+      expect(parsed.success, String(value)).toBe(true);
+    }
+    for (const value of [-1, 3601, 1.5]) {
+      const data = { ...emptyUserData(), settings: { ...settings, defaultRestSec: value } };
+      expect(userDataSchema.safeParse(data).success, String(value)).toBe(false);
+    }
   });
 });
 
