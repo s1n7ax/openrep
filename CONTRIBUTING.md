@@ -56,7 +56,8 @@ Fork the repository, add or change files under `data/`, run
 Create `data/schedules/<id>.json` ([format](docs/data-format.md#schedule)).
 Reference catalog exercises by `exerciseId`. For an exercise that is not in
 the catalog, use a name-only entry (`"name": "Sled push"`); the app copies it
-into plans as a custom exercise.
+into plans as a custom exercise. A schedule with supersets uses
+`"formatVersion": 2` ([supersets](docs/data-format.md#supersets-version-2)).
 
 ### Adding an animation
 
@@ -205,7 +206,7 @@ Other scripts:
 | Script                                 | What it does                                                                                                                               |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `npm run build:catalog -- --out <dir>` | Builds `catalog.json` and copies the images (`--json-only`: just the JSON).                                                                |
-| `npm run generate:schema`              | Regenerates `data/schema/*.v1.json` after changing a schema in `src/lib/schema/`.                                                          |
+| `npm run generate:schema`              | Regenerates `data/schema/*.json` after changing a schema in `src/lib/schema/`.                                                             |
 | `npm run import:free-exercise-db`      | Re-imports free-exercise-db at the pinned commit (keeps existing images unless `--force`). Curated aliases live in `scripts/aliases.json`. |
 | `npm run generate:app-assets`          | Regenerates the app icons and splash screens, and the store icon and feature graphic, from `resources/icon.svg`.                           |
 | `npm run generate:store-screenshots`   | Retakes the store screenshots in `fastlane/metadata/android/en-US/images/phoneScreenshots/` (Playwright).                                  |

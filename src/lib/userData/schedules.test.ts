@@ -3,6 +3,8 @@ import type { Exercise } from '../schema/exercise.ts';
 import { scheduleSchema, type Schedule } from '../schema/schedule.ts';
 import { emptyUserData, userDataSchema } from '../schema/userData.ts';
 import { createCustomExercise } from './customExercises.ts';
+import { planToSchedule } from '../contribute.ts';
+import { dayBlocks } from './plans.ts';
 import { copyScheduleToPlan, scheduleExerciseCount } from './schedules.ts';
 
 const NOW = '2026-03-01T09:00:00.000Z';
@@ -163,5 +165,102 @@ describe('copyScheduleToPlan', () => {
 
   it('counts exercises', () => {
     expect(scheduleExerciseCount(schedule)).toBe(6);
+  });
+});
+
+describe('copyScheduleToPlan with supersets', () => {
+  const supersets: Schedule = scheduleSchema.parse({
+    formatVersion: 2,
+    id: 'supersets',
+    name: 'Supersets',
+    description: '',
+    days: [
+      {
+        name: 'Push',
+        exercises: [
+          {
+            superset: {
+              rounds: 3,
+              restSec: 90,
+              exercises: [
+                { exerciseId: 'pushups', reps: '10', notes: 'Fast' },
+                { name: 'Landmine press', reps: '8' },
+              ],
+            },
+          },
+          { exerciseId: 'plank', sets: 2, durationSec: 45, restSec: 30 },
+          {
+            superset: {
+              rounds: 2,
+              exercises: [
+                { exerciseId: 'plank', durationSec: 20 },
+                { exerciseId: 'pushups', reps: '5' },
+                { name: 'Landmine press', reps: '6' },
+              ],
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  it('keeps each superset with its rounds, rest and exercises', () => {
+    const data = copyScheduleToPlan(emptyUserData(), supersets, {
+      planId: 'plan1',
+      newId: counter(),
+      now: NOW,
+      findExercise,
+    });
+    expect(userDataSchema.safeParse(data).success).toBe(true);
+    const day = data.plans[0]!.days[0]!;
+    expect(day.supersets).toEqual([{ id: 'id1', restSec: 90 }, { id: 'id6' }]);
+    expect(day.exercises.slice(0, 3)).toEqual([
+      {
+        id: 'id2',
+        exercise: { kind: 'catalog', exerciseId: 'pushups', name: 'Pushups' },
+        sets: 3,
+        reps: '10',
+        notes: 'Fast',
+        supersetId: 'id1',
+      },
+      {
+        id: 'id3',
+        exercise: { kind: 'custom', customExerciseId: 'id4', name: 'Landmine press' },
+        sets: 3,
+        reps: '8',
+        supersetId: 'id1',
+      },
+      {
+        id: 'id5',
+        exercise: { kind: 'catalog', exerciseId: 'plank', name: 'Plank' },
+        sets: 2,
+        durationSec: 45,
+        restSec: 30,
+      },
+    ]);
+    expect(
+      dayBlocks(day).map((block) =>
+        block.kind === 'exercise' ? block.entry.id : `${block.letter}${block.entries.length}`,
+      ),
+    ).toEqual(['A2', 'id5', 'B3']);
+    // One custom exercise for the name used twice.
+    expect(data.customExercises).toHaveLength(1);
+    expect(scheduleExerciseCount(supersets)).toBe(6);
+  });
+
+  it('gives the same schedule back when the copied plan is submitted', () => {
+    const data = copyScheduleToPlan(emptyUserData(), supersets, {
+      planId: 'plan1',
+      newId: counter(),
+      now: NOW,
+      findExercise,
+    });
+    const submitted = planToSchedule(data.plans[0]!, {
+      customExercises: data.customExercises,
+      findExercise,
+      suffix: 'abc123',
+    });
+    expect(submitted.days).toEqual(supersets.days);
+    expect(submitted.formatVersion).toBe(2);
   });
 });

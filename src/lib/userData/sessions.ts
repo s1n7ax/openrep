@@ -40,9 +40,10 @@ function updateSessionExercise(
 /**
  * Starts a workout from a plan day and makes it the active session. Each
  * exercise gets one empty set row per target set, with the target weight
- * filled in. Plan and day names are stored as snapshots. Returns the input
- * unchanged when the plan or day does not exist. Callers finish or delete
- * any active session first; this one replaces it as the active one.
+ * filled in. Plan and day names and the day's supersets are stored as
+ * snapshots. Returns the input unchanged when the plan or day does not exist.
+ * Callers finish or delete any active session first; this one replaces it as
+ * the active one.
  */
 export function startSession(
   data: UserData,
@@ -62,8 +63,8 @@ export function startSession(
     startedAt: now,
     finishedAt: null,
     exercises: day.exercises.map((entry) => {
-      const { id: _id, exercise, ...target } = entry;
-      return {
+      const { id: _id, exercise, supersetId, ...target } = entry;
+      const sessionExercise: SessionExercise = {
         id: newId(),
         exercise,
         target: cleanTarget(target),
@@ -75,8 +76,13 @@ export function startSession(
           done: false,
         })),
       };
+      if (supersetId !== undefined) sessionExercise.supersetId = supersetId;
+      return sessionExercise;
     }),
   };
+  if (day.supersets !== undefined && day.supersets.length > 0) {
+    session.supersets = day.supersets.map((superset) => ({ ...superset }));
+  }
   return { ...data, sessions: [...data.sessions, session], activeSessionId: session.id };
 }
 
@@ -99,6 +105,19 @@ export function updateLoggedSet(
   });
 }
 
+/** The exercise with a set row appended, pre-filled with the previous row's values and not done. */
+function withNewSet(exercise: SessionExercise, setId: string): SessionExercise {
+  const last = exercise.sets.at(-1);
+  const set: LoggedSet = {
+    id: setId,
+    weightKg: last?.weightKg ?? exercise.target.weightKg ?? null,
+    reps: last?.reps ?? null,
+    durationSec: last?.durationSec ?? null,
+    done: false,
+  };
+  return { ...exercise, sets: [...exercise.sets, set] };
+}
+
 /** Appends a set row, pre-filled with the previous row's values and not done. */
 export function addLoggedSet(
   data: UserData,
@@ -106,16 +125,26 @@ export function addLoggedSet(
   sessionExerciseId: string,
   setId: string,
 ): UserData {
-  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
-    const last = exercise.sets.at(-1);
-    const set: LoggedSet = {
-      id: setId,
-      weightKg: last?.weightKg ?? exercise.target.weightKg ?? null,
-      reps: last?.reps ?? null,
-      durationSec: last?.durationSec ?? null,
-      done: false,
-    };
-    return { ...exercise, sets: [...exercise.sets, set] };
+  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) =>
+    withNewSet(exercise, setId),
+  );
+}
+
+/** Adds a round to a superset: one set row (as `addLoggedSet`) to each of its exercises. */
+export function addLoggedRound(
+  data: UserData,
+  sessionId: string,
+  supersetId: string,
+  newId: () => string,
+): UserData {
+  return updateSession(data, sessionId, (session) => {
+    let changed = false;
+    const exercises = session.exercises.map((exercise) => {
+      if (exercise.supersetId !== supersetId) return exercise;
+      changed = true;
+      return withNewSet(exercise, newId());
+    });
+    return changed ? { ...session, exercises } : session;
   });
 }
 

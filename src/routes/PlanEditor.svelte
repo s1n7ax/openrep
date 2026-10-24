@@ -1,13 +1,15 @@
 <!--
   Plan editor (`#/plans/:id/edit`): name; days added, renamed, reordered and
   deleted; exercises added through the picker, targets edited, reordered and
-  removed. Every change is saved as it is made.
+  removed; exercises grouped into supersets. Every change is saved as it is
+  made.
 -->
 <script lang="ts">
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import SupersetEditor from '../components/SupersetEditor.svelte';
   import TargetEditor from '../components/TargetEditor.svelte';
   import { newId, nowIso } from '../lib/ids.ts';
   import { paths, router } from '../lib/router.ts';
@@ -15,6 +17,7 @@
   import { userData } from '../lib/stores/userData.svelte.ts';
   import {
     addDay,
+    dayBlocks,
     deleteDay,
     deletePlan,
     moveDay,
@@ -22,6 +25,7 @@
     renamePlan,
   } from '../lib/userData/plans.ts';
   import { findPlan } from '../lib/userData/selectors.ts';
+  import { blockKey } from '../lib/userData/supersets.ts';
 
   let { planId }: { planId: string } = $props();
 
@@ -148,16 +152,34 @@
           </div>
 
           {#if day.exercises.length > 0}
+            {@const blocks = dayBlocks(day)}
             <ol class="exercises">
-              {#each day.exercises as entry, index (entry.id)}
-                <TargetEditor
-                  {planId}
-                  dayId={day.id}
-                  {entry}
-                  {index}
-                  count={day.exercises.length}
-                  {unit}
-                />
+              {#each blocks as block, blockIndex (blockKey(block))}
+                {@const last = blockIndex === blocks.length - 1}
+                {#if block.kind === 'exercise'}
+                  <TargetEditor
+                    {planId}
+                    dayId={day.id}
+                    entry={block.entry}
+                    label={String(block.index + 1)}
+                    canMoveUp={blockIndex > 0}
+                    canMoveDown={!last}
+                    canJoinNext={!last}
+                    {unit}
+                  />
+                {:else}
+                  <SupersetEditor
+                    {planId}
+                    dayId={day.id}
+                    superset={block.superset}
+                    letter={block.letter}
+                    entries={block.entries}
+                    canMoveUp={blockIndex > 0}
+                    canMoveDown={!last}
+                    canJoinNext={!last}
+                    {unit}
+                  />
+                {/if}
               {/each}
             </ol>
           {/if}

@@ -1,0 +1,25 @@
+{
+  "formatVersion": 2,
+  "id": "superset-schedule",
+  "name": "Superset Schedule",
+  "description": "A schedule with a superset, used by the tests.",
+  "days": [
+    {
+      "name": "Day A",
+      "exercises": [
+        {
+          "superset": {
+            "rounds": 3,
+            "restSec": 90,
+            "exercises": [
+              { "exerciseId": "sample-push-up", "reps": "10" },
+              { "exerciseId": "sample-plank", "durationSec": 30 },
+              { "name": "Farmer's walk", "durationSec": 40, "notes": "Heavy dumbbells." }
+            ]
+          }
+        },
+        { "exerciseId": "sample-push-up", "sets": 2, "reps": "8-12", "restSec": 60 }
+      ]
+    }
+  ]
+}

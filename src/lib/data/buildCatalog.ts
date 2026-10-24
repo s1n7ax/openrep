@@ -1,11 +1,11 @@
 import type { Catalog } from '../schema/catalog.ts';
+import type { Schedule, ScheduleV1 } from '../schema/schedule.ts';
 import type { ValidatedData } from './validate.ts';
 
-/** The catalog format version this code produces. */
-export const CATALOG_FORMAT_VERSION = 1;
+type ContentOf<C> = C extends Catalog ? Omit<C, 'revision' | 'generatedAt'> : never;
 
 /** The part of a catalog its revision is computed from. */
-export type CatalogContent = Omit<Catalog, 'revision' | 'generatedAt'>;
+export type CatalogContent = ContentOf<Catalog>;
 
 function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);
@@ -44,24 +44,40 @@ function byKey<T>(key: (item: T) => string) {
   };
 }
 
+function isV1(schedule: Schedule): schedule is ScheduleV1 {
+  return schedule.formatVersion === 1;
+}
+
 /**
  * Aggregates validated data into a catalog. Items are sorted by id so the
  * same data always gives the same revision, whatever order it was read in.
+ * The catalog is format version 1 unless one of its schedules is version 2,
+ * so apps that only read version 1 keep updating until a schedule needs more.
  */
 export async function buildCatalog(data: ValidatedData, generatedAt: string): Promise<Catalog> {
-  const content: CatalogContent = {
-    formatVersion: CATALOG_FORMAT_VERSION,
-    exercises: [...data.exercises].sort(byKey((e) => e.id)),
-    animations: [...data.animations].sort(byKey((a) => a.exerciseId)),
-    schedules: [...data.schedules].sort(byKey((s) => s.id)),
-  };
+  const exercises = [...data.exercises].sort(byKey((e) => e.id));
+  const animations = [...data.animations].sort(byKey((a) => a.exerciseId));
+  const schedules = [...data.schedules].sort(byKey((s) => s.id));
+  const content: CatalogContent = schedules.every(isV1)
+    ? { formatVersion: 1, exercises, animations, schedules }
+    : { formatVersion: 2, exercises, animations, schedules };
   const revision = await catalogRevision(content);
-  return {
-    formatVersion: content.formatVersion,
-    revision,
-    generatedAt,
-    exercises: content.exercises,
-    animations: content.animations,
-    schedules: content.schedules,
-  };
+  // The fields in the format's order, so a version 1 catalog's file is as before.
+  return content.formatVersion === 1
+    ? {
+        formatVersion: 1,
+        revision,
+        generatedAt,
+        exercises,
+        animations,
+        schedules: content.schedules,
+      }
+    : {
+        formatVersion: 2,
+        revision,
+        generatedAt,
+        exercises,
+        animations,
+        schedules: content.schedules,
+      };
 }

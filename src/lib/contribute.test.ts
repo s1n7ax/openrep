@@ -153,6 +153,74 @@ describe('planToSchedule', () => {
     });
   });
 
+  it('writes a plan without supersets as a version 1 file, fields in the same order', () => {
+    const schedule = planToSchedule(plan(), {
+      customExercises: [custom],
+      findExercise,
+      suffix: 'x',
+    });
+    expect(Object.keys(schedule)).toEqual(['formatVersion', 'id', 'name', 'description', 'days']);
+    expect(Object.keys(schedule.days[0]!.exercises[0]!)).toEqual([
+      'exerciseId',
+      'sets',
+      'reps',
+      'restSec',
+      'notes',
+    ]);
+  });
+
+  it('keeps supersets in a version 2 file', () => {
+    const base = plan();
+    const [heavy, empty, last] = base.days;
+    const withSuperset = plan({
+      days: [
+        {
+          ...heavy!,
+          exercises: heavy!.exercises.map((entry, index) => {
+            if (index > 1) return entry;
+            const { restSec: _restSec, ...rest } = entry;
+            return { ...rest, sets: 4, supersetId: 's1' };
+          }),
+          supersets: [{ id: 's1', restSec: 90 }],
+        },
+        empty!,
+        last!,
+      ],
+    });
+    const schedule = planToSchedule(withSuperset, {
+      customExercises: [custom],
+      findExercise,
+      suffix: 'abc123',
+    });
+    expect(scheduleSchema.safeParse(schedule).success).toBe(true);
+    expect(schedule).toEqual({
+      formatVersion: 2,
+      id: 'my-push-pull-plan-abc123',
+      name: 'My Push / Pull Plan!',
+      description: 'A 2-day plan shared from the OpenRep app.',
+      days: [
+        {
+          name: 'Heavy',
+          exercises: [
+            {
+              superset: {
+                rounds: 4,
+                restSec: 90,
+                exercises: [
+                  { exerciseId: 'barbell-squat', reps: '5', notes: 'Belt on' },
+                  { name: 'Landmine Press', reps: '8-10' },
+                ],
+              },
+            },
+            { name: 'Removed One', sets: 2, durationSec: 30 },
+            { name: 'Deleted custom', sets: 1, reps: '12' },
+          ],
+        },
+        { name: 'Day 3', exercises: [{ exerciseId: 'plank', sets: 3, durationSec: 60 }] },
+      ],
+    });
+  });
+
   it('names untitled plans and needs at least one exercise', () => {
     const untitled = planToSchedule(plan({ name: ' ' }), {
       customExercises: [],

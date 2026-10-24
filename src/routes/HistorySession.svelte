@@ -1,6 +1,7 @@
 <!--
   A finished workout (`#/history/:id`): when, how long, and every exercise
-  with its sets (weights in the user's unit); delete with confirmation.
+  with its sets (weights in the user's unit), supersets round by round;
+  delete with confirmation.
 -->
 <script lang="ts">
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
@@ -8,13 +9,25 @@
   import FactGrid from '../components/FactGrid.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import SupersetLabel from '../components/SupersetLabel.svelte';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { href, paths, router } from '../lib/router.ts';
+  import type { LoggedSet, SessionExercise } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findSession } from '../lib/userData/selectors.ts';
   import { deleteSession } from '../lib/userData/sessions.ts';
-  import { formatTarget } from '../lib/userData/targets.ts';
+  import {
+    blockKey,
+    groupBlocks,
+    supersetExerciseLabel,
+    supersetRounds,
+  } from '../lib/userData/supersets.ts';
+  import {
+    formatSupersetExerciseTarget,
+    formatSupersetSummary,
+    formatTarget,
+  } from '../lib/userData/targets.ts';
   import {
     formatDateTime,
     formatLoggedSet,
@@ -78,38 +91,58 @@
     </div>
 
     <ol class="exercises">
-      {#each session.exercises as exercise (exercise.id)}
-        {@const resolved = resolveExerciseRef(
-          exercise.exercise,
-          (id) => catalog.exercise(id),
-          userData.data.customExercises,
-        )}
-        <li class="exercise card" data-testid="history-exercise">
-          <header class="head">
-            {#if resolved.link}
-              <a class="name" href={resolved.link}>{resolved.name}</a>
-            {:else}
-              <span class="name">{resolved.name}</span>
-            {/if}
-            {#if resolved.note}
-              <span class="missing">{resolved.note}</span>
-            {/if}
-            <span class="target">Target {formatTarget(exercise.target, unit)}</span>
-          </header>
-          <ol class="sets">
-            {#each exercise.sets as set, index (set.id)}
-              <li class="set" class:done={set.done} data-testid="history-set">
-                <span class="number">{index + 1}</span>
-                <span class="value">{formatLoggedSet(set, unit)}</span>
-                {#if set.done}
-                  <span class="state done-state"><Icon name="check" size={18} /> Done</span>
-                {:else}
-                  <span class="state">Skipped</span>
-                {/if}
-              </li>
+      {#each groupBlocks(session.exercises, session.supersets) as block (blockKey(block))}
+        {#if block.kind === 'exercise'}
+          {@const exercise = block.entry}
+          <li class="exercise card" data-testid="history-exercise">
+            <header class="head">
+              {@render exerciseTitle(exercise, `Target ${formatTarget(exercise.target, unit)}`)}
+            </header>
+            <ol class="sets">
+              {#each exercise.sets as set, index (set.id)}
+                {@render setItem(set, String(index + 1))}
+              {/each}
+            </ol>
+          </li>
+        {:else}
+          {@const rounds = supersetRounds(block.entries)}
+          <li
+            class="exercise card superset"
+            data-testid="history-superset"
+            data-superset-id={block.superset.id}
+          >
+            <header class="head">
+              <SupersetLabel
+                letter={block.letter}
+                summary={formatSupersetSummary(rounds.length, block.superset.restSec)}
+                testid="history-superset-summary"
+              />
+              <ol class="members">
+                {#each block.entries as exercise, position (exercise.id)}
+                  <li class="member" data-testid="history-exercise">
+                    <span class="label">{supersetExerciseLabel(block.letter, position)}</span>
+                    <span class="member-text">
+                      {@render exerciseTitle(
+                        exercise,
+                        `Target ${formatSupersetExerciseTarget(exercise.target, unit)}`,
+                      )}
+                    </span>
+                  </li>
+                {/each}
+              </ol>
+            </header>
+            {#each rounds as round, roundIndex (roundIndex)}
+              <section class="round" data-testid="history-round" data-round={roundIndex + 1}>
+                <h3 class="round-title">Round {roundIndex + 1}</h3>
+                <ol class="sets">
+                  {#each round as row (row.set.id)}
+                    {@render setItem(row.set, supersetExerciseLabel(block.letter, row.position))}
+                  {/each}
+                </ol>
+              </section>
             {/each}
-          </ol>
-        </li>
+          </li>
+        {/if}
       {/each}
     </ol>
 
@@ -123,6 +156,35 @@
     </button>
   {/if}
 </div>
+
+{#snippet exerciseTitle(exercise: SessionExercise, target: string)}
+  {@const resolved = resolveExerciseRef(
+    exercise.exercise,
+    (id) => catalog.exercise(id),
+    userData.data.customExercises,
+  )}
+  {#if resolved.link}
+    <a class="name" href={resolved.link}>{resolved.name}</a>
+  {:else}
+    <span class="name">{resolved.name}</span>
+  {/if}
+  {#if resolved.note}
+    <span class="missing">{resolved.note}</span>
+  {/if}
+  <span class="target">{target}</span>
+{/snippet}
+
+{#snippet setItem(set: LoggedSet, label: string)}
+  <li class="set" class:done={set.done} data-testid="history-set">
+    <span class="number">{label}</span>
+    <span class="value">{formatLoggedSet(set, unit)}</span>
+    {#if set.done}
+      <span class="state done-state"><Icon name="check" size={18} /> Done</span>
+    {:else}
+      <span class="state">Skipped</span>
+    {/if}
+  </li>
+{/snippet}
 
 <ConfirmDialog
   open={confirmDelete}
@@ -210,6 +272,53 @@
     list-style: none;
   }
 
+  .superset {
+    border-left: 3px solid var(--accent);
+  }
+
+  .members {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .member {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .label {
+    min-width: 20px;
+    color: var(--accent-text);
+    font-size: var(--text-sm);
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .member-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .round + .round {
+    border-top: 1px solid var(--border);
+  }
+
+  .round-title {
+    padding: var(--space-3) var(--space-4) 0;
+    color: var(--text-3);
+    font-size: var(--text-xs);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
   .set {
     display: flex;
     align-items: center;
@@ -225,7 +334,7 @@
   }
 
   .number {
-    width: 20px;
+    min-width: 20px;
     color: var(--text-3);
     font-size: var(--text-sm);
     font-weight: 800;

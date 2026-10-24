@@ -1,0 +1,1274 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/s1n7ax/openrep/main/data/schema/catalog.v2.json",
+  "type": "object",
+  "properties": {
+    "formatVersion": {
+      "type": "number",
+      "const": 2
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 (hex) of the canonical JSON of formatVersion, exercises, animations and schedules."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+      "description": "When the data last changed: the commit time of the last commit that changed data/. Of two catalogs, the one with the later generatedAt (then the greater revision) is newer."
+    },
+    "exercises": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "formatVersion": {
+            "type": "number",
+            "const": 1
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "description": "Kebab-case identifier, e.g. \"barbell-bench-press-medium-grip\"."
+          },
+          "name": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "\\S"
+            },
+            "description": "Other names people use for this exercise, e.g. \"skull crusher\"."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "cardio",
+              "olympic weightlifting",
+              "plyometrics",
+              "powerlifting",
+              "strength",
+              "stretching",
+              "strongman"
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "beginner",
+              "intermediate",
+              "expert"
+            ]
+          },
+          "force": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pull",
+                  "push",
+                  "static"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mechanic": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "compound",
+                  "isolation"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "equipment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bands",
+                  "barbell",
+                  "body only",
+                  "cable",
+                  "dumbbell",
+                  "e-z curl bar",
+                  "exercise ball",
+                  "foam roll",
+                  "kettlebells",
+                  "machine",
+                  "medicine ball",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "primaryMuscles": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "abdominals",
+                "abductors",
+                "adductors",
+                "biceps",
+                "calves",
+                "chest",
+                "forearms",
+                "glutes",
+                "hamstrings",
+                "lats",
+                "lower back",
+                "middle back",
+                "neck",
+                "quadriceps",
+                "shoulders",
+                "traps",
+                "triceps"
+              ]
+            }
+          },
+          "secondaryMuscles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "abdominals",
+                "abductors",
+                "adductors",
+                "biceps",
+                "calves",
+                "chest",
+                "forearms",
+                "glutes",
+                "hamstrings",
+                "lats",
+                "lower back",
+                "middle back",
+                "neck",
+                "quadriceps",
+                "shoulders",
+                "traps",
+                "triceps"
+              ]
+            }
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "\\S"
+            },
+            "description": "Step-by-step instructions, in order."
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^images\\/[a-z0-9]+(-[a-z0-9]+)*\\/[a-z0-9][a-z0-9_-]*\\.(webp|png|jpg|jpeg)$",
+              "description": "Path relative to data/exercises/, e.g. \"images/pushups/0.webp\"."
+            }
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "const": "free-exercise-db"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "\\S",
+                    "description": "The exercise id in free-exercise-db."
+                  }
+                },
+                "required": [
+                  "name",
+                  "id"
+                ],
+                "additionalProperties": false,
+                "description": "Imported from yuhonas/free-exercise-db (Unlicense)."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "const": "community"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false,
+                "description": "Contributed to OpenRep by the community."
+              }
+            ]
+          }
+        },
+        "required": [
+          "formatVersion",
+          "id",
+          "name",
+          "aliases",
+          "category",
+          "level",
+          "force",
+          "mechanic",
+          "equipment",
+          "primaryMuscles",
+          "secondaryMuscles",
+          "instructions",
+          "images",
+          "source"
+        ],
+        "additionalProperties": false,
+        "title": "OpenRep exercise (v1)",
+        "description": "One exercise: data/exercises/<id>.json. Also checked by `npm run validate:data`: the file name equals the id, image files exist, muscles and aliases are not repeated, and no muscle is both primary and secondary."
+      }
+    },
+    "animations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "formatVersion": {
+            "type": "number",
+            "const": 1
+          },
+          "exerciseId": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "description": "Kebab-case identifier, e.g. \"barbell-bench-press-medium-grip\"."
+          },
+          "durationSec": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 60,
+            "description": "Length of one repetition (one loop), in seconds."
+          },
+          "camera": {
+            "description": "Initial camera; default is a 3/4 front view.",
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "[x, y, z] in metres."
+              },
+              "target": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "items": false,
+                "minItems": 3,
+                "maxItems": 3,
+                "description": "[x, y, z] in metres."
+              }
+            },
+            "required": [
+              "position",
+              "target"
+            ],
+            "additionalProperties": false
+          },
+          "props": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "barbell",
+                    "ez-bar",
+                    "dumbbell",
+                    "kettlebell",
+                    "bench",
+                    "incline-bench",
+                    "cable-handle",
+                    "rope-handle",
+                    "lat-bar",
+                    "pull-up-bar",
+                    "dip-bars",
+                    "leg-press",
+                    "leg-extension",
+                    "leg-curl",
+                    "mat"
+                  ]
+                },
+                "attach": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "hands",
+                    "leftHand",
+                    "rightHand",
+                    "feet",
+                    "leftFoot",
+                    "rightFoot"
+                  ],
+                  "description": "\"none\" places the prop in the world; otherwise it follows the hand(s) or foot/feet. \"hands\"/\"feet\" centre the prop between both hands/feet."
+                },
+                "position": {
+                  "description": "World position (attach \"none\") or offset from the attachment point.",
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                },
+                "rotation": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                },
+                "cableFrom": {
+                  "description": "World point a cable is drawn from to this prop (cable machines).",
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "required": [
+                "type",
+                "attach"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "keyframes": {
+            "minItems": 2,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "t": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Time in the loop, from 0 to 1."
+                },
+                "ease": {
+                  "description": "Easing from this keyframe to the next one. Default \"easeInOut\".",
+                  "type": "string",
+                  "enum": [
+                    "linear",
+                    "easeIn",
+                    "easeOut",
+                    "easeInOut"
+                  ]
+                },
+                "pose": {
+                  "type": "object",
+                  "properties": {
+                    "pelvis": {
+                      "type": "object",
+                      "properties": {
+                        "position": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "description": "[x, y, z] in metres."
+                        },
+                        "rotation": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                        }
+                      },
+                      "required": [
+                        "position",
+                        "rotation"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "spine": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "chest": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "neck": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "head": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "leftHand": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "description": "Where the hand or foot should be."
+                        },
+                        "pole": {
+                          "description": "Point the elbow or knee bends towards.",
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3
+                        }
+                      },
+                      "required": [
+                        "target"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "rightHand": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "description": "Where the hand or foot should be."
+                        },
+                        "pole": {
+                          "description": "Point the elbow or knee bends towards.",
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3
+                        }
+                      },
+                      "required": [
+                        "target"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "leftFoot": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "description": "Where the hand or foot should be."
+                        },
+                        "pole": {
+                          "description": "Point the elbow or knee bends towards.",
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3
+                        }
+                      },
+                      "required": [
+                        "target"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "rightFoot": {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "description": "Where the hand or foot should be."
+                        },
+                        "pole": {
+                          "description": "Point the elbow or knee bends towards.",
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 3,
+                          "maxItems": 3
+                        }
+                      },
+                      "required": [
+                        "target"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "leftShoulder": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "leftElbow": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "leftWrist": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "rightShoulder": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "rightElbow": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "rightWrist": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "leftHip": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "leftKnee": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "leftAnkle": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "rightHip": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "rightKnee": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    },
+                    "rightAnkle": {
+                      "type": "array",
+                      "prefixItems": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "items": false,
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "description": "Euler angles [x, y, z] in degrees, applied in X, Y, Z order."
+                    }
+                  },
+                  "required": [
+                    "pelvis"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "t",
+                "pose"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Poses over one loop; \"t\" increases strictly from 0 (first) to 1 (last). The pose at t = 1 should equal the pose at t = 0 for a smooth loop."
+          }
+        },
+        "required": [
+          "formatVersion",
+          "exerciseId",
+          "durationSec",
+          "props",
+          "keyframes"
+        ],
+        "additionalProperties": false,
+        "title": "OpenRep animation (v1)",
+        "description": "One looping movement: data/animations/<exerciseId>.json. Metres, y up, the figure faces +z with its feet on y = 0. Also checked by `npm run validate:data`: the file name equals exerciseId, the exercise exists, keyframe t runs strictly from 0 to 1, and each limb uses either an IK target (in every keyframe) or FK angles."
+      }
+    },
+    "schedules": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "formatVersion": {
+                "type": "number",
+                "const": 1
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+                "description": "Kebab-case identifier, e.g. \"barbell-bench-press-medium-grip\"."
+              },
+              "name": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "description": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "beginner",
+                  "intermediate",
+                  "expert"
+                ]
+              },
+              "days": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "\\S"
+                    },
+                    "exercises": {
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "exerciseId": {
+                            "description": "Id of an exercise in the catalog.",
+                            "type": "string",
+                            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                          },
+                          "name": {
+                            "description": "Exercise name; required when there is no exerciseId.",
+                            "type": "string",
+                            "pattern": "\\S"
+                          },
+                          "sets": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 20
+                          },
+                          "reps": {
+                            "type": "string",
+                            "pattern": "^[1-9]\\d{0,2}(-[1-9]\\d{0,2})?$",
+                            "description": "A number (\"8\") or an ascending range (\"8-12\")."
+                          },
+                          "durationSec": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3600
+                          },
+                          "restSec": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 3600
+                          },
+                          "notes": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "sets"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "exercises"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "formatVersion",
+              "id",
+              "name",
+              "description",
+              "days"
+            ],
+            "additionalProperties": false,
+            "title": "OpenRep schedule (v1)",
+            "description": "A workout schedule: data/schedules/<id>.json. Each entry sets exerciseId and/or name, and exactly one of reps or durationSec. Also checked by `npm run validate:data`: the file name equals the id and every exerciseId exists in the catalog."
+          },
+          {
+            "type": "object",
+            "properties": {
+              "formatVersion": {
+                "type": "number",
+                "const": 2
+              },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+                "description": "Kebab-case identifier, e.g. \"barbell-bench-press-medium-grip\"."
+              },
+              "name": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "description": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "beginner",
+                  "intermediate",
+                  "expert"
+                ]
+              },
+              "days": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "\\S"
+                    },
+                    "exercises": {
+                      "minItems": 1,
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "exerciseId": {
+                                "description": "Id of an exercise in the catalog.",
+                                "type": "string",
+                                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                              },
+                              "name": {
+                                "description": "Exercise name; required when there is no exerciseId.",
+                                "type": "string",
+                                "pattern": "\\S"
+                              },
+                              "sets": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 20
+                              },
+                              "reps": {
+                                "type": "string",
+                                "pattern": "^[1-9]\\d{0,2}(-[1-9]\\d{0,2})?$",
+                                "description": "A number (\"8\") or an ascending range (\"8-12\")."
+                              },
+                              "durationSec": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 3600
+                              },
+                              "restSec": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 3600
+                              },
+                              "notes": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "sets"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "superset": {
+                                "type": "object",
+                                "properties": {
+                                  "rounds": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 20,
+                                    "description": "Number of rounds; every exercise does one set per round."
+                                  },
+                                  "restSec": {
+                                    "description": "Rest after each round, in seconds.",
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 3600
+                                  },
+                                  "exercises": {
+                                    "minItems": 2,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "exerciseId": {
+                                          "description": "Id of an exercise in the catalog.",
+                                          "type": "string",
+                                          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                                        },
+                                        "name": {
+                                          "description": "Exercise name; required when there is no exerciseId.",
+                                          "type": "string",
+                                          "pattern": "\\S"
+                                        },
+                                        "reps": {
+                                          "type": "string",
+                                          "pattern": "^[1-9]\\d{0,2}(-[1-9]\\d{0,2})?$",
+                                          "description": "A number (\"8\") or an ascending range (\"8-12\")."
+                                        },
+                                        "durationSec": {
+                                          "type": "integer",
+                                          "minimum": 1,
+                                          "maximum": 3600
+                                        },
+                                        "notes": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "rounds",
+                                  "exercises"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "superset"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "exercises"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "formatVersion",
+              "id",
+              "name",
+              "description",
+              "days"
+            ],
+            "additionalProperties": false,
+            "title": "OpenRep schedule (v2)",
+            "description": "A workout schedule: data/schedules/<id>.json. Version 1 plus supersets: an item of a day is an entry, or { \"superset\": { rounds, restSec, exercises } } with two or more exercises done alternately, round by round. Each entry sets exerciseId and/or name, and exactly one of reps or durationSec. Also checked by `npm run validate:data`: the file name equals the id and every exerciseId exists in the catalog."
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "formatVersion",
+    "revision",
+    "generatedAt",
+    "exercises",
+    "animations",
+    "schedules"
+  ],
+  "additionalProperties": false,
+  "title": "OpenRep catalog (v2)",
+  "description": "Every exercise, animation and schedule of the repository in one file, built by `npm run build:catalog`. Like version 1, but schedules may be version 2 (with supersets); a catalog is version 2 only when one of its schedules is. Image paths are relative to the catalog file."
+}

@@ -10,9 +10,16 @@
  */
 import type { Exercise } from './schema/exercise.ts';
 import { exerciseSchema } from './schema/exercise.ts';
-import { scheduleSchema, type Schedule, type ScheduleEntry } from './schema/schedule.ts';
-import type { CustomExercise, Plan } from './schema/userData.ts';
+import {
+  scheduleSchema,
+  type Schedule,
+  type ScheduleEntry,
+  type ScheduleItem,
+  type ScheduleSupersetExercise,
+} from './schema/schedule.ts';
+import type { CustomExercise, Plan, PlanExercise } from './schema/userData.ts';
 import { normalizeCustomExerciseInput } from './userData/customExercises.ts';
+import { dayBlocks } from './userData/plans.ts';
 
 /** The project's public repository. */
 export const REPOSITORY_URL = 'https://github.com/s1n7ax/openrep';
@@ -81,7 +88,8 @@ export interface PlanToScheduleContext {
  * The schedule file for a plan. Exercises in the catalog are referenced by
  * id; custom exercises (and catalog exercises that no longer exist) become
  * name-only entries. Weights are personal and left out; days without
- * exercises are skipped.
+ * exercises are skipped. A plan with supersets gives a version 2 file with
+ * them; any other plan a version 1 file.
  *
  * @throws {ContributionInvalidError} when no day has exercises, or the result
  *   does not validate.
@@ -95,7 +103,7 @@ export function planToSchedule(plan: Plan, context: PlanToScheduleContext): Sche
     throw new ContributionInvalidError('no-exercises', 'The plan has no exercises');
   }
 
-  function entryName(entry: Plan['days'][number]['exercises'][number]): string {
+  function entryName(entry: PlanExercise): string {
     const ref = entry.exercise;
     const current =
       ref.kind === 'custom'
@@ -104,31 +112,70 @@ export function planToSchedule(plan: Plan, context: PlanToScheduleContext): Sche
     return (current ?? ref.name).trim() || 'Exercise';
   }
 
+  /** The exercise as an entry without sets and rest (those of a superset's exercises are shared). */
+  function exerciseFields(entry: PlanExercise): ScheduleSupersetExercise {
+    const ref = entry.exercise;
+    const catalogId =
+      ref.kind === 'catalog' && findExercise(ref.exerciseId) ? ref.exerciseId : undefined;
+    const fields: ScheduleSupersetExercise =
+      catalogId !== undefined ? { exerciseId: catalogId } : { name: entryName(entry) };
+    if (entry.reps !== undefined) fields.reps = entry.reps;
+    if (entry.durationSec !== undefined) fields.durationSec = entry.durationSec;
+    const notes = entry.notes?.trim();
+    if (notes) fields.notes = notes;
+    return fields;
+  }
+
+  function scheduleEntry(entry: PlanExercise): ScheduleEntry {
+    const { exerciseId, name, reps, durationSec, notes } = exerciseFields(entry);
+    const scheduleEntry: ScheduleEntry =
+      exerciseId !== undefined ? { exerciseId, sets: entry.sets } : { name, sets: entry.sets };
+    if (reps !== undefined) scheduleEntry.reps = reps;
+    if (durationSec !== undefined) scheduleEntry.durationSec = durationSec;
+    if (entry.restSec !== undefined) scheduleEntry.restSec = entry.restSec;
+    if (notes !== undefined) scheduleEntry.notes = notes;
+    return scheduleEntry;
+  }
+
   const name = plan.name.trim() || 'Untitled plan';
-  const schedule: Schedule = {
-    formatVersion: 1,
+  const header = {
     id: `${slugify(name) || 'schedule'}-${suffix}`,
     name,
     description: `A ${days.length}-day plan shared from the OpenRep app.`,
-    days: days.map(({ day, index }) => ({
-      name: day.name.trim() || `Day ${index + 1}`,
-      exercises: day.exercises.map((entry) => {
-        const ref = entry.exercise;
-        const catalogId =
-          ref.kind === 'catalog' && findExercise(ref.exerciseId) ? ref.exerciseId : undefined;
-        const scheduleEntry: ScheduleEntry =
-          catalogId !== undefined
-            ? { exerciseId: catalogId, sets: entry.sets }
-            : { name: entryName(entry), sets: entry.sets };
-        if (entry.reps !== undefined) scheduleEntry.reps = entry.reps;
-        if (entry.durationSec !== undefined) scheduleEntry.durationSec = entry.durationSec;
-        if (entry.restSec !== undefined) scheduleEntry.restSec = entry.restSec;
-        const notes = entry.notes?.trim();
-        if (notes) scheduleEntry.notes = notes;
-        return scheduleEntry;
-      }),
-    })),
   };
+  const grouped = days.map(({ day, index }) => ({
+    name: day.name.trim() || `Day ${index + 1}`,
+    exercises: day.exercises,
+    blocks: dayBlocks(day),
+  }));
+  const hasSupersets = grouped.some((day) => day.blocks.some((block) => block.kind === 'superset'));
+  const schedule: Schedule = hasSupersets
+    ? {
+        formatVersion: 2,
+        ...header,
+        days: grouped.map((day) => ({
+          name: day.name,
+          exercises: day.blocks.map((block): ScheduleItem => {
+            if (block.kind === 'exercise') return scheduleEntry(block.entry);
+            const { restSec } = block.superset;
+            return {
+              superset: {
+                rounds: block.entries[0]!.sets,
+                ...(restSec === undefined ? {} : { restSec }),
+                exercises: block.entries.map(exerciseFields),
+              },
+            };
+          }),
+        })),
+      }
+    : {
+        formatVersion: 1,
+        ...header,
+        days: grouped.map((day) => ({
+          name: day.name,
+          exercises: day.exercises.map(scheduleEntry),
+        })),
+      };
 
   const result = scheduleSchema.safeParse(schedule);
   if (!result.success) {

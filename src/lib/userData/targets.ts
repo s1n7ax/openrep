@@ -51,6 +51,30 @@ export function formatTargetWithRest(target: PlanTarget, unit: Unit): string {
   return target.restSec === undefined ? text : `${text} · Rest ${formatDuration(target.restSec)}`;
 }
 
+/**
+ * What one exercise of a superset does each round, with weights in `unit`:
+ * "8–12 reps · 60 kg", "1 rep", "30 s". The round count is the superset's.
+ */
+export function formatSupersetExerciseTarget(
+  target: Pick<PlanTarget, 'reps' | 'durationSec' | 'weightKg'>,
+  unit: Unit,
+): string {
+  const parts: string[] = [];
+  if (target.reps !== undefined) {
+    parts.push(`${formatReps(target.reps)} ${target.reps === '1' ? 'rep' : 'reps'}`);
+  } else if (target.durationSec !== undefined) {
+    parts.push(formatDuration(target.durationSec));
+  }
+  if (target.weightKg !== undefined) parts.push(formatWeightWithUnit(target.weightKg, unit));
+  return parts.join(' · ');
+}
+
+/** "3 rounds · rest 90 s after each round", "1 round" (without a rest). */
+export function formatSupersetSummary(rounds: number, restSec: number | undefined): string {
+  const text = `${rounds} ${rounds === 1 ? 'round' : 'rounds'}`;
+  return restSec === undefined ? text : `${text} · rest ${restSec} s after each round`;
+}
+
 /** The target editor's fields, as typed. */
 export interface TargetForm {
   mode: 'reps' | 'time';

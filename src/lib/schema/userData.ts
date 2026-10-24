@@ -50,8 +50,26 @@ const targetFields = {
 export const planTargetSchema = z.object(targetFields).superRefine(checkRepsOrDuration);
 export type PlanTarget = z.infer<typeof planTargetSchema>;
 
+/**
+ * Two or more exercises of a day (or session) done alternately, round by
+ * round. Its exercises are next to each other and carry its id as
+ * `supersetId`; the round count is their `sets`, which they share. `restSec`
+ * is the rest after each round; there is none between its exercises.
+ */
+export const supersetSchema = z.object({
+  id: localIdSchema,
+  restSec: restSecSchema.optional(),
+});
+export type Superset = z.infer<typeof supersetSchema>;
+
 export const planExerciseSchema = z
-  .object({ id: localIdSchema, exercise: exerciseRefSchema, ...targetFields })
+  .object({
+    id: localIdSchema,
+    exercise: exerciseRefSchema,
+    ...targetFields,
+    /** The superset the exercise belongs to, if any. */
+    supersetId: localIdSchema.optional(),
+  })
   .superRefine(checkRepsOrDuration);
 export type PlanExercise = z.infer<typeof planExerciseSchema>;
 
@@ -59,6 +77,8 @@ export const planDaySchema = z.object({
   id: localIdSchema,
   name: z.string(),
   exercises: z.array(planExerciseSchema),
+  /** Left out when the day has no superset. */
+  supersets: z.array(supersetSchema).optional(),
 });
 export type PlanDay = z.infer<typeof planDaySchema>;
 
@@ -105,6 +125,8 @@ export const sessionExerciseSchema = z.object({
   /** The plan's target when the session started. */
   target: planTargetSchema,
   sets: z.array(loggedSetSchema),
+  /** The superset the exercise belongs to, if any. */
+  supersetId: localIdSchema.optional(),
 });
 export type SessionExercise = z.infer<typeof sessionExerciseSchema>;
 
@@ -119,6 +141,8 @@ export const sessionSchema = z.object({
   /** `null` while the session is in progress. */
   finishedAt: timestampSchema.nullable(),
   exercises: z.array(sessionExerciseSchema),
+  /** The day's supersets when the session started; left out when it had none. */
+  supersets: z.array(supersetSchema).optional(),
 });
 export type Session = z.infer<typeof sessionSchema>;
 

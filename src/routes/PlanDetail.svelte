@@ -1,6 +1,6 @@
 <!--
-  A plan (`#/plans/:id`): its days with exercises and targets, "Start" per
-  day (creates a session and opens the workout), Edit and Submit.
+  A plan (`#/plans/:id`): its days with exercises, supersets and targets,
+  "Start" per day (creates a session and opens the workout), Edit and Submit.
 -->
 <script lang="ts">
   import Dialog from '../components/Dialog.svelte';
@@ -8,6 +8,7 @@
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import SubmitCard from '../components/SubmitCard.svelte';
+  import SupersetLabel from '../components/SupersetLabel.svelte';
   import {
     planToSchedule,
     randomSuffix,
@@ -17,12 +18,18 @@
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { newId, nowIso } from '../lib/ids.ts';
   import { paths, router } from '../lib/router.ts';
-  import type { Plan, PlanDay } from '../lib/schema/userData.ts';
+  import type { Plan, PlanDay, PlanExercise } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
+  import { dayBlocks } from '../lib/userData/plans.ts';
   import { activeSession, findPlan, planStats } from '../lib/userData/selectors.ts';
   import { deleteSession, startSession } from '../lib/userData/sessions.ts';
-  import { formatTargetWithRest } from '../lib/userData/targets.ts';
+  import { blockKey, supersetExerciseLabel } from '../lib/userData/supersets.ts';
+  import {
+    formatSupersetExerciseTarget,
+    formatSupersetSummary,
+    formatTargetWithRest,
+  } from '../lib/userData/targets.ts';
 
   let { planId }: { planId: string } = $props();
 
@@ -150,45 +157,40 @@
             <p class="empty-day">No exercises on this day yet.</p>
           {:else}
             <ol class="exercises">
-              {#each day.exercises as entry, index (entry.id)}
-                {@const resolved = resolveExerciseRef(
-                  entry.exercise,
-                  (id) => catalog.exercise(id),
-                  userData.data.customExercises,
-                )}
-                <li data-testid="plan-exercise" data-plan-exercise-id={entry.id}>
-                  <svelte:element
-                    this={resolved.link ? 'a' : 'div'}
-                    class="exercise"
-                    class:link={!!resolved.link}
-                    href={resolved.link ?? undefined}
+              {#each dayBlocks(day) as block (blockKey(block))}
+                {#if block.kind === 'exercise'}
+                  {@render exerciseItem(
+                    block.entry,
+                    String(block.index + 1),
+                    formatTargetWithRest(block.entry, unit),
+                  )}
+                {:else}
+                  <li
+                    class="superset"
+                    data-testid="plan-superset"
+                    data-superset-id={block.superset.id}
                   >
-                    <span class="number" aria-hidden="true">{index + 1}</span>
-                    <span class="exercise-text">
-                      <span class="exercise-name" data-testid="plan-exercise-name"
-                        >{resolved.name}</span
-                      >
-                      {#if resolved.note}
-                        <span class="missing" data-testid="missing-note">
-                          <Icon name="alert" size={14} />
-                          {resolved.note}
-                        </span>
-                      {/if}
-                      <span class="target" data-testid="plan-exercise-target">
-                        {formatTargetWithRest(entry, unit)}
-                      </span>
-                      {#if entry.notes}
-                        <span class="notes">{entry.notes}</span>
-                      {/if}
-                    </span>
-                    {#if resolved.exercise && catalog.isAnimated(resolved.exercise.id)}
-                      <span class="badge">3D</span>
-                    {/if}
-                    {#if resolved.link}
-                      <span class="chevron"><Icon name="chevron-right" size={18} /></span>
-                    {/if}
-                  </svelte:element>
-                </li>
+                    <div class="superset-head">
+                      <SupersetLabel
+                        letter={block.letter}
+                        summary={formatSupersetSummary(
+                          block.entries[0]?.sets ?? 0,
+                          block.superset.restSec,
+                        )}
+                        testid="plan-superset-summary"
+                      />
+                    </div>
+                    <ol class="superset-exercises">
+                      {#each block.entries as entry, position (entry.id)}
+                        {@render exerciseItem(
+                          entry,
+                          supersetExerciseLabel(block.letter, position),
+                          formatSupersetExerciseTarget(entry, unit),
+                        )}
+                      {/each}
+                    </ol>
+                  </li>
+                {/if}
               {/each}
             </ol>
           {/if}
@@ -207,6 +209,43 @@
     />
   {/if}
 </div>
+
+{#snippet exerciseItem(entry: PlanExercise, label: string, target: string)}
+  {@const resolved = resolveExerciseRef(
+    entry.exercise,
+    (id) => catalog.exercise(id),
+    userData.data.customExercises,
+  )}
+  <li data-testid="plan-exercise" data-plan-exercise-id={entry.id}>
+    <svelte:element
+      this={resolved.link ? 'a' : 'div'}
+      class="exercise"
+      class:link={!!resolved.link}
+      href={resolved.link ?? undefined}
+    >
+      <span class="number" aria-hidden="true" data-testid="plan-exercise-label">{label}</span>
+      <span class="exercise-text">
+        <span class="exercise-name" data-testid="plan-exercise-name">{resolved.name}</span>
+        {#if resolved.note}
+          <span class="missing" data-testid="missing-note">
+            <Icon name="alert" size={14} />
+            {resolved.note}
+          </span>
+        {/if}
+        <span class="target" data-testid="plan-exercise-target">{target}</span>
+        {#if entry.notes}
+          <span class="notes">{entry.notes}</span>
+        {/if}
+      </span>
+      {#if resolved.exercise && catalog.isAnimated(resolved.exercise.id)}
+        <span class="badge">3D</span>
+      {/if}
+      {#if resolved.link}
+        <span class="chevron"><Icon name="chevron-right" size={18} /></span>
+      {/if}
+    </svelte:element>
+  </li>
+{/snippet}
 
 <Dialog
   open={pendingDay !== null}
@@ -319,6 +358,24 @@
     border-top: 1px solid var(--border);
   }
 
+  .superset {
+    border-left: 3px solid var(--accent);
+  }
+
+  .superset-head {
+    padding: var(--space-3) var(--space-4) 0 calc(var(--space-4) - 3px);
+  }
+
+  .superset-exercises {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .superset .exercise {
+    padding-left: calc(var(--space-4) - 3px);
+  }
+
   .chevron {
     align-self: center;
     color: var(--text-3);
@@ -328,14 +385,20 @@
     display: grid;
     flex: none;
     place-items: center;
-    width: 26px;
+    min-width: 26px;
     height: 26px;
+    padding: 0 var(--space-1);
     margin-top: 1px;
     border-radius: var(--radius-pill);
     background: var(--surface-2);
     color: var(--text-2);
     font-size: var(--text-xs);
     font-weight: 800;
+  }
+
+  .superset .number {
+    background: var(--accent-soft);
+    color: var(--accent-text);
   }
 
   .exercise-text {

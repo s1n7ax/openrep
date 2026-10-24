@@ -28,6 +28,15 @@ describe('validate-data script', () => {
     expect(stdout).toContain('Data is valid: 2 exercises, 1 animations, 1 schedules.');
   });
 
+  it('exits 0 when a schedule with a superset is added', async () => {
+    await cp(
+      path.join(FIXTURES, 'superset-schedule.json'),
+      path.join(dataDir, 'schedules/superset-schedule.json'),
+    );
+    const { stdout } = await run(TSX, [SCRIPT, '--data', dataDir]);
+    expect(stdout).toContain('Data is valid: 2 exercises, 1 animations, 2 schedules.');
+  });
+
   it('exits 1 and names the file when a malformed exercise is added', async () => {
     await cp(
       path.join(FIXTURES, 'malformed-exercise.json'),

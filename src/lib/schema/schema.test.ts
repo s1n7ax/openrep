@@ -161,6 +161,54 @@ describe('scheduleSchema', () => {
   });
 });
 
+describe('scheduleSchema version 2', () => {
+  const superset = {
+    superset: {
+      rounds: 3,
+      restSec: 90,
+      exercises: [
+        { exerciseId: 'barbell-bench-press-medium-grip', reps: '8' },
+        { name: 'Wall sit', durationSec: 45 },
+      ],
+    },
+  };
+  const v2 = { ...schedule, formatVersion: 2, days: [{ name: 'Day', exercises: [superset] }] };
+
+  it('accepts supersets mixing reps and time, next to normal entries', () => {
+    const days = [{ name: 'Day', exercises: [superset, { name: 'X', sets: 2, reps: '10' }] }];
+    expect(scheduleSchema.safeParse({ ...v2, days }).success).toBe(true);
+    expect(scheduleSchema.safeParse({ ...schedule, formatVersion: 2 }).success).toBe(true);
+  });
+  it('rejects supersets in version 1 and unknown versions', () => {
+    expect(scheduleSchema.safeParse({ ...v2, formatVersion: 1 }).success).toBe(false);
+    expect(scheduleSchema.safeParse({ ...v2, formatVersion: 3 }).success).toBe(false);
+  });
+  it('requires two or more exercises, each naming an exercise with reps or time', () => {
+    const [first, second] = superset.superset.exercises;
+    const days = (exercises: unknown[]) => [
+      { name: 'Day', exercises: [{ superset: { rounds: 3, exercises } }] },
+    ];
+    expect(scheduleSchema.safeParse({ ...v2, days: days([first]) }).success).toBe(false);
+    expect(scheduleSchema.safeParse({ ...v2, days: days([first, {}]) }).success).toBe(false);
+    expect(
+      scheduleSchema.safeParse({
+        ...v2,
+        days: days([first, { name: 'Y', reps: '8', durationSec: 9 }]),
+      }).success,
+    ).toBe(false);
+    expect(scheduleSchema.safeParse({ ...v2, days: days([first, second]) }).success).toBe(true);
+  });
+  it('keeps sets and rest on the superset, not its exercises', () => {
+    const [first, second] = superset.superset.exercises;
+    const withSets = { superset: { rounds: 3, exercises: [{ ...first, sets: 3 }, second] } };
+    const withRest = { superset: { rounds: 3, exercises: [first, { ...second, restSec: 30 }] } };
+    for (const item of [withSets, withRest]) {
+      const days = [{ name: 'Day', exercises: [item] }];
+      expect(scheduleSchema.safeParse({ ...v2, days }).success).toBe(false);
+    }
+  });
+});
+
 describe('userDataSchema and backupSchema', () => {
   it('accepts empty user data and a backup of it', () => {
     const data = emptyUserData();
@@ -173,6 +221,51 @@ describe('userDataSchema and backupSchema', () => {
       data,
     };
     expect(backupSchema.parse(backup)).toEqual(backup);
+  });
+  it('keeps supersets of plan days and sessions, and data without them unchanged', () => {
+    const ref = { kind: 'catalog', exerciseId: 'pushups', name: 'Pushups' } as const;
+    const target = { sets: 3, reps: '10' };
+    const data = {
+      ...emptyUserData(),
+      plans: [
+        {
+          id: 'p1',
+          name: 'Plan',
+          createdAt: '2026-10-22T10:00:00.000Z',
+          updatedAt: '2026-10-22T10:00:00.000Z',
+          days: [
+            {
+              id: 'd1',
+              name: 'Day',
+              exercises: [
+                { id: 'e1', exercise: ref, ...target, supersetId: 's1' },
+                { id: 'e2', exercise: ref, ...target, supersetId: 's1' },
+              ],
+              supersets: [{ id: 's1', restSec: 90 }],
+            },
+            { id: 'd2', name: 'Plain', exercises: [{ id: 'e3', exercise: ref, ...target }] },
+          ],
+        },
+      ],
+      sessions: [
+        {
+          id: 'w1',
+          planId: 'p1',
+          planName: 'Plan',
+          dayId: 'd1',
+          dayName: 'Day',
+          startedAt: '2026-10-22T10:00:00.000Z',
+          finishedAt: null,
+          exercises: [
+            { id: 'x1', exercise: ref, target, sets: [], supersetId: 's1' },
+            { id: 'x2', exercise: ref, target, sets: [], supersetId: 's1' },
+          ],
+          supersets: [{ id: 's1', restSec: 90 }],
+        },
+      ],
+    };
+    expect(userDataSchema.parse(data)).toEqual(data);
+    expect(userDataSchema.parse(data).plans[0]?.days[1]).not.toHaveProperty('supersets');
   });
   it('rejects a backup of another app or with broken data', () => {
     const data = emptyUserData();
