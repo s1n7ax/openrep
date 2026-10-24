@@ -2,19 +2,22 @@
   Searchable, filterable exercise list: the Exercises tab ("browse": rows link
   to the exercise page) and the plan editor's picker ("pick": rows choose the
   exercise). The user's custom exercises are listed first. When a search finds
-  little, it offers to create a custom exercise with the typed name.
+  little, it offers to create a custom exercise with the typed name. Holding
+  a row previews its exercise.
 -->
 <script lang="ts">
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import type { BrowseState } from '../lib/stores/browse.svelte.ts';
   import { BROWSE_PAGE_SIZE } from '../lib/stores/browse.svelte.ts';
+  import { pressAndHold } from '../lib/hold.ts';
   import { equipmentLabel, muscleLabel, muscleList } from '../lib/labels.ts';
   import { href, paths } from '../lib/router.ts';
   import { createSearchIndex } from '../lib/search.ts';
   import { EQUIPMENT, MUSCLES, type Equipment, type Muscle } from '../lib/schema/common.ts';
   import type { Exercise } from '../lib/schema/exercise.ts';
   import type { CustomExercise } from '../lib/schema/userData.ts';
+  import ExercisePreview, { type PreviewedExercise } from './ExercisePreview.svelte';
   import Icon from './Icon.svelte';
 
   /** Fewer results than this make the picker offer a custom exercise. */
@@ -65,6 +68,7 @@
 
   let sentinel: HTMLElement | undefined = $state();
   let searchInput: HTMLInputElement | undefined = $state();
+  let previewed = $state.raw<PreviewedExercise | null>(null);
 
   // Render more rows as the end of the list approaches. The observer is
   // recreated when the count changes so a still-visible sentinel fires again.
@@ -90,6 +94,15 @@
 
   function slug(value: string): string {
     return value.replace(/\s+/g, '-');
+  }
+
+  /** Previews the exercise of a held row. */
+  function preview(row: HTMLElement) {
+    const { exerciseId, customId } = row.dataset;
+    const exercise = exerciseId === undefined ? undefined : catalog.exercise(exerciseId);
+    const custom = customResults.find((candidate) => candidate.id === customId);
+    if (exercise) previewed = { kind: 'catalog', exercise };
+    else if (custom) previewed = { kind: 'custom', exercise: custom };
   }
 </script>
 
@@ -150,7 +163,7 @@
   </div>
 </div>
 
-<div class="results">
+<div class="results" {@attach pressAndHold('[data-exercise-id], [data-custom-id]', preview)}>
   <div class="summary">
     <p class="count" aria-live="polite" data-testid="result-count">
       {total}
@@ -185,6 +198,7 @@
             <a
               class="row"
               href={href(paths.custom(custom.id))}
+              draggable="false"
               data-testid="custom-row"
               data-custom-id={custom.id}
             >
@@ -217,6 +231,7 @@
             <a
               class="row"
               href={href(paths.exercise(exercise.id))}
+              draggable="false"
               data-testid="exercise-row"
               data-exercise-id={exercise.id}
             >
@@ -241,6 +256,34 @@
   {/if}
 </div>
 
+<ExercisePreview {previewed} onclose={() => (previewed = null)}>
+  {#snippet action(shown)}
+    {#if mode === 'pick'}
+      <button
+        type="button"
+        class="btn btn-primary"
+        data-testid="preview-add"
+        onclick={() =>
+          shown.kind === 'catalog'
+            ? onpickexercise?.(shown.exercise)
+            : onpickcustom?.(shown.exercise)}
+      >
+        <Icon name="plus" size={20} /> Add
+      </button>
+    {:else}
+      <a
+        class="btn btn-primary"
+        href={href(
+          shown.kind === 'catalog'
+            ? paths.exercise(shown.exercise.id)
+            : paths.custom(shown.exercise.id),
+        )}
+        data-testid="preview-open">Open</a
+      >
+    {/if}
+  {/snippet}
+</ExercisePreview>
+
 {#snippet createRow()}
   <button
     type="button"
@@ -262,8 +305,9 @@
       <img
         src={catalog.imageUrl(exercise.images[0])}
         alt=""
-        width="56"
-        height="56"
+        width="72"
+        height="72"
+        draggable="false"
         loading="lazy"
         decoding="async"
       />
@@ -426,6 +470,9 @@
     text-align: left;
     text-decoration: none;
     cursor: pointer;
+    /* Holding a row previews it: no text selection or system long-press menu. */
+    user-select: none;
+    -webkit-touch-callout: none;
   }
 
   .row:active {
@@ -443,8 +490,8 @@
     display: grid;
     flex: none;
     place-items: center;
-    width: 56px;
-    height: 56px;
+    width: 72px;
+    height: 72px;
     overflow: hidden;
     border-radius: var(--radius-md);
     background: var(--surface-2);

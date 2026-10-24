@@ -15,8 +15,10 @@ works offline.
 - **Exercise catalog**: over 870 exercises, from the public-domain
   [free-exercise-db](https://github.com/yuhonas/free-exercise-db) plus community
   contributions. Search by name or alternative name ("skull crusher" finds
-  Lying Triceps Press), filter by muscle and equipment. Exercises that are
-  missing can be added as your own custom exercises.
+  Lying Triceps Press), filter by muscle and equipment. Hold an exercise in
+  the list to preview it (its 3D movement, or its start and end photos)
+  before adding or opening it. Exercises that are missing can be added as
+  your own custom exercises.
 - **Exercise pages**: alternative names, equipment, primary and secondary
   muscles, step-by-step instructions, photos and a 3D view you can rotate and
   zoom. Primary muscles glow strongly, secondary ones faintly. 30 core
