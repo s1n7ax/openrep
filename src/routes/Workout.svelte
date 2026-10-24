@@ -499,14 +499,16 @@
   <header class="head">
     <span class="number" aria-hidden="true" data-testid="workout-exercise-label">{label}</span>
     <div class="titles">
-      {#if resolved.link}
-        <a class="name" href={resolved.link} data-testid="workout-exercise-name">
-          {resolved.name}
-          <Icon name="chevron-right" size={16} />
-        </a>
-      {:else}
-        <span class="name" data-testid="workout-exercise-name">{resolved.name}</span>
-      {/if}
+      <div class="name-line">
+        {#if resolved.link}
+          <a class="name" href={resolved.link} data-testid="workout-exercise-name">
+            {resolved.name}
+            <Icon name="chevron-right" size={16} />
+          </a>
+        {:else}
+          <span class="name" data-testid="workout-exercise-name">{resolved.name}</span>
+        {/if}
+      </div>
       {#if resolved.note}
         <span class="missing" data-testid="missing-note">
           <Icon name="alert" size={14} />
@@ -709,13 +711,19 @@
     min-width: 0;
   }
 
-  /* Inline, so a name that wraps keeps the chevron after its last word. */
-  .name {
-    display: inline;
+  /*
+    The name is inline in its own line, so a name that wraps keeps the
+    chevron after its last word and only the text and chevron are the link.
+  */
+  .name-line {
     color: var(--text);
     font-size: var(--text-lg);
     font-weight: 750;
     line-height: 1.25;
+  }
+
+  .name {
+    color: inherit;
     text-decoration: none;
   }
 
