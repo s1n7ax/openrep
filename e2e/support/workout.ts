@@ -4,11 +4,7 @@
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect } from './fixtures.ts';
-
-interface Point {
-  x: number;
-  y: number;
-}
+import { fingerDown, type Point } from './touch.ts';
 
 /** Chromium starts scrolling only after the finger has moved this far. */
 const TOUCH_SLOP = 16;
@@ -49,20 +45,10 @@ export function workoutPage(page: Page, index: number): Locator {
  * the scroll stops where the finger stops (no fling).
  */
 export async function swipe(page: Page, from: Point, to: Point): Promise<void> {
-  const cdp = await page.context().newCDPSession(page);
-  const steps = 12;
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [from] });
-  for (let step = 1; step <= steps; step++) {
-    const point = {
-      x: from.x + ((to.x - from.x) * step) / steps,
-      y: from.y + ((to.y - from.y) * step) / steps,
-    };
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point] });
-    await page.waitForTimeout(16);
-  }
+  const finger = await fingerDown(page, from);
+  await finger.move(to);
   await page.waitForTimeout(100);
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await cdp.detach();
+  await finger.lift();
 }
 
 /**
