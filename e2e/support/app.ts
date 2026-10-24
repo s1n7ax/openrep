@@ -19,9 +19,9 @@ export async function openApp(page: Page, hash = '#/'): Promise<void> {
   await waitForApp(page);
 }
 
-/** Waits until user data and the catalog are loaded (the tab bar is shown). */
+/** Waits until user data and the catalog are loaded (a screen is shown). */
 export async function waitForApp(page: Page): Promise<void> {
-  await expect(page.getByTestId('tab-plans')).toBeVisible();
+  await expect(page.getByTestId('screen')).toBeAttached();
 }
 
 /** Goes to a screen by changing the location hash, like following a link. */
