@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/s1n7ax/openrep/compare/v0.5.0...v0.6.0) (2026-10-24)
+
+
+### Features
+
+* **exercises:** bigger thumbnails and a press-and-hold preview in the exercise lists ([#16](https://github.com/s1n7ax/openrep/issues/16)) ([2bc25bd](https://github.com/s1n7ax/openrep/commit/2bc25bd69fd42e92dd4061c4159db1640c47d872))
+* **workout:** autofill sets, rest countdown and celebration ([#15](https://github.com/s1n7ax/openrep/issues/15)) ([4792170](https://github.com/s1n7ax/openrep/commit/4792170d7356f3764a3b0a302574fd02c5a00089))
+
 ## [0.5.0](https://github.com/s1n7ax/openrep/compare/v0.4.0...v0.5.0) (2026-10-24)
 
 
