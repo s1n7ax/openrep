@@ -1,0 +1,3 @@
+Features
+• exercises: bigger thumbnails and a press-and-hold preview in the exercise lists
+• workout: autofill sets, rest countdown and celebration
