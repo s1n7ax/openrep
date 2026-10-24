@@ -1,0 +1,104 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "kettlebell-one-legged-deadlift",
+  "durationSec": 3.6,
+  "props": [{"type": "kettlebell", "attach": "rightHand"}],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [-0.02, 0.955, 0], "rotation": [2, 0, 0]},
+        "leftShoulder": [-16, 0, 4],
+        "leftElbow": [-8, 0, 0],
+        "rightShoulder": [-20, 0, 3],
+        "rightElbow": [-4, 0, 0],
+        "leftHip": [4, 0, 2],
+        "leftKnee": [58, 0, 0],
+        "leftAnkle": [18, 0, 0],
+        "rightFoot": {"target": [-0.1, 0, 0.145], "pole": [-0.14, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.24,
+      "ease": "linear",
+      "pose": {
+        "pelvis": {"position": [-0.02, 0.93, -0.08], "rotation": [42, 0, 0]},
+        "neck": [-8, 0, 0],
+        "head": [-4, 0, 0],
+        "leftShoulder": [-46, 0, 4],
+        "leftElbow": [-8, 0, 0],
+        "rightShoulder": [-50, 0, 3],
+        "rightElbow": [-4, 0, 0],
+        "leftHip": [4, 0, 2],
+        "leftKnee": [24, 0, 0],
+        "leftAnkle": [8, 0, 0],
+        "rightFoot": {"target": [-0.1, 0, 0.145], "pole": [-0.14, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.45,
+      "pose": {
+        "pelvis": {"position": [-0.02, 0.89, -0.15], "rotation": [80, 0, 0]},
+        "chest": [-2, 0, 0],
+        "neck": [-22, 0, 0],
+        "head": [-12, 0, 0],
+        "leftShoulder": [-74, 0, 4],
+        "leftElbow": [-8, 0, 0],
+        "rightShoulder": [-78, 0, 3],
+        "rightElbow": [-4, 0, 0],
+        "leftHip": [6, 0, 2],
+        "leftKnee": [6, 0, 0],
+        "leftAnkle": [0, 0, 0],
+        "rightFoot": {"target": [-0.1, 0, 0.145], "pole": [-0.14, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.55,
+      "pose": {
+        "pelvis": {"position": [-0.02, 0.89, -0.15], "rotation": [80, 0, 0]},
+        "chest": [-2, 0, 0],
+        "neck": [-22, 0, 0],
+        "head": [-12, 0, 0],
+        "leftShoulder": [-74, 0, 4],
+        "leftElbow": [-8, 0, 0],
+        "rightShoulder": [-78, 0, 3],
+        "rightElbow": [-4, 0, 0],
+        "leftHip": [6, 0, 2],
+        "leftKnee": [6, 0, 0],
+        "leftAnkle": [0, 0, 0],
+        "rightFoot": {"target": [-0.1, 0, 0.145], "pole": [-0.14, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.76,
+      "ease": "linear",
+      "pose": {
+        "pelvis": {"position": [-0.02, 0.93, -0.08], "rotation": [42, 0, 0]},
+        "neck": [-8, 0, 0],
+        "head": [-4, 0, 0],
+        "leftShoulder": [-46, 0, 4],
+        "leftElbow": [-8, 0, 0],
+        "rightShoulder": [-50, 0, 3],
+        "rightElbow": [-4, 0, 0],
+        "leftHip": [4, 0, 2],
+        "leftKnee": [24, 0, 0],
+        "leftAnkle": [8, 0, 0],
+        "rightFoot": {"target": [-0.1, 0, 0.145], "pole": [-0.14, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [-0.02, 0.955, 0], "rotation": [2, 0, 0]},
+        "leftShoulder": [-16, 0, 4],
+        "leftElbow": [-8, 0, 0],
+        "rightShoulder": [-20, 0, 3],
+        "rightElbow": [-4, 0, 0],
+        "leftHip": [4, 0, 2],
+        "leftKnee": [58, 0, 0],
+        "leftAnkle": [18, 0, 0],
+        "rightFoot": {"target": [-0.1, 0, 0.145], "pole": [-0.14, 0.5, 1]}
+      }
+    }
+  ]
+}
