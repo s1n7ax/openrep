@@ -1,0 +1,2 @@
+Features
+• workout: one exercise per screen
