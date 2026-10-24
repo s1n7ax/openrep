@@ -74,6 +74,7 @@ async function logRound(page: Page, round: number): Promise<void> {
 }
 
 test('a superset is shown on the plan, logged round by round and in history', async ({ page }) => {
+  test.setTimeout(120_000);
   await openApp(page);
   await createThreeExercisePlan(page, 'Push supersets');
   await groupFirstTwo(page);

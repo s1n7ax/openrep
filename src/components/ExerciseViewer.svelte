@@ -2,13 +2,15 @@
   3D view of an exercise: the figure performing the animation (or standing
   still) with the primary muscles glowing strongly and the secondary ones
   faintly, plus a legend naming them. Drag to rotate, pinch / wheel to zoom.
+  Compact, it is a picture only (no legend, buttons or gestures), for pages
+  that are scrolled and swiped through.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { Animation } from '../lib/schema/animation.ts';
   import type { Muscle } from '../lib/schema/common.ts';
   import { GLOW_COLORS } from '../lib/three/colors.ts';
-  import type { ExerciseViewer, ViewPreset } from '../lib/three/viewer.ts';
+  import type { ExerciseContent, ExerciseViewer, ViewPreset } from '../lib/three/viewer.ts';
 
   interface Props {
     exercise: {
@@ -27,6 +29,8 @@
     focus?: readonly [number, number, number] | null;
     /** Fill the parent instead of using the default height. */
     fill?: boolean;
+    /** No legend and buttons; drags and swipes go to the page instead of turning the figure. */
+    compact?: boolean;
   }
 
   let {
@@ -37,6 +41,7 @@
     zoom = 1,
     focus = null,
     fill = false,
+    compact = false,
   }: Props = $props();
 
   let canvas: HTMLCanvasElement | undefined = $state();
@@ -72,12 +77,25 @@
     };
   });
 
+  /** What the viewer shows: a parent passing the same exercise anew does not restart it. */
+  let shown: ExerciseContent | null = null;
+
   $effect(() => {
-    viewer?.setContent({
+    if (!viewer) return;
+    const content = {
       primary: exercise.primaryMuscles,
       secondary: exercise.secondaryMuscles,
       animation,
-    });
+    };
+    if (
+      shown?.primary === content.primary &&
+      shown.secondary === content.secondary &&
+      shown.animation === content.animation
+    ) {
+      return;
+    }
+    shown = content;
+    viewer.setContent(content);
   });
 
   $effect(() => {
@@ -106,6 +124,7 @@
 <figure
   class="viewer"
   class:fill
+  class:compact
   data-testid="exercise-viewer"
   data-animated={animated}
   data-primary={exercise.primaryMuscles.join(',')}
@@ -120,31 +139,35 @@
     {#if failed}
       <p class="error">The 3D view is not available on this device.</p>
     {/if}
-    <div class="buttons">
-      {#if showPlayback}
-        <button type="button" onclick={togglePlayback} aria-pressed={!playing}>
-          {playing ? 'Pause' : 'Play'}
-        </button>
-      {/if}
-      <button type="button" onclick={resetView}>Reset view</button>
-    </div>
-  </div>
-  <figcaption class="legend">
-    <span class="entry">
-      <span class="swatch" style:background={GLOW_COLORS.primary}></span>
-      <span class="label">Primary</span>
-      <span class="muscles" data-testid="primary-muscles">{names(exercise.primaryMuscles)}</span>
-    </span>
-    {#if exercise.secondaryMuscles.length > 0}
-      <span class="entry">
-        <span class="swatch secondary" style:background={GLOW_COLORS.secondary}></span>
-        <span class="label">Secondary</span>
-        <span class="muscles" data-testid="secondary-muscles"
-          >{names(exercise.secondaryMuscles)}</span
-        >
-      </span>
+    {#if !compact}
+      <div class="buttons">
+        {#if showPlayback}
+          <button type="button" onclick={togglePlayback} aria-pressed={!playing}>
+            {playing ? 'Pause' : 'Play'}
+          </button>
+        {/if}
+        <button type="button" onclick={resetView}>Reset view</button>
+      </div>
     {/if}
-  </figcaption>
+  </div>
+  {#if !compact}
+    <figcaption class="legend">
+      <span class="entry">
+        <span class="swatch" style:background={GLOW_COLORS.primary}></span>
+        <span class="label">Primary</span>
+        <span class="muscles" data-testid="primary-muscles">{names(exercise.primaryMuscles)}</span>
+      </span>
+      {#if exercise.secondaryMuscles.length > 0}
+        <span class="entry">
+          <span class="swatch secondary" style:background={GLOW_COLORS.secondary}></span>
+          <span class="label">Secondary</span>
+          <span class="muscles" data-testid="secondary-muscles"
+            >{names(exercise.secondaryMuscles)}</span
+          >
+        </span>
+      {/if}
+    </figcaption>
+  {/if}
 </figure>
 
 <style>
@@ -205,6 +228,10 @@
 
   canvas:active {
     cursor: grabbing;
+  }
+
+  .compact canvas {
+    pointer-events: none;
   }
 
   .error {

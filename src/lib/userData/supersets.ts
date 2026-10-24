@@ -72,9 +72,14 @@ export function groupBlocks<T extends Groupable>(
   return blocks;
 }
 
+/** The exercises of `block`, in order. */
+export function blockEntries<T extends Groupable>(block: Block<T>): T[] {
+  return block.kind === 'exercise' ? [block.entry] : block.entries;
+}
+
 /** The exercises of `blocks`, in order. */
 export function flattenBlocks<T extends Groupable>(blocks: readonly Block<T>[]): T[] {
-  return blocks.flatMap((block) => (block.kind === 'exercise' ? [block.entry] : block.entries));
+  return blocks.flatMap(blockEntries);
 }
 
 /** A key for `block` that is unique among the blocks of its day or session. */

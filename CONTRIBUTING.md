@@ -182,8 +182,8 @@ npm run test:e2e:smoke      # end-to-end smoke tests (Playwright, Chromium)
 ```
 
 The smoke tests are the few end-to-end tests tagged `@smoke`: a plan copied
-from a schedule and edited, exercise search, logging a workout, and the app
-offline with its 3D view. They take well under a minute. CI runs the full
+from a schedule and edited, exercise search, logging a workout, paging through
+a workout, and the app offline with its 3D view. They take well under a minute. CI runs the full
 end-to-end suite (`npm run test:e2e`, 10 minutes or more, mostly the 3D tests),
 which includes the smoke tests. To add a test to the smoke set, give
 it `{ tag: '@smoke' }`; keep the set under 2 minutes in CI.
