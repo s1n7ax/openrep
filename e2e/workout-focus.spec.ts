@@ -12,10 +12,15 @@ import { openApp, readStoredUserData, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { addExercise, copySchedule, createPlan, startDay } from './support/plans.ts';
 import {
+  changeAmounts,
   expectOffScreen,
   expectOnPage,
+  pickOption,
   scrollWorkout,
+  setCircle,
   swipePicture,
+  tickSet,
+  typeWeight,
   workoutPage,
 } from './support/workout.ts';
 
@@ -69,7 +74,7 @@ test(
     const first = workoutPage(page, 0);
     await expect(first.getByTestId('workout-exercise-name')).toHaveText(GOBLET.name);
     const picture = await first.getByTestId('exercise-viewer').boundingBox();
-    const sets = await first.getByTestId('set-row').first().boundingBox();
+    const sets = await first.getByTestId('set-circles').boundingBox();
     expect(picture!.y + picture!.height).toBeLessThanOrEqual(sets!.y);
     await expectOffScreen(page, 1);
     await expect(page.getByTestId('tab-plans')).toHaveCount(0);
@@ -133,7 +138,7 @@ test('exercises without an animation swipe to their photos; the last page finish
   // Ticking a set counts it.
   const progress = page.getByTestId('workout-progress');
   await expect(progress).toHaveText('0/9 sets');
-  await curl.getByTestId('set-row').first().getByTestId('set-done').check();
+  await tickSet(curl, 0);
   await expect(progress).toHaveText('1/9 sets');
   await expect(progress).toHaveAttribute('data-done', '1');
 
@@ -167,16 +172,23 @@ test('entering sets and "last time" work on every page', async ({ page }) => {
       await expectOnPage(page, index);
     }
     const current = workoutPage(page, index);
-    const rows = current.getByTestId('set-row');
-    const row = rows.first();
-    await row.getByTestId('set-weight').fill('20');
-    await row.locator('[data-testid="set-reps"], [data-testid="set-duration"]').fill(amount);
-    await row.getByTestId('set-done').check();
-    await current.getByTestId('set-add').click();
-    await expect(rows).toHaveCount(4);
-    await rows.nth(3).getByTestId('set-remove').click();
-    await expect(rows).toHaveCount(3);
+    const circles = current.getByTestId('set-circle');
+    await typeWeight(current, 0, '20');
+    await changeAmounts(current, { 0: amount });
+    await expect(setCircle(current, 0).getByTestId('set-amount')).toHaveText(amount);
+    await tickSet(current, 0);
+    await pickOption(current, 'set-add');
+    await expect(circles).toHaveCount(4);
+    await pickOption(current, 'set-remove-last');
+    await expect(circles).toHaveCount(3);
   }
+  // The plank is held for seconds: its circles show them, and its options change them.
+  await expect(setCircle(workoutPage(page, 2), 1)).toContainText('30');
+  await expect(setCircle(workoutPage(page, 2), 1)).toContainText('sec');
+  await workoutPage(page, 2).getByTestId('block-options').click();
+  await expect(page.getByTestId('change-amounts')).toContainText('Change seconds');
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('set-options')).not.toBeVisible();
   await expect(page.getByTestId('workout-progress')).toHaveAttribute('data-done', '3');
   await page.getByTestId('workout-finish').click();
   await expect(page.getByTestId('history-sets')).toHaveText('3 of 9');
@@ -194,32 +206,30 @@ test('entering sets and "last time" work on every page', async ({ page }) => {
   }
 });
 
-test('a page with 8 sets scrolls to all of them before moving on', async ({ page }) => {
+test('a page with 20 sets scrolls to all of them before moving on', async ({ page }) => {
   await openApp(page);
-  await createPlan(page, 'Eight sets');
+  await createPlan(page, 'Twenty sets');
   await addExercise(page, 0, 'goblet squat', GOBLET.id);
   await addExercise(page, 0, 'dumbbell bicep curl', CURL.id);
   const sets = page.getByTestId('edit-exercise').first().getByTestId('target-sets');
-  for (let count = 3; count < 8; count++) {
+  for (let count = 3; count < 20; count++) {
     await page.getByTestId('edit-exercise').first().getByTestId('target-sets-inc').click();
   }
-  await expect(sets).toHaveText('8');
+  await expect(sets).toHaveText('20');
   await page.getByTestId('editor-done').click();
   await startDay(page, 0);
 
+  // Four lines of five circles: taller than the screen.
   const squat = workoutPage(page, 0);
-  const rows = squat.getByTestId('set-row');
-  await expect(rows).toHaveCount(8);
-  await expect(squat.getByTestId('set-add')).not.toBeInViewport();
+  const circles = squat.getByTestId('set-circle');
+  await expect(circles).toHaveCount(20);
+  await expect(circles.nth(19)).not.toBeInViewport();
 
-  // The page scrolls within itself to its last set and Add set…
+  // The page scrolls within itself to its last set…
   await scrollWorkout(page, 0.25);
-  await expect(rows.nth(7)).toBeInViewport({ ratio: 1 });
-  await expect(squat.getByTestId('set-add')).toBeInViewport({ ratio: 1 });
+  await expect(circles.nth(19)).toBeInViewport({ ratio: 1 });
   await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '0');
   await expectOffScreen(page, 1);
-  await squat.getByTestId('set-add').click();
-  await expect(rows).toHaveCount(9);
   await expect(page.getByTestId('workout-position')).toHaveText('1 of 2');
 
   // …and only then snaps to the next exercise.
@@ -242,7 +252,7 @@ test('a superset is one page whose picture swipes between its exercises', async 
   // One page with rounds 1–3, then Plank.
   await expect(page.getByTestId('workout-position')).toHaveText('1 of 2');
   const superset = workoutPage(page, 0);
-  await expect(superset.getByTestId('workout-round')).toHaveCount(3);
+  await expect(superset.getByTestId('workout-round')).toHaveText(['Round 1', 'Round 2', 'Round 3']);
   await expect(superset.getByTestId('workout-exercise-name')).toHaveText([GOBLET.name, CURL.name]);
 
   // The picture: A1's 3D view, then A2's still figure and photos; it starts on A1.
@@ -266,12 +276,7 @@ test('a superset is one page whose picture swipes between its exercises', async 
   );
 
   // With round 1's A1 ticked off, the picture starts on A2.
-  await superset
-    .locator('[data-testid="workout-round"][data-round="1"]')
-    .getByTestId('set-row')
-    .first()
-    .getByTestId('set-done')
-    .check();
+  await tickSet(superset.getByTestId('superset-line').first(), 0);
   await reopen(page);
   await expectOnPage(page, 0);
   await expect(workoutPage(page, 0).getByTestId('workout-picture')).toHaveAttribute(
@@ -298,15 +303,15 @@ test('back discards the workout, asking first once something was entered', async
 
   // A set ticked: asks; Cancel stays.
   await startDay(page, 0);
-  const set = workoutPage(page, 0).getByTestId('set-row').first();
-  await set.getByTestId('set-done').check();
+  const circle = setCircle(workoutPage(page, 0), 0);
+  await tickSet(workoutPage(page, 0), 0);
   await page.getByTestId('back-button').click();
   const dialog = page.getByTestId('confirm-dialog');
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText('Discard this workout?');
   await dialog.getByTestId('confirm-cancel').click();
   await expect(dialog).not.toBeVisible();
-  await expect(set.getByTestId('set-done')).toBeChecked();
+  await expect(circle).toHaveAttribute('aria-pressed', 'true');
   expect((await readStoredUserData(page))?.sessions).toHaveLength(1);
 
   // Discard deletes it and returns to the plan.
@@ -323,9 +328,8 @@ test('reopening a workout lands on the first exercise with sets left', async ({ 
   await openApp(page);
   await copySchedule(page, 'beginner-full-body');
   await startDay(page, 0);
-  const rows = workoutPage(page, 0).getByTestId('set-row');
-  await expect(rows).toHaveCount(3);
-  for (const index of [0, 1, 2]) await rows.nth(index).getByTestId('set-done').check();
+  await expect(workoutPage(page, 0).getByTestId('set-circle')).toHaveCount(3);
+  for (const index of [0, 1, 2]) await tickSet(workoutPage(page, 0), index);
 
   await reopen(page);
   await expectOnPage(page, 1);

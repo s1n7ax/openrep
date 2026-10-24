@@ -2,6 +2,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from './fixtures.ts';
 import { copySchedule, startDay } from './plans.ts';
+import { changeAmounts, tickSet, typeWeight } from './workout.ts';
 
 /**
  * A copied plan, a custom exercise, a finished workout, the unit set to lb
@@ -10,10 +11,10 @@ import { copySchedule, startDay } from './plans.ts';
 export async function seedUserData(page: Page): Promise<void> {
   await copySchedule(page, 'beginner-full-body');
   await startDay(page, 0);
-  const set = page.getByTestId('workout-exercise').first().getByTestId('set-row').first();
-  await set.getByTestId('set-weight').fill('60');
-  await set.getByTestId('set-reps').fill('8');
-  await set.getByTestId('set-done').check();
+  const exercise = page.getByTestId('workout-exercise').first();
+  await typeWeight(exercise, 0, '60');
+  await changeAmounts(exercise, { 0: '8' });
+  await tickSet(exercise, 0);
   await page.getByTestId('workout-finish').click();
   await expect(page.getByTestId('history-set').first()).toContainText('60 kg × 8');
 

@@ -9,6 +9,7 @@ import { APP_ORIGIN, REMOTE_CATALOG_ORIGIN, REMOTE_CATALOG_URL } from './support
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule, startDay } from './support/plans.ts';
 import { viewer, waitForFrameAfter } from './support/viewer.ts';
+import { tickSet, typeWeight } from './support/workout.ts';
 
 /** Where exercise images not bundled with the app come from (see src/lib/catalog/urls.ts). */
 const REMOTE_IMAGE_ORIGIN = 'https://raw.githubusercontent.com';
@@ -46,9 +47,9 @@ test('a full flow only talks to the app itself and the catalog', async ({ page, 
   // A workout.
   await page.goBack();
   await startDay(page, 0);
-  const set = page.getByTestId('workout-exercise').first().getByTestId('set-row').first();
-  await set.getByTestId('set-weight').fill('40');
-  await set.getByTestId('set-done').check();
+  const exercise = page.getByTestId('workout-exercise').first();
+  await typeWeight(exercise, 0, '40');
+  await tickSet(exercise, 0);
   await page.getByTestId('workout-finish').click();
   await expect(page.getByTestId('history-set').first()).toContainText('40 kg');
 
