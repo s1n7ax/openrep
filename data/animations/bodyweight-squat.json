@@ -1,0 +1,59 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "bodyweight-squat",
+  "durationSec": 2.8,
+  "camera": {"position": [2.6, 1.2, 2], "target": [0, 0.8, 0]},
+  "props": [],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.955, 0.03], "rotation": [5, 0, 0]},
+        "spine": [-2, 0, 0],
+        "chest": [-2, 0, 0],
+        "leftShoulder": [-121.2, -41.4, 78.4],
+        "leftElbow": [-126.9, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-121.2, 41.4, -78.4],
+        "rightElbow": [-126.9, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.18, 0, 0.13], "pole": [0.45, 0.5, 1]},
+        "rightFoot": {"target": [-0.18, 0, 0.13], "pole": [-0.45, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "pelvis": {"position": [0, 0.44, -0.16], "rotation": [36, 0, 0]},
+        "spine": [-5, 0, 0],
+        "chest": [-6, 0, 0],
+        "neck": [-10, 0, 0],
+        "head": [-6, 0, 0],
+        "leftShoulder": [-121.2, -41.4, 78.4],
+        "leftElbow": [-126.9, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-121.2, 41.4, -78.4],
+        "rightElbow": [-126.9, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.18, 0, 0.13], "pole": [0.45, 0.5, 1]},
+        "rightFoot": {"target": [-0.18, 0, 0.13], "pole": [-0.45, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.955, 0.03], "rotation": [5, 0, 0]},
+        "spine": [-2, 0, 0],
+        "chest": [-2, 0, 0],
+        "leftShoulder": [-121.2, -41.4, 78.4],
+        "leftElbow": [-126.9, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-121.2, 41.4, -78.4],
+        "rightElbow": [-126.9, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.18, 0, 0.13], "pole": [0.45, 0.5, 1]},
+        "rightFoot": {"target": [-0.18, 0, 0.13], "pole": [-0.45, 0.5, 1]}
+      }
+    }
+  ]
+}
