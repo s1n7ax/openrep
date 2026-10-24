@@ -61,7 +61,7 @@ into plans as a custom exercise. A schedule with supersets uses
 
 ### Adding an animation
 
-Animations exist for 30 core exercises; every other exercise shows its muscles
+Animations exist for 70 core exercises; every other exercise shows its muscles
 on a still figure. To animate one:
 
 1. Create `data/animations/<exerciseId>.json` for an existing exercise
