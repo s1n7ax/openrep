@@ -8,20 +8,20 @@
       "t": 0,
       "pose": {
         "pelvis": {"position": [0, 0.95, 0], "rotation": [0, 0, 0]},
-        "leftHand": {"target": [0.055, 0.83, 0.155], "pole": [0.4, 1.2, -0.5]},
-        "rightHand": {"target": [-0.055, 0.83, 0.155], "pole": [-0.4, 1.2, -0.5]},
-        "leftFoot": {"target": [0.3, 0, 0.12], "pole": [0.7, 0.5, 1]},
-        "rightFoot": {"target": [-0.3, 0, 0.12], "pole": [-0.7, 0.5, 1]}
+        "leftHand": {"target": [0.06, 0.88, 0.22], "pole": [0.8, 1.15, 0.1]},
+        "rightHand": {"target": [-0.06, 0.88, 0.22], "pole": [-0.8, 1.15, 0.1]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
       }
     },
     {
       "t": 0.08,
       "pose": {
         "pelvis": {"position": [0, 0.95, 0], "rotation": [0, 0, 0]},
-        "leftHand": {"target": [0.055, 0.83, 0.155], "pole": [0.4, 1.2, -0.5]},
-        "rightHand": {"target": [-0.055, 0.83, 0.155], "pole": [-0.4, 1.2, -0.5]},
-        "leftFoot": {"target": [0.3, 0, 0.12], "pole": [0.7, 0.5, 1]},
-        "rightFoot": {"target": [-0.3, 0, 0.12], "pole": [-0.7, 0.5, 1]}
+        "leftHand": {"target": [0.06, 0.88, 0.22], "pole": [0.8, 1.15, 0.1]},
+        "rightHand": {"target": [-0.06, 0.88, 0.22], "pole": [-0.8, 1.15, 0.1]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
       }
     },
     {
@@ -31,10 +31,23 @@
         "pelvis": {"position": [0, 0.9, -0.15], "rotation": [40, 0, 0]},
         "neck": [-6, 0, 0],
         "head": [-4, 0, 0],
-        "leftHand": {"target": [0.055, 0.66, 0.04], "pole": [0.4, 1.2, -0.6]},
-        "rightHand": {"target": [-0.055, 0.66, 0.04], "pole": [-0.4, 1.2, -0.6]},
-        "leftFoot": {"target": [0.3, 0, 0.12], "pole": [0.7, 0.5, 1]},
-        "rightFoot": {"target": [-0.3, 0, 0.12], "pole": [-0.7, 0.5, 1]}
+        "leftHand": {"target": [0.045, 0.7, 0.12], "pole": [0.8, 1.2, 0]},
+        "rightHand": {"target": [-0.045, 0.7, 0.12], "pole": [-0.8, 1.2, 0]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.4,
+      "ease": "linear",
+      "pose": {
+        "pelvis": {"position": [0, 0.87, -0.23], "rotation": [62, 0, 0]},
+        "neck": [-14, 0, 0],
+        "head": [-7, 0, 0],
+        "leftHand": {"target": [0.045, 0.56, -0.03], "pole": [0.5, 1.2, -0.5]},
+        "rightHand": {"target": [-0.045, 0.56, -0.03], "pole": [-0.5, 1.2, -0.5]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
       }
     },
     {
@@ -43,22 +56,36 @@
         "pelvis": {"position": [0, 0.84, -0.3], "rotation": [80, 0, 0]},
         "neck": [-22, 0, 0],
         "head": [-10, 0, 0],
-        "leftHand": {"target": [0.055, 0.44, -0.18], "pole": [0.4, 1.2, -0.9]},
-        "rightHand": {"target": [-0.055, 0.44, -0.18], "pole": [-0.4, 1.2, -0.9]},
-        "leftFoot": {"target": [0.3, 0, 0.12], "pole": [0.7, 0.5, 1]},
-        "rightFoot": {"target": [-0.3, 0, 0.12], "pole": [-0.7, 0.5, 1]}
+        "leftHand": {"target": [0.04, 0.44, -0.18], "pole": [0, 1.2, -0.9]},
+        "rightHand": {"target": [-0.04, 0.44, -0.18], "pole": [0, 1.2, -0.9]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
       }
     },
     {
       "t": 0.58,
+      "ease": "linear",
       "pose": {
         "pelvis": {"position": [0, 0.84, -0.3], "rotation": [80, 0, 0]},
         "neck": [-22, 0, 0],
         "head": [-10, 0, 0],
-        "leftHand": {"target": [0.055, 0.44, -0.18], "pole": [0.4, 1.2, -0.9]},
-        "rightHand": {"target": [-0.055, 0.44, -0.18], "pole": [-0.4, 1.2, -0.9]},
-        "leftFoot": {"target": [0.3, 0, 0.12], "pole": [0.7, 0.5, 1]},
-        "rightFoot": {"target": [-0.3, 0, 0.12], "pole": [-0.7, 0.5, 1]}
+        "leftHand": {"target": [0.04, 0.44, -0.18], "pole": [0, 1.2, -0.9]},
+        "rightHand": {"target": [-0.04, 0.44, -0.18], "pole": [0, 1.2, -0.9]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.68,
+      "ease": "linear",
+      "pose": {
+        "pelvis": {"position": [0, 0.87, -0.23], "rotation": [62, 0, 0]},
+        "neck": [-14, 0, 0],
+        "head": [-7, 0, 0],
+        "leftHand": {"target": [0.045, 0.56, -0.03], "pole": [0.5, 1.2, -0.5]},
+        "rightHand": {"target": [-0.045, 0.56, -0.03], "pole": [-0.5, 1.2, -0.5]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
       }
     },
     {
@@ -68,20 +95,20 @@
         "pelvis": {"position": [0, 0.9, -0.15], "rotation": [40, 0, 0]},
         "neck": [-6, 0, 0],
         "head": [-4, 0, 0],
-        "leftHand": {"target": [0.055, 0.66, 0.04], "pole": [0.4, 1.2, -0.6]},
-        "rightHand": {"target": [-0.055, 0.66, 0.04], "pole": [-0.4, 1.2, -0.6]},
-        "leftFoot": {"target": [0.3, 0, 0.12], "pole": [0.7, 0.5, 1]},
-        "rightFoot": {"target": [-0.3, 0, 0.12], "pole": [-0.7, 0.5, 1]}
+        "leftHand": {"target": [0.045, 0.7, 0.12], "pole": [0.8, 1.2, 0]},
+        "rightHand": {"target": [-0.045, 0.7, 0.12], "pole": [-0.8, 1.2, 0]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
       }
     },
     {
       "t": 1,
       "pose": {
         "pelvis": {"position": [0, 0.95, 0], "rotation": [0, 0, 0]},
-        "leftHand": {"target": [0.055, 0.83, 0.155], "pole": [0.4, 1.2, -0.5]},
-        "rightHand": {"target": [-0.055, 0.83, 0.155], "pole": [-0.4, 1.2, -0.5]},
-        "leftFoot": {"target": [0.3, 0, 0.12], "pole": [0.7, 0.5, 1]},
-        "rightFoot": {"target": [-0.3, 0, 0.12], "pole": [-0.7, 0.5, 1]}
+        "leftHand": {"target": [0.06, 0.88, 0.22], "pole": [0.8, 1.15, 0.1]},
+        "rightHand": {"target": [-0.06, 0.88, 0.22], "pole": [-0.8, 1.15, 0.1]},
+        "leftFoot": {"target": [0.34, 0, 0.12], "pole": [0.9, 0.5, 1]},
+        "rightFoot": {"target": [-0.34, 0, 0.12], "pole": [-0.9, 0.5, 1]}
       }
     }
   ]
