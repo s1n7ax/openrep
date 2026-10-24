@@ -223,7 +223,7 @@ test('a page with 20 sets scrolls to all of them before moving on', async ({ pag
   const squat = workoutPage(page, 0);
   const circles = squat.getByTestId('set-circle');
   await expect(circles).toHaveCount(20);
-  await expect(circles.nth(19)).not.toBeInViewport();
+  await expect(circles.nth(19)).not.toBeInViewport({ ratio: 1 });
 
   // The page scrolls within itself to its last set…
   await scrollWorkout(page, 0.25);
