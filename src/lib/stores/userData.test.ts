@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryFiles } from '../../../tests/helpers/memoryFiles.ts';
 import { emptyUserData, type UserData } from '../schema/userData.ts';
+import { setUnit } from '../userData/settings.ts';
 
 const MAIN = 'openrep/userdata.json';
 
@@ -11,7 +12,7 @@ async function freshStore() {
 }
 
 function dataWithUnit(unit: 'kg' | 'lb'): UserData {
-  return { ...emptyUserData(), settings: { ...emptyUserData().settings, unit } };
+  return setUnit(emptyUserData(), unit);
 }
 
 describe('userData.replaceAll', () => {
@@ -55,7 +56,7 @@ describe('userData.replaceAll', () => {
       expect(files.files.get(MAIN)).toBe(JSON.stringify(dataWithUnit('lb')));
 
       // Later changes are saved again.
-      userData.update((data) => ({ ...data, settings: { ...data.settings, unit: 'kg' } }));
+      userData.update((data) => setUnit(data, 'kg'));
       await userData.flush();
       expect(files.files.get(MAIN)).toBe(JSON.stringify(dataWithUnit('kg')));
     });

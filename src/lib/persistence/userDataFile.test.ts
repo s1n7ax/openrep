@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryFiles } from '../../../tests/helpers/memoryFiles.ts';
 import { emptyUserData, type UserData } from '../schema/userData.ts';
+import { setUnit } from '../userData/settings.ts';
 import { readWithFallback, writeFileAtomically } from './files.ts';
 import {
   corruptFileName,
@@ -15,7 +16,7 @@ const TMP = 'openrep/userdata.json.tmp';
 const CORRUPT = 'openrep/userdata.corrupt-2026-03-04T05-06-07-089Z.json';
 
 function dataWithUnit(unit: 'kg' | 'lb'): UserData {
-  return { ...emptyUserData(), settings: { ...emptyUserData().settings, unit } };
+  return setUnit(emptyUserData(), unit);
 }
 
 describe('writeFileAtomically', () => {

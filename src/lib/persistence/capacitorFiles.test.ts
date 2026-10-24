@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { emptyUserData } from '../schema/userData.ts';
+import { setUnit } from '../userData/settings.ts';
 
 /** File system error raised by the mocked plugin. */
 class MockFilesystemError extends Error {
@@ -89,19 +90,13 @@ describe('capacitorFiles', () => {
     expect(store.size).toBe(0);
     expect(Filesystem.rename).not.toHaveBeenCalled();
 
-    const data = {
-      ...emptyUserData(),
-      settings: { ...emptyUserData().settings, unit: 'lb' as const },
-    };
+    const data = setUnit(emptyUserData(), 'lb');
     await saveUserDataFile(capacitorFiles, data);
     expect(await loadUserDataFile(capacitorFiles, NOW)).toEqual({ data, corruptFile: null });
   });
 
   it('rejects when an existing directory cannot be listed, so saved data is never replaced', async () => {
-    const saved = {
-      ...emptyUserData(),
-      settings: { ...emptyUserData().settings, unit: 'lb' as const },
-    };
+    const saved = setUnit(emptyUserData(), 'lb');
     store.set('openrep/userdata.json', JSON.stringify(saved));
     const ioError = new MockFilesystemError('I/O error');
     vi.mocked(Filesystem.readdir).mockRejectedValueOnce(ioError);
@@ -133,10 +128,7 @@ describe('capacitorFiles', () => {
   });
 
   it('saves and loads user data through the plugin', async () => {
-    const data = {
-      ...emptyUserData(),
-      settings: { ...emptyUserData().settings, unit: 'lb' as const },
-    };
+    const data = setUnit(emptyUserData(), 'lb');
     await saveUserDataFile(capacitorFiles, data);
     await saveUserDataFile(capacitorFiles, data);
     expect([...store.keys()]).toEqual(['openrep/userdata.json']);
