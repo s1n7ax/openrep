@@ -164,7 +164,7 @@
       <div class="row-text">
         <label class="row-title" for="default-rest">Default rest</label>
         <span class="row-sub" id="default-rest-hint">
-          Seconds the countdown after a set runs when the plan gives no rest. 0 turns it off.
+          Rest after a set when the plan gives none. 0 turns the countdown off.
         </span>
       </div>
       <div class="seconds">
