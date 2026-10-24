@@ -91,6 +91,9 @@
   /** Key of the finish page, after the blocks' pages. */
   const FINISH = 'finish';
 
+  /** Space left between a focused field and the rest countdown below it. */
+  const REVEAL_GAP_PX = 8;
+
   function pageKey(index: number): string {
     const block = blocks[index];
     return block ? blockKey(block) : FINISH;
@@ -135,6 +138,33 @@
       { onPageChange: show },
     );
     return () => snapper.dispose();
+  };
+
+  /** The rest countdown's dock, while it shows. */
+  let restDock = $state<HTMLElement | null>(null);
+
+  /**
+   * While the countdown shows, a field that gets focus, or that has it when
+   * the pages shrink (the keyboard opening), is scrolled just far enough to
+   * sit above the countdown: the browser counts a field under it as visible,
+   * as it floats over the pages. Never past the page, whose room below covers
+   * the countdown, so the page stays.
+   */
+  const revealFocused: Attachment<HTMLElement> = (scroller) => {
+    const reveal = () => {
+      const field = document.activeElement;
+      const typedIn = field instanceof HTMLInputElement && field.type !== 'checkbox';
+      if (restDock === null || !typedIn || !scroller.contains(field)) return;
+      const overlap = field.getBoundingClientRect().bottom - restDock.getBoundingClientRect().top;
+      if (overlap > 0) scroller.scrollTop += overlap + REVEAL_GAP_PX;
+    };
+    const observer = new ResizeObserver(reveal);
+    observer.observe(scroller);
+    scroller.addEventListener('focusin', reveal);
+    return () => {
+      observer.disconnect();
+      scroller.removeEventListener('focusin', reveal);
+    };
   };
 
   function show(index: number) {
@@ -321,7 +351,7 @@
       </div>
     </header>
 
-    <div class="pages" data-testid="workout-pages" {@attach pager}>
+    <div class="pages" data-testid="workout-pages" {@attach pager} {@attach revealFocused}>
       {#each blocks as block, index (blockKey(block))}
         <section
           class="slot"
@@ -477,7 +507,7 @@
     </div>
 
     {#if rest}
-      <div class="rest-dock">
+      <div class="rest-dock" bind:this={restDock}>
         {#key rest}
           <RestTimer {rest} ondismiss={() => restTimer.stop()} />
         {/key}

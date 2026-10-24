@@ -69,6 +69,30 @@ test(
   },
 );
 
+test('a field focused while resting is kept above the countdown when the keyboard opens', async ({
+  page,
+}) => {
+  await openApp(page);
+  await copySchedule(page, 'beginner-full-body');
+  await startDay(page, 0);
+  const rows = workoutPage(page, 0).getByTestId('set-row');
+  const rest = page.getByTestId('rest-timer');
+  await rows.nth(0).getByTestId('set-done').check();
+  await expect(rest).toBeVisible();
+
+  // The keyboard takes the bottom of the screen, which would put the third
+  // row's reps field under the countdown: the page scrolls it above, and stays.
+  const field = rows.nth(2).getByTestId('set-reps');
+  await field.tap();
+  await page.setViewportSize({ width: 412, height: 520 });
+  const pages = page.getByTestId('workout-pages');
+  await expect.poll(() => pages.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  const fieldBox = (await field.boundingBox())!;
+  expect(fieldBox.y + fieldBox.height).toBeLessThanOrEqual((await rest.boundingBox())!.y);
+  await expect(field).toBeFocused();
+  await expectOnPage(page, 0);
+});
+
 test('a workout starts with what was done last time', async ({ page }) => {
   await openApp(page);
   await createPlanWith(page, 'Push', [BENCH, FLYES]);
