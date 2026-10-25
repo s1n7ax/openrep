@@ -15,8 +15,9 @@
   page. Ticking a set starts a rest countdown docked at the bottom, on every
   page (lib/userData/workoutTicks.ts says when and how long). Completing an
   exercise or superset plays a short celebration, then moves on to the next
-  exercise with sets left, or the finish page, unless meanwhile the page was
-  changed, a set un-ticked, or the ⋯ options or the discard question opened.
+  exercise with sets left, or the finish page, unless meanwhile the pages
+  were scrolled or changed, a set un-ticked, or the ⋯ options or the discard
+  question opened.
 -->
 <script module lang="ts">
   import type { Session } from '../lib/schema/userData.ts';
@@ -153,7 +154,13 @@
     const pages = new PageSnapper(
       scroller,
       untrack(() => page),
-      { onPageChange: show },
+      {
+        onPageChange: show,
+        // Even a swipe that has not settled yet keeps the celebration from moving on.
+        onUserScroll: () => {
+          moveOnFrom = null;
+        },
+      },
     );
     snapper = pages;
     return () => {
@@ -244,8 +251,8 @@
   /**
    * When the celebration is over: on to the next exercise with sets left
    * after the one it was for, or the finish page; not when that one has a
-   * set un-ticked again, or when meanwhile the page was changed or a dialog
-   * opened (they forget `moveOnFrom`).
+   * set un-ticked again, or when meanwhile the pages were scrolled or
+   * changed or a dialog opened (they forget `moveOnFrom`).
    */
   function onCelebrationEnd() {
     celebration = null;

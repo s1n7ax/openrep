@@ -2,10 +2,10 @@
  * Verification "Auto-tick and auto-advance": tapping a circle ticks the sets
  * before it too, un-ticking one un-ticks the sets after it; finishing an
  * exercise celebrates it and then moves on to the next exercise with sets
- * left, or the finish page, unless the page was changed or a set un-ticked
- * meanwhile; the rest countdown stays on through the move; the 3D view
- * fills the room the page leaves and keeps its size while the countdown
- * shows.
+ * left, or the finish page, unless a swipe (even one still settling when the
+ * celebration ends) or an un-tick came meanwhile; the rest countdown stays
+ * on through the move; the 3D view fills the room the page leaves and keeps
+ * its size while the countdown shows.
  */
 import type { Locator, Page } from '@playwright/test';
 import { openApp } from './support/app.ts';
@@ -42,6 +42,19 @@ async function expectTicked(scope: Locator, expected: string): Promise<void> {
 async function pictureHeight(page: Page, index: number): Promise<number> {
   const box = await workoutPage(page, index).getByTestId('workout-picture').boundingBox();
   return box!.height;
+}
+
+/**
+ * Ends the celebration as soon as the next finger on the screen is lifted,
+ * after the pages took the lift: the swipe has not settled yet.
+ */
+async function endCelebrationOnLift(page: Page): Promise<void> {
+  await page.getByTestId('celebration').evaluate((celebration) => {
+    const end = () => {
+      for (const animation of celebration.getAnimations()) animation.finish();
+    };
+    window.addEventListener('touchend', end, { once: true });
+  });
 }
 
 test('ticking a set ticks the ones before it, and a finished exercise moves on', async ({
@@ -96,16 +109,17 @@ test('ticking a set ticks the ones before it, and a finished exercise moves on',
   await expect(celebration).toHaveCount(0);
   await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
 
-  // Swiping to another page during the celebration keeps the screen there.
+  // Swiping to another page during the celebration keeps the screen there,
+  // even when the celebration ends as the swipe is let go, before it settles.
   resume = await pauseAnimations(page);
   await setCircle(flyes, 2).click();
   await expectTicked(flyes, '✓✓✓');
   await expect(celebration).toBeVisible();
+  await endCelebrationOnLift(page);
   await scrollWorkout(page, -1 / 3);
-  await expectOnPage(page, 0);
-  await resume();
   await expect(celebration).toHaveCount(0);
   await expectOnPage(page, 0);
+  await resume();
 
   // The pushdown is the last exercise: finishing it moves on to the finish page.
   await scrollWorkout(page, 1 / 3);
