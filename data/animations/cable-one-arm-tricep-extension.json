@@ -1,0 +1,69 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "cable-one-arm-tricep-extension",
+  "durationSec": 2.6,
+  "camera": {"position": [-2.6, 1.7, -1.5], "target": [0, 1.1, 0.2]},
+  "props": [{"type": "cable-handle", "attach": "rightHand", "rotation": [0, 0, -85], "cableFrom": [-0.17, 2.15, 0.5]}],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.958, -0.01], "rotation": [6, 0, 0]},
+        "neck": [-5, 0, 0],
+        "leftShoulder": [70.8, -24.2, 57.7],
+        "leftElbow": [-102.4, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-12, 0, -2],
+        "rightElbow": [-124, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.14, 0, 0.26], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.14, 0, -0.02], "pole": [-0.2, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.42,
+      "pose": {
+        "pelvis": {"position": [0, 0.958, -0.01], "rotation": [6, 0, 0]},
+        "neck": [-5, 0, 0],
+        "leftShoulder": [70.8, -24.2, 57.7],
+        "leftElbow": [-102.4, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-12, 0, -2],
+        "rightElbow": [-5, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.14, 0, 0.26], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.14, 0, -0.02], "pole": [-0.2, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.54,
+      "pose": {
+        "pelvis": {"position": [0, 0.958, -0.01], "rotation": [6, 0, 0]},
+        "neck": [-5, 0, 0],
+        "leftShoulder": [70.8, -24.2, 57.7],
+        "leftElbow": [-102.4, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-12, 0, -2],
+        "rightElbow": [-5, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.14, 0, 0.26], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.14, 0, -0.02], "pole": [-0.2, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.958, -0.01], "rotation": [6, 0, 0]},
+        "neck": [-5, 0, 0],
+        "leftShoulder": [70.8, -24.2, 57.7],
+        "leftElbow": [-102.4, 0, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-12, 0, -2],
+        "rightElbow": [-124, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.14, 0, 0.26], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.14, 0, -0.02], "pole": [-0.2, 0.5, 1]}
+      }
+    }
+  ]
+}
