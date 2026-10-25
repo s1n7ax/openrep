@@ -6,7 +6,8 @@
  * of the screen past the edge of the page it started on, otherwise back. A
  * page taller than the screen scrolls freely and snaps only past its top or
  * bottom edge. (CSS scroll snapping snaps to the nearest page, so a third of
- * a screen would snap back.)
+ * a screen would snap back.) The app can also move to a page itself (`goTo`),
+ * and hears when the user starts scrolling (`onUserScroll`).
  */
 
 /** How far, as a share of the screen height, a scroll goes past a page's edge to move on. */
@@ -88,6 +89,11 @@ export function snapTarget(
 export interface PagerOptions {
   /** Called when the screen comes to rest on another page. */
   onPageChange: (page: number) => void;
+  /**
+   * Called as a finger or the wheel scrolls the pages, from the start of
+   * the scroll (long before it settles); never for the pager's own moves.
+   */
+  onUserScroll: () => void;
 }
 
 /**
@@ -102,6 +108,8 @@ export class PageSnapper {
   /** Scroll position within the current page, kept when the pages change size. */
   #offset = 0;
   #touching = false;
+  /** The scroll position when the finger went down. */
+  #touchTop = 0;
   #frame: number | null = null;
   /** The page an animated snap is heading for. */
   #target: number | null = null;
@@ -118,10 +126,24 @@ export class PageSnapper {
     scroller.addEventListener('touchstart', this.#onTouchStart, { passive: true });
     scroller.addEventListener('touchend', this.#onTouchEnd, { passive: true });
     scroller.addEventListener('touchcancel', this.#onTouchEnd, { passive: true });
+    scroller.addEventListener('wheel', this.#onWheel, { passive: true });
     // The screen (on-screen keyboard) or a page (sets added or removed) changed size.
     this.#resizeObserver = new ResizeObserver(() => this.#keepPage());
     this.#resizeObserver.observe(scroller);
     for (const page of scroller.children) this.#resizeObserver.observe(page);
+  }
+
+  /**
+   * Moves to the top of page `index` as a snap does (see `#animate`). Not
+   * while a finger is on the screen: its scroll goes on as it would.
+   */
+  goTo(index: number): void {
+    const page = this.#boxes()[index];
+    if (!page || this.#touching) return;
+    this.#clearSettle();
+    this.#stopAnimation();
+    this.#grabbed = null;
+    this.#animate({ page: index, top: page.top });
   }
 
   dispose(): void {
@@ -132,6 +154,7 @@ export class PageSnapper {
     this.#scroller.removeEventListener('touchstart', this.#onTouchStart);
     this.#scroller.removeEventListener('touchend', this.#onTouchEnd);
     this.#scroller.removeEventListener('touchcancel', this.#onTouchEnd);
+    this.#scroller.removeEventListener('wheel', this.#onWheel);
   }
 
   /** The pages' boxes, to the fraction of a pixel (offsetTop and offsetHeight are rounded). */
@@ -155,18 +178,36 @@ export class PageSnapper {
       this.#rest(target);
       this.#grabbed = this.#scroller.scrollTop;
     }
+    this.#touchTop = this.#scroller.scrollTop;
   };
 
   readonly #onTouchEnd = (event: TouchEvent) => {
     if (event.touches.length > 0) return;
     this.#touching = false;
+    // A flick may be let go before its first scroll event.
+    this.#noticeSwipe();
     this.#update(false);
   };
 
   readonly #onScroll = () => {
-    if (this.#touching || this.#frame !== null) return;
-    this.#update(false);
+    if (this.#touching) this.#noticeSwipe();
+    else if (this.#frame === null) this.#update(false);
   };
+
+  readonly #onWheel = (event: WheelEvent) => {
+    // Not a wheel a page took for itself (a 3D view zooms with it).
+    if (event.deltaY !== 0 && !event.defaultPrevented) this.#options.onUserScroll();
+  };
+
+  /**
+   * Tells the app once the finger has moved the pages; not for a tap, nor
+   * for a scroll event left over from a snap the finger stopped.
+   */
+  #noticeSwipe(): void {
+    if (Math.abs(this.#scroller.scrollTop - this.#touchTop) >= EPSILON) {
+      this.#options.onUserScroll();
+    }
+  }
 
   /** Snaps when the scroll calls for it; otherwise waits for it to settle. */
   #update(settled: boolean): void {
@@ -240,8 +281,11 @@ export class PageSnapper {
     const start = performance.now();
     scroller.style.overflowY = 'hidden';
     this.#target = snap.page;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
+    const step = () => {
+      // Timed by the clock `start` came from, not the frame's time (the
+      // callback's argument): that can be earlier than `start`, and the ease
+      // of a negative time throws the scroll far back past where it started.
+      const t = Math.min(1, (performance.now() - start) / duration);
       const to = this.#positionIn(snap.page, offset) ?? snap.top;
       scroller.scrollTop = from + (to - from) * ease(t);
       if (t < 1) {
@@ -251,7 +295,7 @@ export class PageSnapper {
       this.#stopAnimation();
       this.#rest(snap.page);
     };
-    step(start);
+    step();
   }
 
   #stopAnimation(): void {

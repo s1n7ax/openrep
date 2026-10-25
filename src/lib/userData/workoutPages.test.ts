@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { LoggedSet, Session, SessionExercise } from '../schema/userData.ts';
 import { groupBlocks } from './supersets.ts';
-import { firstOpenPage, hasEntries, nextSupersetPosition } from './workoutPages.ts';
+import {
+  firstOpenPage,
+  hasEntries,
+  hasSetsLeft,
+  nextOpenPage,
+  nextSupersetPosition,
+} from './workoutPages.ts';
 
 function set(id: string, patch: Partial<LoggedSet> = {}): LoggedSet {
   return { id, weightKg: null, reps: null, durationSec: null, done: false, ...patch };
@@ -69,6 +75,36 @@ describe('firstOpenPage', () => {
   it('opens on the finish page when every set is ticked off', () => {
     const value = session([exercise('e1', [set('a', { done: true })])]);
     expect(firstOpenPage(blocks(value))).toBe(1);
+  });
+});
+
+describe('nextOpenPage', () => {
+  const done = (id: string) => set(id, { done: true });
+  // 1 done, 2 with a set left, superset 3 done, 4 with a set left.
+  const value = session(
+    [
+      exercise('e1', [done('a')]),
+      exercise('e2', [done('b'), set('c')]),
+      exercise('e3', [done('d')], { supersetId: 'x' }),
+      exercise('e4', [done('e')], { supersetId: 'x' }),
+      exercise('e5', [set('f')]),
+    ],
+    ['x'],
+  );
+
+  it('moves on to the next block after it with a set left', () => {
+    expect(nextOpenPage(blocks(value), 0)).toBe(1);
+    expect(nextOpenPage(blocks(value), 1)).toBe(3);
+    expect(nextOpenPage(blocks(value), 2)).toBe(3);
+  });
+
+  it('moves on to the finish page when no block after it has a set left', () => {
+    // Exercise 2, before it, still has one.
+    expect(nextOpenPage(blocks(value), 3)).toBe(4);
+  });
+
+  it('tells whether a block has a set left', () => {
+    expect(blocks(value).map(hasSetsLeft)).toEqual([false, true, false, true]);
   });
 });
 

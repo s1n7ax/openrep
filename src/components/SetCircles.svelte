@@ -1,11 +1,13 @@
 <!--
   The sets of an exercise, or of a superset, as circles on the workout
   screen: one per set, its reps or seconds inside and its weight under it.
-  Tapping a circle ticks the set off, or back on. A row above changes the
-  weight of the selected set with − / + or by typing; the selection starts
-  on, and after each tick moves to, the next set, and tapping a weight
-  selects that set. A superset has a line of circles per exercise (A1,
-  A2, …) and a column per round. Many sets wrap into even lines.
+  Tapping a circle ticks the set off along with the sets before it, or
+  un-ticks it along with the sets after it (a superset's go round by round,
+  A1 before A2). A row above changes the weight of the selected set with
+  − / + or by typing; the selection starts on, and after each tick moves
+  to, the next set, and tapping a weight selects that set. A superset has a
+  line of circles per exercise (A1, A2, …) and a column per round. Many
+  sets wrap into even lines.
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
@@ -45,7 +47,7 @@
     /** The superset's letter; null for an exercise on its own. */
     letter: string | null;
     unit: Unit;
-    /** Called after a set was ticked off (`done` true) or un-ticked. */
+    /** Called after a set was tapped and ticked off (`done` true) or un-ticked. */
     ondone: (sessionExerciseId: string, setId: string, done: boolean) => void;
   }
 
@@ -121,9 +123,11 @@
   function toggle(place: Place) {
     const { entry, set } = place;
     const done = !set.done;
-    // A tick moves the selection on to the next set, if one is left.
+    // A tick, which ticks the sets before it too, moves the selection on to
+    // the next set, if one is left after it.
     if (done) {
-      const left = places.some((other) => !other.set.done && other.set.id !== set.id);
+      const index = places.findIndex((other) => other.set.id === set.id);
+      const left = places.slice(index + 1).some((other) => !other.set.done);
       chosen = left ? null : set.id;
     }
     userData.update((data) => setLoggedSetDone(data, sessionId, entry.id, set.id, done));

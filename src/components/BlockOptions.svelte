@@ -1,13 +1,15 @@
 <!--
   The options of an exercise or a superset on the workout screen, behind its
-  ⋯ button: change the reps (or seconds) of its sets, add a set (a round),
-  and remove the last one, which is not offered for the only one. Changing
-  reps opens a sheet with − n + per set; done sets are muted but can still
-  be changed.
+  ⋯ button: show its history, change the reps (or seconds) of its sets, add
+  a set (a round), and remove the last one, which is not offered for the
+  only one. History opens a sheet with every past workout with the exercise
+  (each exercise of a superset), newest first, and the sets done in it.
+  Changing reps opens a sheet with − n + per set; done sets are muted but
+  can still be changed.
 -->
 <script module lang="ts">
-  /** The options menu, or the sheet changing reps and seconds. */
-  export type BlockSheet = 'menu' | 'amounts';
+  /** The options menu, the history sheet, or the sheet changing reps and seconds. */
+  export type BlockSheet = 'menu' | 'history' | 'amounts';
 </script>
 
 <script lang="ts">
@@ -26,6 +28,7 @@
     updateLoggedSet,
     type SetValues,
   } from '../lib/userData/sessions.ts';
+  import { exerciseHistory, type PastSets } from '../lib/userData/selectors.ts';
   import { amountKind, loggedAmount, shownAmount } from '../lib/userData/setCircles.ts';
   import {
     blockEntries,
@@ -34,6 +37,7 @@
     type Block,
   } from '../lib/userData/supersets.ts';
   import { formatDuration, formatSupersetSummary } from '../lib/userData/targets.ts';
+  import { formatDay, formatSets } from '../lib/userData/workoutText.ts';
   import AmountStepper from './AmountStepper.svelte';
   import Dialog from './Dialog.svelte';
   import Icon from './Icon.svelte';
@@ -42,7 +46,7 @@
     sessionId: string;
     /** The exercise or superset whose options are open; null while closed. */
     block: Block<SessionExercise> | null;
-    /** Which of the two shows while open. */
+    /** Which of them shows while open. */
     sheet: BlockSheet;
     unit: Unit;
     /** The name shown for an exercise. */
@@ -72,6 +76,16 @@
     const sets = `${count} ${count === 1 ? 'set' : 'sets'}`;
     const { restSec } = block.entry.target;
     return restSec === undefined ? sets : `${sets} · Rest ${formatDuration(restSec)}`;
+  });
+  /** The history of each exercise (see `exerciseHistory`), in order. */
+  const histories = $derived(
+    entries.map((entry) => exerciseHistory(userData.data.sessions, entry.exercise, sessionId)),
+  );
+  /** "3 workouts": how many past workouts have the exercise (any of the superset's). */
+  const historyHint = $derived.by(() => {
+    const workouts = new Set(histories.flat().map(({ session }) => session.id)).size;
+    if (workouts === 0) return 'No history yet';
+    return `${workouts} ${workouts === 1 ? 'workout' : 'workouts'}`;
   });
   /** "Change reps", "Change seconds", or both for a superset of both. */
   const amountsTitle = $derived.by(() => {
@@ -159,6 +173,21 @@
       <button
         type="button"
         class="menu-item"
+        data-testid="show-history"
+        onclick={() => onsheet('history')}
+      >
+        <span class="menu-icon"><Icon name="history" size={22} /></span>
+        <span class="menu-text">
+          <span class="menu-label">History</span>
+          <span class="menu-hint">{historyHint}</span>
+        </span>
+        <span class="go"><Icon name="chevron-right" size={20} /></span>
+      </button>
+    </li>
+    <li>
+      <button
+        type="button"
+        class="menu-item"
         data-testid="change-amounts"
         onclick={() => onsheet('amounts')}
       >
@@ -204,6 +233,39 @@
 </Dialog>
 
 <Dialog
+  open={block !== null && sheet === 'history'}
+  title="History"
+  subtitle={title}
+  onclose={() => onsheet(null)}
+  testid="history-sheet"
+>
+  {#if block?.kind === 'superset'}
+    {#each block.entries as entry, position (entry.id)}
+      {@const label = supersetExerciseLabel(block.letter, position)}
+      <section class="group" aria-label={label} data-testid="history-sheet-exercise">
+        <h3 class="group-title">
+          <span class="marker">{label}</span>
+          <span class="group-name">{nameOf(entry)}</span>
+        </h3>
+        {@render pastWorkouts(histories[position] ?? [])}
+      </section>
+    {/each}
+  {:else if block}
+    {@render pastWorkouts(histories[0] ?? [])}
+  {/if}
+  {#snippet actions()}
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-testid="history-close"
+      onclick={() => onsheet(null)}
+    >
+      Close
+    </button>
+  {/snippet}
+</Dialog>
+
+<Dialog
   open={block !== null && sheet === 'amounts'}
   title={amountsTitle}
   subtitle={title}
@@ -244,6 +306,25 @@
     </button>
   {/snippet}
 </Dialog>
+
+{#snippet pastWorkouts(workouts: PastSets[])}
+  {#if workouts.length === 0}
+    <p class="no-history" data-testid="no-past-workouts">No history yet</p>
+  {:else}
+    <ol class="past">
+      {#each workouts as workout (workout.session.id)}
+        <li class="past-workout" data-testid="past-workout">
+          <span class="past-date" data-testid="past-workout-date">
+            {formatDay(workout.session.startedAt)}
+          </span>
+          <span class="past-sets" data-testid="past-workout-sets">
+            {formatSets(workout.sets, unit)}
+          </span>
+        </li>
+      {/each}
+    </ol>
+  {/if}
+{/snippet}
 
 {#snippet row(entry: SessionExercise, set: LoggedSet, label: string, name: string)}
   {@const weight = set.weightKg === null ? null : formatWeightWithUnit(set.weightKg, unit)}
@@ -375,6 +456,43 @@
 
   .group-name {
     min-width: 0;
+  }
+
+  /* Past workouts, newest first: the day, then the sets done. */
+  .past {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .past-workout {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .past-workout:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .past-date {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .past-sets {
+    color: var(--text-2);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .no-history {
+    color: var(--text-3);
   }
 
   .amounts {

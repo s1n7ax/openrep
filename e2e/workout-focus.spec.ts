@@ -13,8 +13,10 @@ import { expect, test } from './support/fixtures.ts';
 import { addExercise, copySchedule, createPlan, startDay } from './support/plans.ts';
 import {
   changeAmounts,
+  closeHistory,
   expectOffScreen,
   expectOnPage,
+  openHistory,
   pickOption,
   scrollWorkout,
   setCircle,
@@ -76,6 +78,10 @@ test(
     const picture = await first.getByTestId('exercise-viewer').boundingBox();
     const sets = await first.getByTestId('set-circles').boundingBox();
     expect(picture!.y + picture!.height).toBeLessThanOrEqual(sets!.y);
+    // The 3D view fills the room the page leaves, more than its least height
+    // (38% of the screen), and the sets are on the screen without scrolling.
+    expect(picture!.height).toBeGreaterThan(0.38 * page.viewportSize()!.height + 50);
+    await expect(first.getByTestId('set-circles')).toBeInViewport({ ratio: 1 });
     await expectOffScreen(page, 1);
     await expect(page.getByTestId('tab-plans')).toHaveCount(0);
     await expect(page.getByTestId('workout-position')).toHaveText('1 of 5');
@@ -160,7 +166,7 @@ test('exercises without an animation swipe to their photos; the last page finish
   await expect(page.getByTestId('history-sets')).toHaveText('1 of 9');
 });
 
-test('entering sets and "last time" work on every page', async ({ page }) => {
+test('entering sets and history work on every page', async ({ page }) => {
   await openApp(page);
   await createFocusPlan(page, 'Every page');
   await startDay(page, 0);
@@ -193,7 +199,7 @@ test('entering sets and "last time" work on every page', async ({ page }) => {
   await page.getByTestId('workout-finish').click();
   await expect(page.getByTestId('history-sets')).toHaveText('3 of 9');
 
-  // The next workout shows them as last time on each page.
+  // The next workout shows them in each exercise's history.
   await page.goBack();
   await startDay(page, 0);
   const expected = ['20 kg × 8', '20 kg × 12', '20 kg × 45 s'];
@@ -202,7 +208,9 @@ test('entering sets and "last time" work on every page', async ({ page }) => {
       await scrollWorkout(page, 1 / 3);
       await expectOnPage(page, index);
     }
-    await expect(workoutPage(page, index).getByTestId('last-time')).toContainText(text);
+    const history = await openHistory(workoutPage(page, index));
+    await expect(history.getByTestId('past-workout-sets')).toHaveText([text]);
+    await closeHistory(history);
   }
 });
 

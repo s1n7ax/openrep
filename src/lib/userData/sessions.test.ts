@@ -12,7 +12,14 @@ import {
   updateCustomExercise,
 } from './customExercises.ts';
 import { addDay, addPlanExercise, createPlan, supersetWithNext } from './plans.ts';
-import { activeSession, history, lastTimeFor, planStats, sameExercise } from './selectors.ts';
+import {
+  activeSession,
+  exerciseHistory,
+  history,
+  lastTimeFor,
+  planStats,
+  sameExercise,
+} from './selectors.ts';
 import {
   addLoggedRound,
   addLoggedSet,
@@ -148,13 +155,13 @@ describe('sessions', () => {
       durationSec: 60,
       reps: null,
     });
-    // Un-ticking keeps the values; ticking an already done set changes nothing.
-    data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatSets[0]?.id ?? '', false);
-    session = data.sessions[0];
-    expect(session?.exercises[0]?.sets[0]).toMatchObject({ done: false, reps: 5 });
+    // Ticking an already done set changes nothing; un-ticking keeps the values.
     expect(setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatSets[1]?.id ?? '', true)).toBe(
       data,
     );
+    data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatSets[1]?.id ?? '', false);
+    session = data.sessions[0];
+    expect(session?.exercises[0]?.sets[1]).toMatchObject({ done: false, reps: 3 });
   });
 
   it("fills empty reps from a range's low end, keeping reps already entered", () => {
@@ -198,8 +205,78 @@ describe('sessions', () => {
   });
 });
 
+describe('ticking sets in order', () => {
+  /** Day d1 (squat 3 × 5, plank 2 × 60 s) started as session s1, optionally as superset "ss". */
+  function started(superset = false): UserData {
+    let data = planData();
+    if (superset) data = supersetWithNext(data, 'p1', 'd1', 'e1', 'ss', T0);
+    return startSession(data, { sessionId: 's1', planId: 'p1', dayId: 'd1' }, T0, counter('id'));
+  }
+
+  /** Taps the set at `setIndex` of the exercise at `exerciseIndex`, ticking it off or un-ticking it. */
+  function tap(data: UserData, exerciseIndex: number, setIndex: number, done: boolean): UserData {
+    const exercise = activeSession(data)?.exercises[exerciseIndex];
+    const setId = exercise?.sets[setIndex]?.id ?? '';
+    return setLoggedSetDone(data, 's1', exercise?.id ?? '', setId, done);
+  }
+
+  /** Done (✓) or not (·) for each set of each exercise, e.g. ["✓✓·", "··"]. */
+  function ticks(data: UserData): string[] {
+    return (activeSession(data)?.exercises ?? []).map((exercise) =>
+      exercise.sets.map((set) => (set.done ? '✓' : '·')).join(''),
+    );
+  }
+
+  it('ticks the sets before a set ticked off, filled as a tap fills them', () => {
+    const data = tap(started(), 0, 2, true);
+    expect(ticks(data)).toEqual(['✓✓✓', '··']);
+    expect(activeSession(data)?.exercises[0]?.sets.map((set) => set.reps)).toEqual([5, 5, 5]);
+  });
+
+  it('un-ticks the sets after a set un-ticked', () => {
+    let data = tap(started(), 0, 2, true);
+    data = tap(data, 0, 1, false);
+    expect(ticks(data)).toEqual(['✓··', '··']);
+    // The values ticking filled in stay.
+    expect(activeSession(data)?.exercises[0]?.sets.map((set) => set.reps)).toEqual([5, 5, 5]);
+  });
+
+  it('ticks the sets in a gap an older workout may have before a set ticked off', () => {
+    let data = started();
+    const exercise = activeSession(data)?.exercises[0];
+    data = updateLoggedSet(data, 's1', exercise?.id ?? '', exercise?.sets[2]?.id ?? '', {
+      done: true,
+    });
+    expect(ticks(tap(data, 0, 1, true))).toEqual(['✓✓✓', '··']);
+    // Before the gap: the sets after it are left as they are.
+    expect(ticks(tap(data, 0, 0, true))).toEqual(['✓·✓', '··']);
+    expect(ticks(tap(started(), 0, 0, true))).toEqual(['✓··', '··']);
+  });
+
+  it('goes round by round in a superset, A1 before A2', () => {
+    // Round 2's A1 (squat): round 1's A1 and A2 (plank) are done too.
+    let data = tap(started(true), 0, 1, true);
+    expect(ticks(data)).toEqual(['✓✓·', '✓··']);
+    expect(activeSession(data)?.exercises[1]?.sets[0]?.durationSec).toBe(60);
+    // Un-ticking round 1's A2 un-ticks round 2's A1 after it.
+    data = tap(data, 1, 0, false);
+    expect(ticks(data)).toEqual(['✓··', '···']);
+  });
+
+  it('changes nothing for a set already so, or one that does not exist', () => {
+    const data = tap(started(), 0, 1, true);
+    expect(tap(data, 0, 0, true)).toBe(data);
+    expect(tap(data, 0, 2, false)).toBe(data);
+    expect(setLoggedSetDone(data, 's1', 'nope', 'nope', true)).toBe(data);
+    expect(setLoggedSetDone(data, 's9', 'nope', 'nope', true)).toBe(data);
+  });
+});
+
 describe('changing weights and removing the last set or round', () => {
-  /** Day d1 started as session s1, with squat sets 1 and 2 ticked off. */
+  /**
+   * Day d1 started as session s1 with a fourth squat set, sets 1 and 3 done
+   * (a gap ticking leaves no more, but older workouts may have).
+   */
   function started(): UserData {
     let data = startSession(
       planData(),
@@ -210,7 +287,8 @@ describe('changing weights and removing the last set or round', () => {
     const squatEx = activeSession(data)?.exercises[0];
     data = addLoggedSet(data, 's1', squatEx?.id ?? '', 'fourth');
     for (const index of [0, 2]) {
-      data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatEx?.sets[index]?.id ?? '', true);
+      const setId = squatEx?.sets[index]?.id ?? '';
+      data = updateLoggedSet(data, 's1', squatEx?.id ?? '', setId, { done: true });
     }
     return data;
   }
@@ -504,6 +582,22 @@ describe('selectors', () => {
     expect(
       lastTimeFor(data.sessions, { kind: 'custom', customExerciseId: 'barbell-squat', name: 'x' }),
     ).toBeNull();
+  });
+
+  it("lists an exercise's history newest first: finished sessions with done sets", () => {
+    let data = logged();
+    // s2 is still in progress.
+    expect(exerciseHistory(data.sessions, squat).map(({ session }) => session.id)).toEqual(['s1']);
+    data = finishSession(data, 's2', T3);
+    const past = exerciseHistory(data.sessions, squat);
+    expect(past.map(({ session }) => session.id)).toEqual(['s2', 's1']);
+    expect(past.map(({ sets }) => sets.map((set) => set.weightKg))).toEqual([[70], [60]]);
+    expect(lastTimeFor(data.sessions, squat)).toEqual(past[0]);
+    expect(exerciseHistory(data.sessions, squat, 's2').map(({ session }) => session.id)).toEqual([
+      's1',
+    ]);
+    // No set of the plank was done.
+    expect(exerciseHistory(data.sessions, plank)).toEqual([]);
   });
 
   it('lists history newest first, finished sessions only', () => {

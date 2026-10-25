@@ -1,7 +1,7 @@
 /**
  * Driving the workout screen: its pages, touch swipes, the picture on top of
- * a page, and its sets (circles, the weight row and the ⋯ options). Swiping
- * needs a touch screen: `test.use({ hasTouch: true })`.
+ * a page, its sets (circles, the weight row and the ⋯ options) and its
+ * celebrations. Swiping needs a touch screen: `test.use({ hasTouch: true })`.
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect } from './fixtures.ts';
@@ -68,9 +68,15 @@ export async function scrollWorkout(page: Page, fraction: number): Promise<void>
   await swipe(page, { x, y: from }, { x, y: to });
 }
 
-/** Waits until the pager rests on page `index` and it fills the screen (all of it, or of a tall one, part). */
+/**
+ * Waits until the pager rests on page `index` and it fills the screen (all of
+ * it, or of a tall one, part). Coming to rest there starts the 3D views next
+ * to it, which can hold up the page before this sees the new page.
+ */
 export async function expectOnPage(page: Page, index: number): Promise<void> {
-  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', String(index));
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', String(index), {
+    timeout: PICTURE_START_TIMEOUT_MS,
+  });
   await waitForPictures(page);
   await expect
     .poll(() =>
@@ -150,6 +156,37 @@ export async function pickOption(block: Locator, item: string): Promise<void> {
   const menu = block.page().getByTestId('set-options');
   await expect(menu).toBeVisible();
   await menu.getByTestId(item).click();
+}
+
+/**
+ * Opens the history of the exercise or superset `block` (⋯ → History) and
+ * returns its sheet.
+ */
+export async function openHistory(block: Locator): Promise<Locator> {
+  await pickOption(block, 'show-history');
+  const sheet = block.page().getByTestId('history-sheet');
+  await expect(sheet).toBeVisible();
+  return sheet;
+}
+
+/** Closes the history sheet `sheet`. */
+export async function closeHistory(sheet: Locator): Promise<void> {
+  await sheet.getByTestId('history-close').click();
+  await expect(sheet).not.toBeVisible();
+}
+
+/**
+ * Stops the CSS animations of `page` (a celebration lasts until they go on)
+ * and returns a function that lets them go on.
+ */
+export async function pauseAnimations(page: Page): Promise<() => Promise<void>> {
+  const devtools = await page.context().newCDPSession(page);
+  await devtools.send('Animation.enable');
+  await devtools.send('Animation.setPlaybackRate', { playbackRate: 0 });
+  return async () => {
+    await devtools.send('Animation.setPlaybackRate', { playbackRate: 1 });
+    await devtools.detach();
+  };
 }
 
 /** The reps or seconds fields of the "Change reps" sheet: each set of the exercise, or each round of A1, then of A2, … */

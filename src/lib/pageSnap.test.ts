@@ -86,6 +86,13 @@ describe('snapTarget', () => {
   });
 });
 
+/** The parts of the events the pager reads. */
+interface FakeEvent {
+  touches: unknown[];
+  deltaY: number;
+  defaultPrevented: boolean;
+}
+
 /**
  * A scroll container of pages laid out as `boxes`. It has no layout or events
  * of its own: a test sets `scrollTop` and dispatches the events a browser would.
@@ -96,7 +103,7 @@ class FakeScroller {
   readonly style = { overflowY: '' };
   readonly children: { getBoundingClientRect: () => { top: number; height: number } }[];
   readonly #boxes: PageBox[];
-  readonly #listeners = new Map<string, (event: { touches: unknown[] }) => void>();
+  readonly #listeners = new Map<string, (event: FakeEvent) => void>();
 
   constructor(boxes: readonly PageBox[]) {
     this.#boxes = boxes.map((box) => ({ ...box }));
@@ -117,7 +124,7 @@ class FakeScroller {
     return { top: 0 };
   }
 
-  addEventListener(type: string, listener: (event: { touches: unknown[] }) => void) {
+  addEventListener(type: string, listener: (event: FakeEvent) => void) {
     this.#listeners.set(type, listener);
   }
 
@@ -125,8 +132,9 @@ class FakeScroller {
     this.#listeners.delete(type);
   }
 
-  dispatch(type: 'scroll' | 'touchstart' | 'touchend') {
-    this.#listeners.get(type)?.({ touches: [] });
+  /** Dispatches an event of `type`, no finger left on the screen, as `event` says otherwise. */
+  dispatch(type: 'scroll' | 'touchstart' | 'touchend' | 'wheel', event: Partial<FakeEvent> = {}) {
+    this.#listeners.get(type)?.({ touches: [], deltaY: 0, defaultPrevented: false, ...event });
   }
 
   /** A finger drags the content to scroll position `to` and lets go. */
@@ -182,15 +190,18 @@ describe('PageSnapper', () => {
 
   /**
    * A pager over `boxes` (three screen-high pages), on page `initial` (the
-   * first); `changes` records its page changes.
+   * first); `changes` records its page changes, `userScroll` is told of the
+   * user's scrolling.
    */
   function pager(boxes = pages(SCREEN, SCREEN, SCREEN), initial = 0) {
     const scroller = new FakeScroller(boxes);
     const changes: number[] = [];
+    const userScroll = vi.fn();
     const snapper = new PageSnapper(scroller as unknown as HTMLElement, initial, {
       onPageChange: (page) => changes.push(page),
+      onUserScroll: userScroll,
     });
-    return { scroller, changes, snapper };
+    return { scroller, changes, userScroll, snapper };
   }
 
   it('snaps to the next page after a drag past the threshold', () => {
@@ -199,6 +210,23 @@ describe('PageSnapper', () => {
     vi.advanceTimersByTime(1000);
     expect(scroller.scrollTop).toBe(800);
     expect(scroller.style.overflowY).toBe('');
+    expect(changes).toEqual([1]);
+  });
+
+  it('snaps only onwards when the frames’ times are earlier than the snap’s start', () => {
+    vi.stubGlobal('requestAnimationFrame', (step: (now: number) => void) =>
+      setTimeout(() => step(performance.now() - 500), 16),
+    );
+    const { scroller, changes } = pager();
+    scroller.drag(SCREEN / 3);
+    const positions: number[] = [];
+    for (let frame = 0; frame < 20; frame += 1) {
+      vi.advanceTimersByTime(16);
+      positions.push(scroller.scrollTop);
+    }
+    expect(Math.min(...positions)).toBeGreaterThanOrEqual(SCREEN / 3);
+    expect(positions).toEqual(positions.toSorted((a, b) => a - b));
+    expect(scroller.scrollTop).toBe(800);
     expect(changes).toEqual([1]);
   });
 
@@ -248,6 +276,78 @@ describe('PageSnapper', () => {
       vi.advanceTimersByTime(1000);
       expect(scroller.scrollTop).toBe(0);
       expect(changes).toEqual([1, 0]);
+    });
+  });
+
+  it('goes to a page it is told to, as a snap', () => {
+    const { scroller, changes, snapper } = pager();
+    snapper.goTo(2);
+    expect(scroller.style.overflowY).toBe('hidden');
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(1600);
+    expect(scroller.style.overflowY).toBe('');
+    expect(changes).toEqual([2]);
+    // There is no page 3.
+    snapper.goTo(3);
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(1600);
+  });
+
+  it('does not go to a page while a finger is on the screen', () => {
+    const { scroller, changes, snapper } = pager();
+    scroller.dispatch('touchstart');
+    snapper.goTo(1);
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(0);
+    expect(scroller.style.overflowY).toBe('');
+    expect(changes).toEqual([]);
+  });
+
+  describe('the user scrolling', () => {
+    it('is told as soon as a finger moves the pages, before it is let go', () => {
+      const { scroller, userScroll } = pager();
+      scroller.dispatch('touchstart');
+      scroller.scrollTop = 40;
+      scroller.dispatch('scroll');
+      expect(userScroll).toHaveBeenCalled();
+    });
+
+    it('is told when a flick is let go before its first scroll event', () => {
+      const { scroller, userScroll } = pager();
+      scroller.dispatch('touchstart');
+      scroller.scrollTop = 300;
+      scroller.dispatch('touchend');
+      expect(userScroll).toHaveBeenCalled();
+    });
+
+    it('is told when the wheel scrolls the pages, not sideways or when a page took it', () => {
+      const { scroller, userScroll } = pager();
+      scroller.dispatch('wheel');
+      scroller.dispatch('wheel', { deltaY: 100, defaultPrevented: true });
+      expect(userScroll).not.toHaveBeenCalled();
+      scroller.dispatch('wheel', { deltaY: 100 });
+      expect(userScroll).toHaveBeenCalled();
+    });
+
+    it('is not told of a tap, nor of a move the pager was told to, grabbed or not', () => {
+      const { scroller, userScroll, snapper } = pager();
+      scroller.dispatch('touchstart');
+      scroller.dispatch('touchend');
+      snapper.goTo(1);
+      vi.advanceTimersByTime(50);
+      scroller.dispatch('scroll');
+      vi.advanceTimersByTime(1000);
+      scroller.dispatch('scroll');
+      expect(scroller.scrollTop).toBe(800);
+      // A tap mid-way stops the move; the scroll event of its last frame comes after.
+      snapper.goTo(2);
+      vi.advanceTimersByTime(50);
+      scroller.dispatch('touchstart');
+      scroller.dispatch('scroll');
+      scroller.dispatch('touchend');
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(1600);
+      expect(userScroll).not.toHaveBeenCalled();
     });
   });
 
