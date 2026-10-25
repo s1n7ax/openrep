@@ -406,14 +406,15 @@
     <div class="pages" data-testid="workout-pages" {@attach pager} {@attach revealFocused}>
       {#each blocks as block, index (blockKey(block))}
         {@const slides = slidesOf(block)}
+        {@const pictured = hasPicture(slides)}
         <section
           class="slot"
-          class:pictured={hasPicture(slides)}
+          class:pictured
           data-testid="workout-page"
           data-page={index}
           aria-label={`Exercise ${index + 1} of ${blocks.length}`}
         >
-          {#if hasPicture(slides)}
+          {#if pictured}
             <ExercisePicture
               {slides}
               initial={firstSlideOf(slides, nextSupersetPosition(blockEntries(block)))}

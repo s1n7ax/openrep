@@ -83,9 +83,9 @@
   );
   /** "3 workouts": how many past workouts have the exercise (any of the superset's). */
   const historyHint = $derived.by(() => {
-    const count = new Set(histories.flat().map(({ session }) => session.id)).size;
-    if (count === 0) return 'No history yet';
-    return `${count} ${count === 1 ? 'workout' : 'workouts'}`;
+    const workouts = new Set(histories.flat().map(({ session }) => session.id)).size;
+    if (workouts === 0) return 'No history yet';
+    return `${workouts} ${workouts === 1 ? 'workout' : 'workouts'}`;
   });
   /** "Change reps", "Change seconds", or both for a superset of both. */
   const amountsTitle = $derived.by(() => {
