@@ -1,6 +1,7 @@
 /**
- * Driving the workout screen: its pages, touch swipes, and the picture on
- * top of a page. Swiping needs a touch screen: `test.use({ hasTouch: true })`.
+ * Driving the workout screen: its pages, touch swipes, the picture on top of
+ * a page, and its sets (circles, the weight row and the ⋯ options). Swiping
+ * needs a touch screen: `test.use({ hasTouch: true })`.
  */
 import type { Locator, Page } from '@playwright/test';
 import { expect } from './fixtures.ts';
@@ -94,4 +95,85 @@ export async function swipePicture(pageLocator: Locator): Promise<void> {
   const { x, y, width, height } = box!;
   const middle = y + height / 2;
   await swipe(pageLocator.page(), { x: x + width - 20, y: middle }, { x: x + 20, y: middle + 2 });
+}
+
+/**
+ * The circle of the set at `index` among the sets in `scope`: an exercise's
+ * page (or part of it), or one exercise's line of a superset.
+ */
+export function setCircle(scope: Locator, index: number): Locator {
+  return scope.getByTestId('set-circle').nth(index);
+}
+
+/** Expects the set at `index` in `scope` to show `weight` under its circle ("60 kg", "—") and `amount` in it. */
+export async function expectSet(
+  scope: Locator,
+  index: number,
+  weight: string,
+  amount: string,
+): Promise<void> {
+  await expect(scope.getByTestId('set-weight-caption').nth(index)).toHaveText(weight);
+  await expect(setCircle(scope, index).getByTestId('set-amount')).toHaveText(amount);
+}
+
+/** Ticks off the set at `index` in `scope` by tapping its circle, or un-ticks it (`done` false). */
+export async function tickSet(scope: Locator, index: number, done = true): Promise<void> {
+  const circle = setCircle(scope, index);
+  await expect(circle).toHaveAttribute('aria-pressed', String(!done));
+  await circle.click();
+  await expect(circle).toHaveAttribute('aria-pressed', String(done));
+}
+
+/**
+ * Types `weight` for the set at `index` in `scope`: taps the weight under its
+ * circle to select it, then types in the weight row of `block` (the
+ * exercise or superset holding `scope`; `scope` itself by default).
+ */
+export async function typeWeight(
+  scope: Locator,
+  index: number,
+  weight: string,
+  block: Locator = scope,
+): Promise<void> {
+  const caption = scope.getByTestId('set-weight-caption').nth(index);
+  await caption.click();
+  await expect(block.getByTestId('weight-row')).toHaveAttribute(
+    'data-set-id',
+    (await caption.getAttribute('data-set-id'))!,
+  );
+  await block.getByTestId('set-weight').fill(weight);
+}
+
+/** Opens the ⋯ options of the exercise or superset `block` and taps `item` (its test id: "set-add", "round-remove-last", …). */
+export async function pickOption(block: Locator, item: string): Promise<void> {
+  await block.getByTestId('block-options').click();
+  const menu = block.page().getByTestId('set-options');
+  await expect(menu).toBeVisible();
+  await menu.getByTestId(item).click();
+}
+
+/** The reps or seconds fields of the "Change reps" sheet: each set of the exercise, or each round of A1, then of A2, … */
+export function amountFields(page: Page): Locator {
+  return page
+    .getByTestId('amounts-sheet')
+    .locator('[data-testid="set-reps"], [data-testid="set-duration"]');
+}
+
+/**
+ * Types reps or seconds in the "Change reps" sheet of the exercise or
+ * superset `block`: `amounts` maps positions in `amountFields` to values.
+ */
+export async function changeAmounts(
+  block: Locator,
+  amounts: Record<number, string>,
+): Promise<void> {
+  const page = block.page();
+  await pickOption(block, 'change-amounts');
+  const sheet = page.getByTestId('amounts-sheet');
+  await expect(sheet).toBeVisible();
+  for (const [index, value] of Object.entries(amounts)) {
+    await amountFields(page).nth(Number(index)).fill(value);
+  }
+  await sheet.getByTestId('amounts-done').click();
+  await expect(sheet).not.toBeVisible();
 }

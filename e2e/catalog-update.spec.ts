@@ -11,6 +11,7 @@ import { bundledCatalog, openApp, reopen } from './support/app.ts';
 import { REMOTE_CATALOG_URL } from './support/env.ts';
 import { expect, test } from './support/fixtures.ts';
 import { addExercise, createPlan, openPlan, startDay } from './support/plans.ts';
+import { changeAmounts, tickSet, typeWeight } from './support/workout.ts';
 
 const ZERCHER: Exercise = {
   formatVersion: 1,
@@ -134,10 +135,9 @@ test('an update removing an exercise used in a plan keeps the plan working', asy
   await expect(exercise.getByTestId('missing-note')).toContainText('No longer in catalog');
   // Its page has no 3D view.
   await expect(page.getByTestId('workout-page').getByTestId('workout-picture')).toHaveCount(0);
-  const set = exercise.getByTestId('set-row').first();
-  await set.getByTestId('set-weight').fill('14');
-  await set.getByTestId('set-reps').fill('10');
-  await set.getByTestId('set-done').check();
+  await typeWeight(exercise, 0, '14');
+  await changeAmounts(exercise, { 0: '10' });
+  await tickSet(exercise, 0);
   await page.getByTestId('workout-finish').click();
   await expect(page.getByTestId('history-exercise')).toContainText(removed.name);
   await expect(page.getByTestId('history-set').first()).toContainText('14 kg × 10');

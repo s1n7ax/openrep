@@ -18,8 +18,11 @@ import {
   addLoggedSet,
   deleteSession,
   finishSession,
-  removeLoggedSet,
+  addedSetValues,
+  removeLastLoggedRound,
+  removeLastLoggedSet,
   setLoggedSetDone,
+  setLoggedWeight,
   startSession,
   updateLoggedSet,
 } from './sessions.ts';
@@ -115,7 +118,7 @@ describe('sessions', () => {
       durationSec: null,
       done: false,
     });
-    data = removeLoggedSet(data, 's1', exerciseId, sets[0]?.id ?? '');
+    data = removeLastLoggedSet(data, 's1', exerciseId);
     sets = data.sessions[0]?.exercises[0]?.sets ?? [];
     expect(sets).toHaveLength(3);
     expect(userDataSchema.safeParse(data).success).toBe(true);
@@ -154,18 +157,26 @@ describe('sessions', () => {
     );
   });
 
-  it('leaves reps empty when the target is a range', () => {
+  it("fills empty reps from a range's low end, keeping reps already entered", () => {
     let data = addPlanExercise(
       planData(),
       'p1',
       'd2',
-      { id: 'e9', exercise: squat, target: { sets: 1, reps: '8-12' } },
+      { id: 'e9', exercise: squat, target: { sets: 2, reps: '10-12' } },
       T0,
     );
     data = startSession(data, { sessionId: 's1', planId: 'p1', dayId: 'd2' }, T0, counter('id'));
     const exercise = data.sessions[0]?.exercises[0];
-    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', true);
-    expect(data.sessions[0]?.exercises[0]?.sets[0]).toMatchObject({ done: true, reps: null });
+    const [first, second] = exercise?.sets ?? [];
+    // Started without history: nothing is filled in until ticked.
+    expect(first).toMatchObject({ done: false, reps: null });
+    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', first?.id ?? '', true);
+    data = updateLoggedSet(data, 's1', exercise?.id ?? '', second?.id ?? '', { reps: 12 });
+    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', second?.id ?? '', true);
+    expect(data.sessions[0]?.exercises[0]?.sets.map((set) => [set.done, set.reps])).toEqual([
+      [true, 10],
+      [true, 12],
+    ]);
   });
 
   it('finishes and deletes sessions, clearing the active one', () => {
@@ -184,6 +195,103 @@ describe('sessions', () => {
     data = deleteSession(data, 's2');
     expect(data.activeSessionId).toBeNull();
     expect(data.sessions.map((session) => session.id)).toEqual(['s1']);
+  });
+});
+
+describe('changing weights and removing the last set or round', () => {
+  /** Day d1 started as session s1, with squat sets 1 and 2 ticked off. */
+  function started(): UserData {
+    let data = startSession(
+      planData(),
+      { sessionId: 's1', planId: 'p1', dayId: 'd1' },
+      T0,
+      counter('id'),
+    );
+    const squatEx = activeSession(data)?.exercises[0];
+    data = addLoggedSet(data, 's1', squatEx?.id ?? '', 'fourth');
+    for (const index of [0, 2]) {
+      data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatEx?.sets[index]?.id ?? '', true);
+    }
+    return data;
+  }
+
+  function squatSets(data: UserData) {
+    return activeSession(data)?.exercises[0]?.sets ?? [];
+  }
+
+  function weights(data: UserData): (number | null)[] {
+    return squatSets(data).map((set) => set.weightKg);
+  }
+
+  it('passes the weight of a set not done on to the later sets not done', () => {
+    let data = started();
+    const exerciseId = activeSession(data)?.exercises[0]?.id ?? '';
+    // Sets 1 and 3 are done; set 2 changes, and so does set 4, but not set 3.
+    data = setLoggedWeight(data, 's1', exerciseId, squatSets(data)[1]?.id ?? '', 105);
+    expect(weights(data)).toEqual([100, 105, 100, 105]);
+    // The last set changes alone.
+    data = setLoggedWeight(data, 's1', exerciseId, 'fourth', 110);
+    expect(weights(data)).toEqual([100, 105, 100, 110]);
+    // Clearing the weight carries on the same way.
+    data = setLoggedWeight(data, 's1', exerciseId, squatSets(data)[1]?.id ?? '', null);
+    expect(weights(data)).toEqual([100, null, 100, null]);
+    expect(userDataSchema.safeParse(data).success).toBe(true);
+  });
+
+  it("changes only a done set's weight", () => {
+    let data = started();
+    const exerciseId = activeSession(data)?.exercises[0]?.id ?? '';
+    data = setLoggedWeight(data, 's1', exerciseId, squatSets(data)[0]?.id ?? '', 90);
+    expect(weights(data)).toEqual([90, 100, 100, 100]);
+  });
+
+  it('changes nothing for the same weight or an unknown set', () => {
+    const data = started();
+    const exerciseId = activeSession(data)?.exercises[0]?.id ?? '';
+    expect(setLoggedWeight(data, 's1', exerciseId, squatSets(data)[1]?.id ?? '', 100)).toBe(data);
+    expect(setLoggedWeight(data, 's1', exerciseId, 'nope', 50)).toBe(data);
+  });
+
+  it('removes the last set, keeping at least one', () => {
+    let data = started();
+    const exerciseId = activeSession(data)?.exercises[0]?.id ?? '';
+    data = removeLastLoggedSet(data, 's1', exerciseId);
+    expect(squatSets(data).map((set) => set.done)).toEqual([true, false, true]);
+    data = removeLastLoggedSet(data, 's1', exerciseId);
+    data = removeLastLoggedSet(data, 's1', exerciseId);
+    expect(squatSets(data)).toHaveLength(1);
+    expect(removeLastLoggedSet(data, 's1', exerciseId)).toBe(data);
+  });
+
+  it('removes the last round of a superset, keeping at least one', () => {
+    let data = supersetWithNext(planData(), 'p1', 'd1', 'e1', 'ss', T0);
+    data = startSession(data, { sessionId: 's1', planId: 'p1', dayId: 'd1' }, T0, counter('id'));
+    const [squatEx, plankEx] = activeSession(data)?.exercises ?? [];
+    const lengths = (current: UserData) =>
+      activeSession(current)?.exercises.map((exercise) => exercise.sets.length);
+    // The plank's rounds follow the squat's: 3 each.
+    expect(lengths(data)).toEqual([3, 3]);
+    // An uneven superset: only the exercises that have a set in the last round lose it.
+    data = removeLastLoggedSet(data, 's1', plankEx?.id ?? '');
+    data = removeLastLoggedRound(data, 's1', 'ss');
+    expect(lengths(data)).toEqual([2, 2]);
+    expect(activeSession(data)?.exercises[0]?.sets.map((set) => set.id)).toEqual(
+      squatEx?.sets.slice(0, 2).map((set) => set.id),
+    );
+    data = removeLastLoggedRound(data, 's1', 'ss');
+    expect(lengths(data)).toEqual([1, 1]);
+    expect(removeLastLoggedRound(data, 's1', 'ss')).toBe(data);
+    expect(removeLastLoggedRound(data, 's1', 'nope')).toBe(data);
+  });
+
+  it('tells the values a set added would get', () => {
+    const data = started();
+    const exercise = activeSession(data)?.exercises[0];
+    expect(exercise && addedSetValues(exercise, [])).toEqual({
+      weightKg: 100,
+      reps: null,
+      durationSec: null,
+    });
   });
 });
 

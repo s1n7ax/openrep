@@ -10,6 +10,7 @@ import { openApp, serveAppFromDisk } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule, startDay } from './support/plans.ts';
 import { viewer, waitForFrameAfter } from './support/viewer.ts';
+import { changeAmounts, tickSet, typeWeight } from './support/workout.ts';
 
 test(
   'plans, exercise pages, 3D and logging work offline',
@@ -46,10 +47,10 @@ test(
     // Log a workout and finish it.
     await page.goBack();
     await startDay(page, 0);
-    const set = page.getByTestId('workout-exercise').first().getByTestId('set-row').first();
-    await set.getByTestId('set-weight').fill('20');
-    await set.getByTestId('set-reps').fill('12');
-    await set.getByTestId('set-done').check();
+    const exercise = page.getByTestId('workout-exercise').first();
+    await typeWeight(exercise, 0, '20');
+    await changeAmounts(exercise, { 0: '12' });
+    await tickSet(exercise, 0);
     await page.getByTestId('workout-finish').click();
     await expect(page.getByTestId('history-set').first()).toContainText('20 kg × 12');
     await page.getByTestId('tab-history').click();

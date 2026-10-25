@@ -1,12 +1,14 @@
 <!--
   Workout logging (`#/workout/:sessionId`), full screen and one exercise per
   page: its 3D view on top (swiped sideways to its photos when it has no
-  animation), then its target, what was done last time and its set rows —
-  weight (in the user's unit), reps or seconds and a done tick; add and
-  remove sets. Scrolling snaps from page to page (lib/pageSnap.ts); a slim
-  top bar shows the day, which page this is and the sets done. A superset is
-  one page: its picture swipes between its exercises, starting on the one
-  whose set is next, and its rows go round by round. The last page finishes
+  animation), then its target, what was done last time and its sets as
+  circles to tap when done, with the weight of the selected set above them
+  (SetCircles). The ⋯ button by its name changes reps, adds a set or removes
+  the last one (BlockOptions). Scrolling snaps from page to page
+  (lib/pageSnap.ts); a slim top bar shows the day, which page this is and
+  the sets done. A superset is one page: its picture swipes between its
+  exercises, starting on the one whose set is next, and its circles have a
+  line per exercise and a column per round. The last page finishes
   the workout into history. Back (the arrow or Android's back button)
   discards it, asking first when anything was entered. A workout opens on
   the first exercise with sets left; the exercise name opens its page.
@@ -36,6 +38,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import type { Attachment } from 'svelte/attachments';
+  import BlockOptions, { type BlockSheet } from '../components/BlockOptions.svelte';
   import Celebration from '../components/Celebration.svelte';
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import EmptyState from '../components/EmptyState.svelte';
@@ -43,10 +46,10 @@
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import RestTimer from '../components/RestTimer.svelte';
-  import SetRow from '../components/SetRow.svelte';
+  import SetCircles from '../components/SetCircles.svelte';
   import SupersetLabel from '../components/SupersetLabel.svelte';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
-  import { newId, nowIso } from '../lib/ids.ts';
+  import { nowIso } from '../lib/ids.ts';
   import { PageSnapper } from '../lib/pageSnap.ts';
   import { href, paths, router } from '../lib/router.ts';
   import type { SessionExercise } from '../lib/schema/userData.ts';
@@ -54,12 +57,7 @@
   import { restTimer } from '../lib/stores/restTimer.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findPlan, findSession, lastTimeFor } from '../lib/userData/selectors.ts';
-  import {
-    addLoggedRound,
-    addLoggedSet,
-    deleteSession,
-    finishSession,
-  } from '../lib/userData/sessions.ts';
+  import { deleteSession, finishSession } from '../lib/userData/sessions.ts';
   import {
     blockEntries,
     blockKey,
@@ -69,7 +67,6 @@
     type Block,
   } from '../lib/userData/supersets.ts';
   import {
-    formatReps,
     formatSupersetExerciseTarget,
     formatSupersetSummary,
     formatTargetWithRest,
@@ -120,6 +117,11 @@
   let discarded = $state(false);
   /** The celebration playing, if any; a new `id` starts it over. */
   let celebration = $state<{ id: number; label: string } | null>(null);
+  /** The exercise or superset (by `blockKey`) whose options are open, and which sheet shows. */
+  let options = $state<{ key: string; sheet: BlockSheet } | null>(null);
+  const optionsBlock = $derived(
+    options === null ? null : (blocks.find((block) => blockKey(block) === options?.key) ?? null),
+  );
 
   /** This workout's rest countdown, while the set that started it is ticked off. */
   const rest = $derived.by(() => {
@@ -153,8 +155,9 @@
   const revealFocused: Attachment<HTMLElement> = (scroller) => {
     const reveal = () => {
       const field = document.activeElement;
-      const typedIn = field instanceof HTMLInputElement && field.type !== 'checkbox';
-      if (restDock === null || !typedIn || !scroller.contains(field)) return;
+      if (restDock === null || !(field instanceof HTMLInputElement) || !scroller.contains(field)) {
+        return;
+      }
       const overlap = field.getBoundingClientRect().bottom - restDock.getBoundingClientRect().top;
       if (overlap > 0) scroller.scrollTop += overlap + REVEAL_GAP_PX;
     };
@@ -183,22 +186,6 @@
     if (!inProgress) return;
     return router.pushBackHandler(leave);
   });
-
-  function mode(exercise: SessionExercise): 'reps' | 'time' {
-    return exercise.target.durationSec !== undefined ? 'time' : 'reps';
-  }
-
-  function amountPlaceholder(exercise: SessionExercise): string {
-    const { reps, durationSec } = exercise.target;
-    if (durationSec !== undefined) return String(durationSec);
-    return reps === undefined ? '—' : formatReps(reps);
-  }
-
-  /** Header of the reps / seconds column of a superset: "Reps", "Seconds" or both. */
-  function amountHeader(exercises: SessionExercise[]): string {
-    const modes = new Set(exercises.map(mode));
-    return modes.size > 1 ? 'Reps / s' : modes.has('time') ? 'Seconds' : 'Reps';
-  }
 
   function resolve(exercise: SessionExercise) {
     return resolveExerciseRef(
@@ -236,12 +223,8 @@
       : `${resolve(block.entry).name} done`;
   }
 
-  function addSet(exercise: SessionExercise) {
-    userData.update((data) => addLoggedSet(data, sessionId, exercise.id, newId()));
-  }
-
-  function addRound(supersetId: string) {
-    userData.update((data) => addLoggedRound(data, sessionId, supersetId, newId));
+  function openOptions(block: Block<SessionExercise>) {
+    options = { key: blockKey(block), sheet: 'menu' };
   }
 
   function finish() {
@@ -374,38 +357,15 @@
                 exercise,
                 String(block.index + 1),
                 formatTargetWithRest(exercise.target, unit),
+                () => openOptions(block),
               )}
-
-              <div class="columns" aria-hidden="true">
-                <span>Set</span>
-                <span>{unit}</span>
-                <span>{mode(exercise) === 'time' ? 'Seconds' : 'Reps'}</span>
-                <span>Done</span>
-                <span></span>
-              </div>
-              <ol class="sets">
-                {#each exercise.sets as set, setIndex (set.id)}
-                  <SetRow
-                    {sessionId}
-                    sessionExerciseId={exercise.id}
-                    {set}
-                    index={setIndex}
-                    mode={mode(exercise)}
-                    {unit}
-                    amountPlaceholder={amountPlaceholder(exercise)}
-                    canRemove={exercise.sets.length > 1}
-                    ondone={(done) => onSetDone(exercise.id, set.id, done)}
-                  />
-                {/each}
-              </ol>
-              <button
-                type="button"
-                class="btn btn-ghost add-set"
-                data-testid="set-add"
-                onclick={() => addSet(exercise)}
-              >
-                <Icon name="plus" size={20} /> Add set
-              </button>
+              <SetCircles
+                {sessionId}
+                entries={[exercise]}
+                letter={null}
+                {unit}
+                ondone={onSetDone}
+              />
             </div>
           {:else}
             {@const rounds = supersetRounds(block.entries)}
@@ -420,6 +380,10 @@
                   summary={formatSupersetSummary(rounds.length, block.superset.restSec)}
                   testid="workout-superset-summary"
                 />
+                {@render optionsButton(
+                  () => openOptions(block),
+                  `Superset ${block.letter} options`,
+                )}
               </div>
               <ol class="members">
                 {#each block.entries as exercise, position (exercise.id)}
@@ -432,54 +396,19 @@
                       exercise,
                       supersetExerciseLabel(block.letter, position),
                       formatSupersetExerciseTarget(exercise.target, unit),
+                      null,
                     )}
                   </li>
                 {/each}
               </ol>
 
-              <div class="columns" aria-hidden="true">
-                <span></span>
-                <span>{unit}</span>
-                <span>{amountHeader(block.entries)}</span>
-                <span>Done</span>
-                <span></span>
-              </div>
-              {#each rounds as round, roundIndex (roundIndex)}
-                <section
-                  class="round"
-                  data-testid="workout-round"
-                  data-round={roundIndex + 1}
-                  aria-label={`Round ${roundIndex + 1}`}
-                >
-                  <h3 class="round-title">Round {roundIndex + 1}</h3>
-                  <ol class="sets">
-                    {#each round as row (row.set.id)}
-                      {@const label = supersetExerciseLabel(block.letter, row.position)}
-                      <SetRow
-                        {sessionId}
-                        sessionExerciseId={row.entry.id}
-                        set={row.set}
-                        index={row.setIndex}
-                        marker={label}
-                        name={`Round ${roundIndex + 1} ${label}`}
-                        mode={mode(row.entry)}
-                        {unit}
-                        amountPlaceholder={amountPlaceholder(row.entry)}
-                        canRemove={row.entry.sets.length > 1}
-                        ondone={(done) => onSetDone(row.entry.id, row.set.id, done)}
-                      />
-                    {/each}
-                  </ol>
-                </section>
-              {/each}
-              <button
-                type="button"
-                class="btn btn-ghost add-set"
-                data-testid="round-add"
-                onclick={() => addRound(block.superset.id)}
-              >
-                <Icon name="plus" size={20} /> Add round
-              </button>
+              <SetCircles
+                {sessionId}
+                entries={block.entries}
+                letter={block.letter}
+                {unit}
+                ondone={onSetDone}
+              />
             </div>
           {/if}
         </section>
@@ -546,20 +475,40 @@
   {/if}
 {/snippet}
 
-{#snippet exerciseHead(exercise: SessionExercise, label: string, target: string)}
+{#snippet optionsButton(onclick: () => void, label: string)}
+  <button
+    type="button"
+    class="icon-btn more"
+    aria-label={label}
+    aria-haspopup="dialog"
+    data-testid="block-options"
+    {onclick}
+  >
+    <Icon name="more" />
+  </button>
+{/snippet}
+
+{#snippet exerciseHead(
+  exercise: SessionExercise,
+  label: string,
+  target: string,
+  onoptions: (() => void) | null,
+)}
   {@const resolved = resolve(exercise)}
   {@const last = lastTimeFor(userData.data.sessions, exercise.exercise, sessionId)}
   <header class="head">
     <span class="number" aria-hidden="true" data-testid="workout-exercise-label">{label}</span>
     <div class="titles">
-      {#if resolved.link}
-        <a class="name" href={resolved.link} data-testid="workout-exercise-name">
-          {resolved.name}
-          <Icon name="chevron-right" size={16} />
-        </a>
-      {:else}
-        <span class="name" data-testid="workout-exercise-name">{resolved.name}</span>
-      {/if}
+      <div class="name-line">
+        {#if resolved.link}
+          <a class="name" href={resolved.link} data-testid="workout-exercise-name">
+            {resolved.name}
+            <Icon name="chevron-right" size={16} />
+          </a>
+        {:else}
+          <span class="name" data-testid="workout-exercise-name">{resolved.name}</span>
+        {/if}
+      </div>
       {#if resolved.note}
         <span class="missing" data-testid="missing-note">
           <Icon name="alert" size={14} />
@@ -571,6 +520,9 @@
         <span class="notes">{exercise.target.notes}</span>
       {/if}
     </div>
+    {#if onoptions}
+      {@render optionsButton(onoptions, `${resolved.name} options`)}
+    {/if}
   </header>
 
   {#if last}
@@ -583,6 +535,15 @@
     </p>
   {/if}
 {/snippet}
+
+<BlockOptions
+  {sessionId}
+  block={optionsBlock}
+  sheet={options?.sheet ?? 'menu'}
+  {unit}
+  nameOf={(exercise) => resolve(exercise).name}
+  onsheet={(sheet) => (options = sheet === null || options === null ? null : { ...options, sheet })}
+/>
 
 <ConfirmDialog
   open={confirming !== null}
@@ -750,20 +711,31 @@
     min-width: 0;
   }
 
-  .name {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    align-self: flex-start;
+  /*
+    The name is inline in its own line, so a name that wraps keeps the
+    chevron after its last word and only the text and chevron are the link.
+  */
+  .name-line {
     color: var(--text);
     font-size: var(--text-lg);
     font-weight: 750;
     line-height: 1.25;
+  }
+
+  .name {
+    color: inherit;
     text-decoration: none;
   }
 
   a.name :global(.icon) {
+    display: inline-block;
     color: var(--text-3);
+    vertical-align: -2px;
+  }
+
+  /* The ⋯ button, at the top right of the exercise or superset. */
+  .more {
+    margin: -9px calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-1));
   }
 
   .missing {
@@ -810,35 +782,11 @@
     font-weight: 700;
   }
 
-  .columns {
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) var(--tap) var(--tap);
-    gap: 6px;
-    margin-top: var(--space-2);
-    padding: 0 var(--space-2) 0 var(--space-3);
-    color: var(--text-3);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  .sets {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .add-set {
-    align-self: flex-start;
-    margin-left: var(--space-1);
-  }
-
   .superset-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
     padding: 0 var(--space-2);
   }
 
@@ -860,15 +808,6 @@
   .superset .number {
     background: var(--accent-soft);
     color: var(--accent-text);
-  }
-
-  .round-title {
-    margin: var(--space-2) var(--space-2) var(--space-1) var(--space-3);
-    color: var(--text-3);
-    font-size: var(--text-xs);
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
   .finish {

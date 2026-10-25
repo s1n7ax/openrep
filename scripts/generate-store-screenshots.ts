@@ -82,12 +82,15 @@ try {
   await page.getByTestId('plan-day').first().getByTestId('day-start').click();
   const exercise = page.getByTestId('workout-exercise').first();
   await exercise.waitFor();
-  for (const index of [0, 1]) {
-    const set = exercise.getByTestId('set-row').nth(index);
-    await set.getByTestId('set-weight').fill('60');
-    await set.getByTestId('set-reps').fill('8');
-    await set.getByTestId('set-done').check();
-  }
+  // The first set's weight carries to the sets after it; reps are in the ⋯ options.
+  await exercise.getByTestId('set-weight').fill('60');
+  await exercise.getByTestId('block-options').click();
+  await page.getByTestId('change-amounts').click();
+  const sheet = page.getByTestId('amounts-sheet');
+  for (const index of [0, 1]) await sheet.getByTestId('set-reps').nth(index).fill('8');
+  await sheet.getByTestId('amounts-done').click();
+  await sheet.waitFor({ state: 'hidden' });
+  for (const index of [0, 1]) await exercise.getByTestId('set-circle').nth(index).click();
   await shoot('workout');
 
   await page.getByTestId('workout-finish').click();

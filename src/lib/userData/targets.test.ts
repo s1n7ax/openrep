@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PlanTarget } from '../schema/userData.ts';
 import { formatWeight, toKg } from '../units.ts';
-import { applyTargetForm, type TargetForm } from './targets.ts';
+import { applyTargetForm, plannedReps, type TargetForm } from './targets.ts';
 
 /** 135 lb, stored at full precision. */
 const STORED_KG = toKg(135, 'lb');
@@ -52,5 +52,13 @@ describe('applyTargetForm', () => {
     });
     const timed = applyTargetForm(stored, { ...formFor('lb'), mode: 'time', duration: '45' }, 'lb');
     expect(timed).toMatchObject({ reps: undefined, durationSec: 45 });
+  });
+});
+
+describe('plannedReps', () => {
+  it('is the number, or the low end of a range', () => {
+    expect(plannedReps('8')).toBe(8);
+    expect(plannedReps('10-12')).toBe(10);
+    expect(plannedReps(undefined)).toBeNull();
   });
 });

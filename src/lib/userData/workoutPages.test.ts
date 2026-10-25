@@ -103,6 +103,10 @@ describe('hasEntries', () => {
         [],
       ),
     ).toBe(false);
+    // A range shows its low end in the circles, but nothing is entered until a tick.
+    expect(
+      hasEntries(session([exercise('e1', [set('a')], { target: { sets: 1, reps: '10-12' } })]), []),
+    ).toBe(false);
   });
 
   it('is true once a set is ticked off or a value is typed in', () => {

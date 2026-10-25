@@ -5,6 +5,7 @@ import {
   formatWeightWithUnit,
   fromKg,
   parseWeight,
+  stepWeight,
   toKg,
 } from './units.ts';
 
@@ -48,5 +49,25 @@ describe('units', () => {
     expect(parseWeight('1e3', 'kg')).toEqual({ ok: false });
     expect(parseWeight('2001', 'kg')).toEqual({ ok: false });
     expect(parseWeight('4500', 'lb')).toEqual({ ok: false });
+  });
+
+  it('steps weights by 2.5 kg or 5 lb, within 0 and the heaviest weight', () => {
+    expect(stepWeight(62.5, 'kg', 1)).toBe(65);
+    expect(stepWeight(62.5, 'kg', -1)).toBe(60);
+    expect(stepWeight(1, 'kg', -1)).toBe(0);
+    expect(stepWeight(0, 'kg', -1)).toBe(0);
+    expect(stepWeight(1999, 'kg', 1)).toBe(2000);
+    expect(formatWeight(stepWeight(toKg(135, 'lb'), 'lb', 1) ?? 0, 'lb')).toBe('140');
+    expect(formatWeight(stepWeight(60, 'lb', -1) ?? 0, 'lb')).toBe('127.3');
+    // Repeated steps stay on the grid.
+    let kg: number | null = 0;
+    for (let press = 0; press < 30; press++) kg = stepWeight(kg, 'lb', 1);
+    expect(fromKg(kg ?? 0, 'lb')).toBeCloseTo(150, 10);
+  });
+
+  it('starts an empty weight at one step and keeps it empty going down', () => {
+    expect(stepWeight(null, 'kg', 1)).toBe(2.5);
+    expect(formatWeight(stepWeight(null, 'lb', 1) ?? 0, 'lb')).toBe('5');
+    expect(stepWeight(null, 'kg', -1)).toBeNull();
   });
 });

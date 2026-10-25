@@ -5,7 +5,8 @@
  */
 import type { Session, SessionExercise } from '../schema/userData.ts';
 import { lastSetsFor, prefilledSet } from './sessions.ts';
-import { blockEntries, supersetRounds, type Block } from './supersets.ts';
+import { nextSet } from './setCircles.ts';
+import { blockEntries, type Block } from './supersets.ts';
 
 /**
  * The page a workout opens on: the first block with a set not ticked off,
@@ -24,11 +25,7 @@ export function firstOpenPage(blocks: readonly Block<SessionExercise>[]): number
  * row is.
  */
 export function nextSupersetPosition(entries: readonly SessionExercise[]): number {
-  for (const round of supersetRounds(entries)) {
-    const next = round.find((row) => !row.set.done);
-    if (next) return next.position;
-  }
-  return 0;
+  return nextSet(entries)?.position ?? 0;
 }
 
 /**

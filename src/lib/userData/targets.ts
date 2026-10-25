@@ -24,6 +24,15 @@ export function formatReps(reps: string): string {
   return reps.replace('-', '–');
 }
 
+/**
+ * The reps a set done as planned logs: the target's number, or a range's low
+ * end ("10-12" → 10); null without a reps target.
+ */
+export function plannedReps(reps: string | undefined): number | null {
+  const low = Number(reps?.split('-')[0]);
+  return Number.isInteger(low) ? low : null;
+}
+
 /** 45 → "45 s", 90 → "1 min 30 s", 120 → "2 min". */
 export function formatDuration(totalSec: number): string {
   const minutes = Math.floor(totalSec / 60);

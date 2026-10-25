@@ -22,6 +22,7 @@ import {
 import { REMOTE_CATALOG_URL } from './support/env.ts';
 import { expect, test } from './support/fixtures.ts';
 import { addExercise, createPlan, openPlan, startDay } from './support/plans.ts';
+import { changeAmounts, pickOption, tickSet, typeWeight } from './support/workout.ts';
 
 const BENCH = { id: 'barbell-bench-press-medium-grip', name: 'Barbell Bench Press - Medium Grip' };
 const FLYES = { id: 'dumbbell-flyes', name: 'Dumbbell Flyes' };
@@ -55,22 +56,24 @@ async function groupFirstTwo(page: Page): Promise<void> {
   await expect(page.getByTestId('plan-superset')).toBeVisible();
 }
 
-/** Fills and ticks every set row of round `round` (1-based) of the superset card. */
+/**
+ * Fills every round of the superset card's 3: A1 60 kg × 8 and A2 14 kg × 12
+ * (the weight of round 1 carries to the rounds after it).
+ */
+async function fillRounds(page: Page): Promise<void> {
+  const card = page.getByTestId('workout-superset');
+  const lines = card.getByTestId('superset-line');
+  await typeWeight(lines.nth(0), 0, '60', card);
+  await typeWeight(lines.nth(1), 0, '14', card);
+  // The sheet lists A1's rounds, then A2's.
+  await changeAmounts(card, { 0: '8', 1: '8', 2: '8', 3: '12', 4: '12', 5: '12' });
+}
+
+/** Ticks off the sets of A1 and A2 in round `round` (1-based) of the superset card. */
 async function logRound(page: Page, round: number): Promise<void> {
-  const rows = page
-    .getByTestId('workout-superset')
-    .locator(`[data-testid="workout-round"][data-round="${round}"]`)
-    .getByTestId('set-row');
-  await expect(rows).toHaveCount(2);
-  for (const [index, [weight, reps]] of [
-    ['60', '8'],
-    ['14', '12'],
-  ].entries()) {
-    const row = rows.nth(index);
-    await row.getByTestId('set-weight').fill(weight!);
-    await row.getByTestId('set-reps').fill(reps!);
-    await row.getByTestId('set-done').check();
-  }
+  const lines = page.getByTestId('workout-superset').getByTestId('superset-line');
+  await expect(lines).toHaveCount(2);
+  for (const position of [0, 1]) await tickSet(lines.nth(position), round - 1);
 }
 
 test('a superset is shown on the plan, logged round by round and in history', async ({ page }) => {
@@ -93,7 +96,7 @@ test('a superset is shown on the plan, logged round by round and in history', as
   await expect(exercises.nth(2).getByTestId('plan-exercise-label')).toHaveText('3');
   await expect(exercises.nth(2).getByTestId('plan-exercise-target')).toHaveText('3 × 10');
 
-  // The workout: one card, rounds 1–3 with an A1 and an A2 row each.
+  // The workout: one card, a line of circles for A1 and for A2, a column per round.
   await startDay(page, 0);
   const card = page.getByTestId('workout-superset');
   await expect(card).toHaveCount(1);
@@ -102,10 +105,11 @@ test('a superset is shown on the plan, logged round by round and in history', as
   );
   await expect(card.getByTestId('workout-exercise-name')).toHaveText([BENCH.name, FLYES.name]);
   const rounds = card.getByTestId('workout-round');
-  await expect(rounds).toHaveCount(3);
-  for (const index of [0, 1, 2]) {
-    await expect(rounds.nth(index).getByRole('heading')).toHaveText(`Round ${index + 1}`);
-    await expect(rounds.nth(index).getByTestId('set-marker')).toHaveText(['A1', 'A2']);
+  await expect(rounds).toHaveText(['Round 1', 'Round 2', 'Round 3']);
+  await expect(card.getByTestId('set-marker')).toHaveText(['A1', 'A2']);
+  const lines = card.getByTestId('superset-line');
+  for (const position of [0, 1]) {
+    await expect(lines.nth(position).getByTestId('set-circle')).toHaveCount(3);
   }
   await expect(
     page.getByTestId('workout-exercise').getByTestId('workout-exercise-name'),
@@ -115,13 +119,16 @@ test('a superset is shown on the plan, logged round by round and in history', as
   const progress = page.getByTestId('workout-progress');
   await expect(progress).toHaveAttribute('data-done', '0');
   await expect(progress).toHaveAttribute('data-total', '9');
+  await fillRounds(page);
   for (const round of [1, 2, 3]) await logRound(page, round);
   await expect(progress).toHaveAttribute('data-done', '6');
 
-  // Add round: round 4 with one row per exercise.
-  await card.getByTestId('round-add').click();
+  // Add round: round 4, a circle more for each exercise.
+  await pickOption(card, 'round-add');
   await expect(rounds).toHaveCount(4);
-  await expect(rounds.nth(3).getByTestId('set-marker')).toHaveText(['A1', 'A2']);
+  for (const position of [0, 1]) {
+    await expect(lines.nth(position).getByTestId('set-circle')).toHaveCount(4);
+  }
   await expect(progress).toHaveAttribute('data-total', '11');
   await expect(card.getByTestId('workout-superset-summary')).toHaveText(
     '4 rounds · rest 90 s after each round',
