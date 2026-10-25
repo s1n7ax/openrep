@@ -1,0 +1,118 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "underhand-cable-pulldowns",
+  "durationSec": 3,
+  "camera": {"position": [-2.5, 2.35, -3.15], "target": [0, 1.2, 0.15]},
+  "props": [
+    {"type": "bench", "attach": "none", "position": [0, 0, -0.42]},
+    {"type": "lat-bar", "attach": "hands", "cableFrom": [0, 2.32, 0.3]}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "ease": "easeIn",
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-6, 0, 0]},
+        "chest": [-2, 0, 0],
+        "neck": [4, 0, 0],
+        "head": [-6, 0, 0],
+        "leftShoulder": [-104.1, -67.9, 51.2],
+        "leftElbow": [-38.4, 165.4, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-104.1, 67.9, -51.2],
+        "rightElbow": [-38.4, -165.4, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 0.225,
+      "ease": "easeOut",
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-11, 0, 0]},
+        "chest": [-5, 0, 0],
+        "neck": [7, 0, 0],
+        "head": [-1, 0, 0],
+        "leftShoulder": [-68.8, -22.1, 32.1],
+        "leftElbow": [-109.5, 113.3, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-68.8, 22.1, -32.1],
+        "rightElbow": [-109.5, -113.3, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 0.45,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-16, 0, 0]},
+        "chest": [-8, 0, 0],
+        "neck": [10, 0, 0],
+        "head": [4, 0, 0],
+        "leftShoulder": [2.5, -10.5, 18],
+        "leftElbow": [-149.2, 89.9, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [2.5, 10.5, -18],
+        "rightElbow": [-149.2, -89.9, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 0.55,
+      "ease": "easeIn",
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-16, 0, 0]},
+        "chest": [-8, 0, 0],
+        "neck": [10, 0, 0],
+        "head": [4, 0, 0],
+        "leftShoulder": [2.5, -10.5, 18],
+        "leftElbow": [-149.2, 89.9, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [2.5, 10.5, -18],
+        "rightElbow": [-149.2, -89.9, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 0.775,
+      "ease": "easeOut",
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-11, 0, 0]},
+        "chest": [-5, 0, 0],
+        "neck": [7, 0, 0],
+        "head": [-1, 0, 0],
+        "leftShoulder": [-68.8, -22.1, 32.1],
+        "leftElbow": [-109.5, 113.3, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-68.8, 22.1, -32.1],
+        "rightElbow": [-109.5, -113.3, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-6, 0, 0]},
+        "chest": [-2, 0, 0],
+        "neck": [4, 0, 0],
+        "head": [-6, 0, 0],
+        "leftShoulder": [-104.1, -67.9, 51.2],
+        "leftElbow": [-38.4, 165.4, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-104.1, 67.9, -51.2],
+        "rightElbow": [-38.4, -165.4, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    }
+  ]
+}
