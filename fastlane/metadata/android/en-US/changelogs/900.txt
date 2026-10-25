@@ -1,0 +1,2 @@
+Features
+• workout: earlier sets tick too, auto-advance and a History popup
