@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/s1n7ax/openrep/compare/v0.7.0...v0.8.0) (2026-10-25)
+
+
+### Features
+
+* **workout:** set circles replace the set table ([#20](https://github.com/s1n7ax/openrep/issues/20)) ([c72290e](https://github.com/s1n7ax/openrep/commit/c72290e96916f0c49b4a11804fb6ec1f6f1d1b6e))
+
 ## [0.7.0](https://github.com/s1n7ax/openrep/compare/v0.6.0...v0.7.0) (2026-10-25)
 
 
