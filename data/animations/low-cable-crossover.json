@@ -56,7 +56,6 @@
     },
     {
       "t": 0.45,
-      "ease": "easeOut",
       "pose": {
         "pelvis": {"position": [0, 0.96, -0.02], "rotation": [5, 0, 0]},
         "neck": [-4, 0, 0],
