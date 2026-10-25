@@ -1,0 +1,62 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "dumbbell-shoulder-press",
+  "durationSec": 3.2,
+  "props": [
+    {"type": "bench", "attach": "none", "position": [0, 0, -0.45]},
+    {"type": "dumbbell", "attach": "leftHand"},
+    {"type": "dumbbell", "attach": "rightHand"}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.37, 1.105, 0.04], "pole": [1, 0.8, -0.1]},
+        "rightHand": {"target": [-0.37, 1.105, 0.04], "pole": [-1, 0.8, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 0.06,
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.37, 1.105, 0.04], "pole": [1, 0.8, -0.1]},
+        "rightHand": {"target": [-0.37, 1.105, 0.04], "pole": [-1, 0.8, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 0.36,
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.158, 1.645, 0.02], "pole": [1, 1.2, -0.1]},
+        "rightHand": {"target": [-0.158, 1.645, 0.02], "pole": [-1, 1.2, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 0.46,
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.158, 1.645, 0.02], "pole": [1, 1.2, -0.1]},
+        "rightHand": {"target": [-0.158, 1.645, 0.02], "pole": [-1, 1.2, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.57, 0], "rotation": [-2, 0, 0]},
+        "leftHand": {"target": [0.37, 1.105, 0.04], "pole": [1, 0.8, -0.1]},
+        "rightHand": {"target": [-0.37, 1.105, 0.04], "pole": [-1, 0.8, -0.1]},
+        "leftFoot": {"target": [0.22, 0, 0.6], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.6], "pole": [-0.4, 1, 1]}
+      }
+    }
+  ]
+}
