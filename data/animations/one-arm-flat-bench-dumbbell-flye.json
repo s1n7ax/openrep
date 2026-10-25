@@ -16,7 +16,7 @@
         "leftShoulder": [-7.1, -76.3, 71.3],
         "leftElbow": [-35.1, 90, 0],
         "leftWrist": [0, 0, 0],
-        "rightHand": {"target": [-0.1, 0.69, 0.18], "pole": [-0.7, 0.35, 0]},
+        "rightHand": {"target": [-0.23, 0.47, 0.26], "pole": [-0.8, 0.3, 0.2]},
         "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
         "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
       }
@@ -29,7 +29,7 @@
         "leftShoulder": [4.4, 14.3, 82.9],
         "leftElbow": [-38.8, 90, 0],
         "leftWrist": [0, 0, 0],
-        "rightHand": {"target": [-0.1, 0.69, 0.18], "pole": [-0.7, 0.35, 0]},
+        "rightHand": {"target": [-0.23, 0.47, 0.26], "pole": [-0.8, 0.3, 0.2]},
         "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
         "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
       }
@@ -42,7 +42,7 @@
         "leftShoulder": [4.4, 14.3, 82.9],
         "leftElbow": [-38.8, 90, 0],
         "leftWrist": [0, 0, 0],
-        "rightHand": {"target": [-0.1, 0.69, 0.18], "pole": [-0.7, 0.35, 0]},
+        "rightHand": {"target": [-0.23, 0.47, 0.26], "pole": [-0.8, 0.3, 0.2]},
         "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
         "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
       }
@@ -55,7 +55,7 @@
         "leftShoulder": [-7.1, -76.3, 71.3],
         "leftElbow": [-35.1, 90, 0],
         "leftWrist": [0, 0, 0],
-        "rightHand": {"target": [-0.1, 0.69, 0.18], "pole": [-0.7, 0.35, 0]},
+        "rightHand": {"target": [-0.23, 0.47, 0.26], "pole": [-0.8, 0.3, 0.2]},
         "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
         "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
       }
@@ -68,7 +68,7 @@
         "leftShoulder": [-7.1, -76.3, 71.3],
         "leftElbow": [-35.1, 90, 0],
         "leftWrist": [0, 0, 0],
-        "rightHand": {"target": [-0.1, 0.69, 0.18], "pole": [-0.7, 0.35, 0]},
+        "rightHand": {"target": [-0.23, 0.47, 0.26], "pole": [-0.8, 0.3, 0.2]},
         "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
         "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
       }
