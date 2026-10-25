@@ -21,7 +21,7 @@ works offline.
   your own custom exercises.
 - **Exercise pages**: alternative names, equipment, primary and secondary
   muscles, step-by-step instructions, photos and a 3D view you can rotate and
-  zoom. Primary muscles glow strongly, secondary ones faintly. 170 core
+  zoom. Primary muscles glow strongly, secondary ones faintly. 270 core
   exercises (bench press, squat, deadlift, pull-up, plank, …) play the full
   movement; every other exercise shows the glow on a still figure.
 - **Workout log**: start a day of a plan and go through it one exercise per
