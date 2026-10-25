@@ -1,0 +1,68 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "high-cable-curls",
+  "durationSec": 2.8,
+  "camera": {"position": [0.5, 2.8, 3], "target": [0, 1.35, 0]},
+  "props": [
+    {"type": "cable-handle", "attach": "leftHand", "rotation": [0, 0, -152], "cableFrom": [1.15, 2.1, 0]},
+    {"type": "cable-handle", "attach": "rightHand", "rotation": [0, 0, 152], "cableFrom": [-1.15, 2.1, 0]}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "leftShoulder": [-58, 0, 88],
+        "leftElbow": [-12, 90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-58, 0, -88],
+        "rightElbow": [-12, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.13], "pole": [0.21, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.13], "pole": [-0.21, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.42,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "leftShoulder": [-58, 0, 88],
+        "leftElbow": [-125, 90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-58, 0, -88],
+        "rightElbow": [-125, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.13], "pole": [0.21, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.13], "pole": [-0.21, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.52,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "leftShoulder": [-58, 0, 88],
+        "leftElbow": [-125, 90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-58, 0, -88],
+        "rightElbow": [-125, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.13], "pole": [0.21, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.13], "pole": [-0.21, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "leftShoulder": [-58, 0, 88],
+        "leftElbow": [-12, 90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-58, 0, -88],
+        "rightElbow": [-12, -90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.13], "pole": [0.21, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.13], "pole": [-0.21, 0.5, 1]}
+      }
+    }
+  ]
+}
