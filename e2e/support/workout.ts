@@ -68,9 +68,15 @@ export async function scrollWorkout(page: Page, fraction: number): Promise<void>
   await swipe(page, { x, y: from }, { x, y: to });
 }
 
-/** Waits until the pager rests on page `index` and it fills the screen (all of it, or of a tall one, part). */
+/**
+ * Waits until the pager rests on page `index` and it fills the screen (all of
+ * it, or of a tall one, part). Coming to rest there starts the 3D views next
+ * to it, which can hold up the page before this sees the new page.
+ */
 export async function expectOnPage(page: Page, index: number): Promise<void> {
-  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', String(index));
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', String(index), {
+    timeout: PICTURE_START_TIMEOUT_MS,
+  });
   await waitForPictures(page);
   await expect
     .poll(() =>

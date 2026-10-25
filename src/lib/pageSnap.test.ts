@@ -213,6 +213,23 @@ describe('PageSnapper', () => {
     expect(changes).toEqual([1]);
   });
 
+  it('snaps only onwards when the frames’ times are earlier than the snap’s start', () => {
+    vi.stubGlobal('requestAnimationFrame', (step: (now: number) => void) =>
+      setTimeout(() => step(performance.now() - 500), 16),
+    );
+    const { scroller, changes } = pager();
+    scroller.drag(SCREEN / 3);
+    const positions: number[] = [];
+    for (let frame = 0; frame < 20; frame += 1) {
+      vi.advanceTimersByTime(16);
+      positions.push(scroller.scrollTop);
+    }
+    expect(Math.min(...positions)).toBeGreaterThanOrEqual(SCREEN / 3);
+    expect(positions).toEqual(positions.toSorted((a, b) => a - b));
+    expect(scroller.scrollTop).toBe(800);
+    expect(changes).toEqual([1]);
+  });
+
   it('ends a snap on its page when a page above changes size meanwhile', () => {
     // Snapping from page 1 to page 2 when the tall page 0 loses 76 px (the
     // rest countdown's room, dismissed from outside the pages).

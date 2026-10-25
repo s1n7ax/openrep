@@ -88,10 +88,12 @@ test('ticking a set ticks the ones before it, and a finished exercise moves on',
   expect(await pictureHeight(page, 0)).toBe(height);
   const circles = (await bench.getByTestId('set-circles').boundingBox())!;
   expect(circles.y + circles.height).toBeLessThanOrEqual((await rest.boundingBox())!.y);
-  // When the celebration is over, the flyes, the countdown still on.
+  // When the celebration is over, the flyes, the countdown still on. (The
+  // move starts the pushdown's 3D view, which can hold up the page for
+  // longer than `expect` waits: `expectOnPage` waits for it.)
   await expect(celebration).toContainText('done');
-  await expect(celebration).toHaveCount(0);
   await expectOnPage(page, 1);
+  await expect(celebration).toHaveCount(0);
   await expect(page.getByTestId('workout-position')).toHaveText('2 of 3');
   await expect(rest).toBeInViewport({ ratio: 1 });
 

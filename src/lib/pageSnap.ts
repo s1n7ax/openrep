@@ -281,8 +281,11 @@ export class PageSnapper {
     const start = performance.now();
     scroller.style.overflowY = 'hidden';
     this.#target = snap.page;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
+    const step = () => {
+      // Timed by the clock `start` came from, not the frame's time (the
+      // callback's argument): that can be earlier than `start`, and the ease
+      // of a negative time throws the scroll far back past where it started.
+      const t = Math.min(1, (performance.now() - start) / duration);
       const to = this.#positionIn(snap.page, offset) ?? snap.top;
       scroller.scrollTop = from + (to - from) * ease(t);
       if (t < 1) {
@@ -292,7 +295,7 @@ export class PageSnapper {
       this.#stopAnimation();
       this.#rest(snap.page);
     };
-    step(start);
+    step();
   }
 
   #stopAnimation(): void {
