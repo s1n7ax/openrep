@@ -1,0 +1,73 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "flat-bench-cable-flyes",
+  "durationSec": 3,
+  "camera": {"position": [2.75, 2.05, -1.85], "target": [0, 0.62, 0.22]},
+  "props": [
+    {"type": "bench", "attach": "none", "position": [0, 0, 0]},
+    {"type": "cable-handle", "attach": "leftHand", "rotation": [0, 0, -73], "cableFrom": [1.5, 0.12, -0.1]},
+    {"type": "cable-handle", "attach": "rightHand", "rotation": [0, 0, 73], "cableFrom": [-1.5, 0.12, -0.1]}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0.3], "rotation": [-90, 0, 0]},
+        "spine": [-4, 0, 0],
+        "leftShoulder": [7.6, 1, 85.1],
+        "leftElbow": [-21.4, 93.7, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [7.6, -1, -85.1],
+        "rightElbow": [-21.4, -93.7, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
+        "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
+      }
+    },
+    {
+      "t": 0.42,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0.3], "rotation": [-90, 0, 0]},
+        "spine": [-4, 0, 0],
+        "leftShoulder": [89.1, -88, 169.9],
+        "leftElbow": [-21.8, 92.1, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [89.1, 88, -169.9],
+        "rightElbow": [-21.8, -92.1, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
+        "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
+      }
+    },
+    {
+      "t": 0.52,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0.3], "rotation": [-90, 0, 0]},
+        "spine": [-4, 0, 0],
+        "leftShoulder": [89.1, -88, 169.9],
+        "leftElbow": [-21.8, 92.1, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [89.1, 88, -169.9],
+        "rightElbow": [-21.8, -92.1, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
+        "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.555, 0.3], "rotation": [-90, 0, 0]},
+        "spine": [-4, 0, 0],
+        "leftShoulder": [7.6, 1, 85.1],
+        "leftElbow": [-21.4, 93.7, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [7.6, -1, -85.1],
+        "rightElbow": [-21.4, -93.7, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.35, 0, 0.8], "pole": [0.5, 1, 0.75]},
+        "rightFoot": {"target": [-0.35, 0, 0.8], "pole": [-0.5, 1, 0.75]}
+      }
+    }
+  ]
+}

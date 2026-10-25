@@ -1,0 +1,55 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "dumbbell-squat",
+  "durationSec": 3.2,
+  "props": [
+    {"type": "dumbbell", "attach": "leftHand"},
+    {"type": "dumbbell", "attach": "rightHand"}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.955, 0.02], "rotation": [4, 0, 0]},
+        "spine": [-2, 0, 0],
+        "chest": [-2, 0, 0],
+        "leftShoulder": [0, 0, 10],
+        "leftElbow": [-4, 0, 0],
+        "rightShoulder": [0, 0, -10],
+        "rightElbow": [-4, 0, 0],
+        "leftFoot": {"target": [0.19, 0, 0.13], "pole": [0.42, 0.5, 1]},
+        "rightFoot": {"target": [-0.19, 0, 0.13], "pole": [-0.42, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "pelvis": {"position": [0, 0.5, -0.14], "rotation": [36, 0, 0]},
+        "spine": [-4, 0, 0],
+        "chest": [-4, 0, 0],
+        "neck": [-10, 0, 0],
+        "head": [-8, 0, 0],
+        "leftShoulder": [-26, 0, 17],
+        "leftElbow": [-4, 0, 0],
+        "rightShoulder": [-26, 0, -17],
+        "rightElbow": [-4, 0, 0],
+        "leftFoot": {"target": [0.19, 0, 0.13], "pole": [0.42, 0.5, 1]},
+        "rightFoot": {"target": [-0.19, 0, 0.13], "pole": [-0.42, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.955, 0.02], "rotation": [4, 0, 0]},
+        "spine": [-2, 0, 0],
+        "chest": [-2, 0, 0],
+        "leftShoulder": [0, 0, 10],
+        "leftElbow": [-4, 0, 0],
+        "rightShoulder": [0, 0, -10],
+        "rightElbow": [-4, 0, 0],
+        "leftFoot": {"target": [0.19, 0, 0.13], "pole": [0.42, 0.5, 1]},
+        "rightFoot": {"target": [-0.19, 0, 0.13], "pole": [-0.42, 0.5, 1]}
+      }
+    }
+  ]
+}

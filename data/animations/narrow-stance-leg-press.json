@@ -1,0 +1,48 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "narrow-stance-leg-press",
+  "durationSec": 3,
+  "camera": {"position": [3.35, 2.4, -1.8], "target": [0, 0.82, 0.3]},
+  "props": [
+    {"type": "leg-press", "attach": "none", "position": [0, 0.6, 0]},
+    {"type": "leg-press", "attach": "feet"}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.6, 0], "rotation": [-38, 0, 0]},
+        "neck": [10, 0, 0],
+        "head": [8, 0, 0],
+        "leftHand": {"target": [0.29, 0.52, 0.06], "pole": [0.65, 0.75, -0.35]},
+        "rightHand": {"target": [-0.29, 0.52, 0.06], "pole": [-0.65, 0.75, -0.35]},
+        "leftFoot": {"target": [0.095, 1.202, 0.662], "pole": [0.2, 1.65, 0.25]},
+        "rightFoot": {"target": [-0.095, 1.202, 0.662], "pole": [-0.2, 1.65, 0.25]}
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "pelvis": {"position": [0, 0.6, 0], "rotation": [-38, 0, 0]},
+        "neck": [10, 0, 0],
+        "head": [8, 0, 0],
+        "leftHand": {"target": [0.29, 0.52, 0.06], "pole": [0.65, 0.75, -0.35]},
+        "rightHand": {"target": [-0.29, 0.52, 0.06], "pole": [-0.65, 0.75, -0.35]},
+        "leftFoot": {"target": [0.095, 0.99, 0.45], "pole": [0.2, 1.65, 0.25]},
+        "rightFoot": {"target": [-0.095, 0.99, 0.45], "pole": [-0.2, 1.65, 0.25]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.6, 0], "rotation": [-38, 0, 0]},
+        "neck": [10, 0, 0],
+        "head": [8, 0, 0],
+        "leftHand": {"target": [0.29, 0.52, 0.06], "pole": [0.65, 0.75, -0.35]},
+        "rightHand": {"target": [-0.29, 0.52, 0.06], "pole": [-0.65, 0.75, -0.35]},
+        "leftFoot": {"target": [0.095, 1.202, 0.662], "pole": [0.2, 1.65, 0.25]},
+        "rightFoot": {"target": [-0.095, 1.202, 0.662], "pole": [-0.2, 1.65, 0.25]}
+      }
+    }
+  ]
+}

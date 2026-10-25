@@ -1,0 +1,69 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "scissor-kick",
+  "durationSec": 2.4,
+  "camera": {"position": [2.4, 1.3, 1.6], "target": [0, 0.3, 0.15]},
+  "props": [{"type": "mat", "attach": "none", "position": [0, 0, 0.12]}],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.106, 0.15], "rotation": [-87, 0, 0]},
+        "spine": [2, 0, 0],
+        "neck": [8, 0, 0],
+        "leftShoulder": [2.9, 0, 7],
+        "leftElbow": [-4, -90, 0],
+        "leftWrist": [0, 0, 14],
+        "rightShoulder": [2.9, 0, -7],
+        "rightElbow": [-4, 90, 0],
+        "rightWrist": [0, 0, -14],
+        "leftHip": [-49, 0, 3],
+        "leftKnee": [6, 0, 0],
+        "leftAnkle": [-10, 0, 0],
+        "rightHip": [-7, 0, -3],
+        "rightKnee": [6, 0, 0],
+        "rightAnkle": [-10, 0, 0]
+      }
+    },
+    {
+      "t": 0.5,
+      "pose": {
+        "pelvis": {"position": [0, 0.106, 0.15], "rotation": [-87, 0, 0]},
+        "spine": [2, 0, 0],
+        "neck": [8, 0, 0],
+        "leftShoulder": [2.9, 0, 7],
+        "leftElbow": [-4, -90, 0],
+        "leftWrist": [0, 0, 14],
+        "rightShoulder": [2.9, 0, -7],
+        "rightElbow": [-4, 90, 0],
+        "rightWrist": [0, 0, -14],
+        "leftHip": [-7, 0, 3],
+        "leftKnee": [6, 0, 0],
+        "leftAnkle": [-10, 0, 0],
+        "rightHip": [-49, 0, -3],
+        "rightKnee": [6, 0, 0],
+        "rightAnkle": [-10, 0, 0]
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.106, 0.15], "rotation": [-87, 0, 0]},
+        "spine": [2, 0, 0],
+        "neck": [8, 0, 0],
+        "leftShoulder": [2.9, 0, 7],
+        "leftElbow": [-4, -90, 0],
+        "leftWrist": [0, 0, 14],
+        "rightShoulder": [2.9, 0, -7],
+        "rightElbow": [-4, 90, 0],
+        "rightWrist": [0, 0, -14],
+        "leftHip": [-49, 0, 3],
+        "leftKnee": [6, 0, 0],
+        "leftAnkle": [-10, 0, 0],
+        "rightHip": [-7, 0, -3],
+        "rightKnee": [6, 0, 0],
+        "rightAnkle": [-10, 0, 0]
+      }
+    }
+  ]
+}
