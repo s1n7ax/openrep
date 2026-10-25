@@ -2,6 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryFiles } from '../../../tests/helpers/memoryFiles.ts';
 import { emptyUserData, type UserData } from '../schema/userData.ts';
 import { setUnit } from '../userData/settings.ts';
+// Fetches the store's modules while this file loads, where no test timeout
+// applies. In a full run Vitest's main process can be busy for seconds starting
+// workers, and the first fetch from inside a test then went past 5 s.
+// `freshStore` only re-runs the fetched modules: vi.resetModules keeps them.
+import './userData.svelte.ts';
 
 const MAIN = 'openrep/userdata.json';
 
