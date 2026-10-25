@@ -6,7 +6,7 @@
  * of the screen past the edge of the page it started on, otherwise back. A
  * page taller than the screen scrolls freely and snaps only past its top or
  * bottom edge. (CSS scroll snapping snaps to the nearest page, so a third of
- * a screen would snap back.)
+ * a screen would snap back.) The app can also move to a page itself (`goTo`).
  */
 
 /** How far, as a share of the screen height, a scroll goes past a page's edge to move on. */
@@ -122,6 +122,19 @@ export class PageSnapper {
     this.#resizeObserver = new ResizeObserver(() => this.#keepPage());
     this.#resizeObserver.observe(scroller);
     for (const page of scroller.children) this.#resizeObserver.observe(page);
+  }
+
+  /**
+   * Moves to the top of page `index` as a snap does (see `#animate`). Not
+   * while a finger is on the screen: its scroll goes on as it would.
+   */
+  goTo(index: number): void {
+    const page = this.#boxes()[index];
+    if (!page || this.#touching) return;
+    this.#clearSettle();
+    this.#stopAnimation();
+    this.#grabbed = null;
+    this.#animate({ page: index, top: page.top });
   }
 
   dispose(): void {

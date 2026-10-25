@@ -4,7 +4,8 @@
  * countdown for the plan's rest (else the default rest from Settings) that
  * stays on every page, rests after a superset's round only, and ends with
  * "Start your next set"; finishing an exercise or a superset plays a
- * celebration once; the default rest survives reopening the app.
+ * celebration once, then moves on; the default rest survives reopening the
+ * app.
  */
 import type { Locator, Page } from '@playwright/test';
 import { goTo, openApp, readStoredUserData, reopen } from './support/app.ts';
@@ -13,11 +14,13 @@ import { addExercise, copySchedule, createPlan, openPlan, startDay } from './sup
 import {
   amountFields,
   changeAmounts,
-  expectOffScreen,
+  closeHistory,
   expectOnPage,
   expectSet,
+  openHistory,
   pickOption,
   scrollWorkout,
+  setCircle,
   tickSet,
   typeWeight,
   workoutPage,
@@ -126,13 +129,15 @@ test('a workout starts with what was done last time', async ({ page }) => {
   await expectSet(bench, 0, '60 kg', '8');
   await expectSet(bench, 1, '62.5 kg', '6');
   await expectSet(bench, 2, '62.5 kg', '6');
-  await expect(workoutPage(page, 0).getByTestId('last-time')).toContainText(
-    '60 kg × 8, 62.5 kg × 6',
-  );
+  let history = await openHistory(bench);
+  await expect(history.getByTestId('past-workout-sets')).toHaveText(['60 kg × 8, 62.5 kg × 6']);
+  await closeHistory(history);
   // Never done before: the plan's weight and no reps entered (the planned ones show).
   const flyes = workoutPage(page, 1);
   await expectSet(flyes, 0, '14 kg', '10');
-  await expect(flyes.getByTestId('last-time')).toHaveCount(0);
+  history = await openHistory(flyes);
+  await expect(history.getByTestId('no-past-workouts')).toBeVisible();
+  await closeHistory(history);
   await pickOption(flyes, 'change-amounts');
   await expect(amountFields(page)).toHaveCount(3);
   await expect(amountFields(page).first()).toHaveValue('');
@@ -149,8 +154,11 @@ test('a workout starts with what was done last time', async ({ page }) => {
   await pickOption(bench, 'set-add');
   await expect(bench.getByTestId('set-circle')).toHaveCount(4);
   await expectSet(bench, 3, '62.5 kg', '6');
-  await tickSet(bench, 0);
+  // Ticking the last set ticks the ones before it, which finishes the bench:
+  // after the celebration, the screen moves on to the flyes.
   await tickSet(bench, 3);
+  await expect(page.getByTestId('workout-progress')).toHaveAttribute('data-done', '4');
+  await expectOnPage(page, 1);
   await page.getByTestId('workout-finish').click();
   await expect(page.getByTestId('history-set').nth(0)).toContainText('60 kg × 8');
   await expect(page.getByTestId('history-set').nth(3)).toContainText('62.5 kg × 6');
@@ -179,7 +187,12 @@ test('back compares with what the workout was filled in with, even after that se
   const bench = workoutPage(page, 0);
   await expectSet(bench, 0, '60 kg', '8');
 
-  // The session it was filled in from is deleted: "Last time" is now the one before.
+  // Its history lists both workouts, newest first.
+  let history = await openHistory(bench);
+  await expect(history.getByTestId('past-workout-sets')).toHaveText(['60 kg × 8', '50 kg × 10']);
+  await closeHistory(history);
+
+  // The session it was filled in from is deleted: the history has the one before.
   await goTo(page, '#/history');
   await page.getByTestId('history-row').first().click();
   await page.getByTestId('history-delete').click();
@@ -187,7 +200,9 @@ test('back compares with what the workout was filled in with, even after that se
   await expect(page.getByTestId('history-row')).toHaveCount(1);
   await page.getByTestId('tab-plans').click();
   await page.getByTestId('resume-workout').click();
-  await expect(workoutPage(page, 0).getByTestId('last-time')).toContainText('50 kg × 10');
+  history = await openHistory(bench);
+  await expect(history.getByTestId('past-workout-sets')).toHaveText(['50 kg × 10']);
+  await closeHistory(history);
   for (const index of [0, 1, 2]) await expectSet(bench, index, '60 kg', '8');
 
   /** Types `weight` (carried to every set) and `reps` for every set. */
@@ -255,7 +270,9 @@ test("the countdown runs for the plan's rest, else the default rest from Setting
   await expectOnPage(page, 0);
   await scrollWorkout(page, 1 / 3);
   await expectOnPage(page, 1);
+  // Set 2, and with it set 1 before it.
   await tickSet(flyes, 1);
+  await expect(setCircle(flyes, 0)).toHaveAttribute('aria-pressed', 'true');
   await expect(rest).toHaveAttribute('data-seconds', '120');
   await expect(rest.getByTestId('rest-time')).toHaveText(/^(2:00|1:5\d)$/);
 
@@ -316,21 +333,17 @@ test('a superset rests after each round and celebrates once, when all its rounds
     await tickSet(line(1), n - 1);
     await expect(rest).toHaveAttribute('data-seconds', '45');
   }
-  // Round 2's A2 finished the superset: one celebration.
+  // Round 2's A2 finished the superset: one celebration, then the screen
+  // moves on to the next exercise, the countdown still on it.
   await expect(celebration).toHaveCount(1);
   await expect(celebration).toContainText('Superset A done');
   expect((await animationNames(celebration)).some((name) => name.includes('fly'))).toBe(true);
   await expect(celebration).toHaveCount(0);
-
-  // The superset's page (two lines of circles, and room under the countdown)
-  // is taller than the screen: it scrolls to its end before moving on.
-  await scrollWorkout(page, 0.25);
-  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '0');
-  await expectOffScreen(page, 1);
-
-  // The last exercise: its last set celebrates, with reduced motion without confetti.
-  await scrollWorkout(page, 1 / 3);
   await expectOnPage(page, 1);
+  await expect(rest).toBeInViewport({ ratio: 1 });
+
+  // The last exercise: its last set celebrates, with reduced motion without
+  // confetti, then the screen moves on to the finish page.
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const pushdown = workoutPage(page, 1);
   for (const index of [0, 1]) await tickSet(pushdown, index);
@@ -340,4 +353,5 @@ test('a superset rests after each round and celebrates once, when all its rounds
   expect((await animationNames(celebration)).some((name) => name.includes('fly'))).toBe(false);
   await expect(celebration).toHaveCount(0);
   await expect(rest).toHaveCount(0);
+  await expectOnPage(page, 2);
 });

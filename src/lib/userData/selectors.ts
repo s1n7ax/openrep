@@ -46,32 +46,45 @@ export function history(sessions: readonly Session[]): Session[] {
     .sort((a, b) => (a.startedAt < b.startedAt ? 1 : a.startedAt > b.startedAt ? -1 : 0));
 }
 
-/** What was done for an exercise the last time it was logged. */
-export interface LastTime {
+/** What was done for an exercise in one finished session. */
+export interface PastSets {
   session: Session;
   /** The sets marked done, in order. */
   sets: LoggedSet[];
 }
 
 /**
+ * The history of `ref`: every finished session in which it has at least one
+ * set marked done, newest first (by start time), with those sets.
+ * `excludeSessionId` skips a session, e.g. the one being logged.
+ */
+export function exerciseHistory(
+  sessions: readonly Session[],
+  ref: ExerciseRef,
+  excludeSessionId?: string,
+): PastSets[] {
+  return history(sessions).flatMap((session) => {
+    if (session.id === excludeSessionId) return [];
+    for (const exercise of session.exercises) {
+      if (!sameExercise(exercise.exercise, ref)) continue;
+      const sets = exercise.sets.filter((set) => set.done);
+      if (sets.length > 0) return [{ session, sets }];
+    }
+    return [];
+  });
+}
+
+/**
  * The most recent finished session (by start time) in which `ref` has at
- * least one set marked done, with those sets. `excludeSessionId` skips a
- * session, e.g. the one being logged.
+ * least one set marked done, with those sets: the first of its history (see
+ * `exerciseHistory`).
  */
 export function lastTimeFor(
   sessions: readonly Session[],
   ref: ExerciseRef,
   excludeSessionId?: string,
-): LastTime | null {
-  for (const session of history(sessions)) {
-    if (session.id === excludeSessionId) continue;
-    for (const exercise of session.exercises) {
-      if (!sameExercise(exercise.exercise, ref)) continue;
-      const sets = exercise.sets.filter((set) => set.done);
-      if (sets.length > 0) return { session, sets };
-    }
-  }
-  return null;
+): PastSets | null {
+  return exerciseHistory(sessions, ref, excludeSessionId)[0] ?? null;
 }
 
 /** Number of days and of exercises across all days. */

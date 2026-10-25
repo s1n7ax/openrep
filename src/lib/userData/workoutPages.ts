@@ -1,22 +1,35 @@
 /**
  * The workout screen shows a session one block (exercise or superset) per
- * page, then a page to finish it. These helpers say where it opens, which
- * exercise of a superset is next, and whether going back would lose anything.
+ * page, then a page to finish it. These helpers say where it opens, where it
+ * moves on to once a block is done, which exercise of a superset is next,
+ * and whether going back would lose anything.
  */
 import type { Session, SessionExercise } from '../schema/userData.ts';
 import { lastSetsFor, prefilledSet } from './sessions.ts';
 import { nextSet } from './setCircles.ts';
 import { blockEntries, type Block } from './supersets.ts';
 
+/** Whether `block` has a set not ticked off. */
+export function hasSetsLeft(block: Block<SessionExercise>): boolean {
+  return blockEntries(block).some((entry) => entry.sets.some((set) => !set.done));
+}
+
 /**
  * The page a workout opens on: the first block with a set not ticked off,
  * or `blocks.length` (the finish page) when every set is.
  */
 export function firstOpenPage(blocks: readonly Block<SessionExercise>[]): number {
-  const index = blocks.findIndex((block) =>
-    blockEntries(block).some((entry) => entry.sets.some((set) => !set.done)),
-  );
-  return index === -1 ? blocks.length : index;
+  return nextOpenPage(blocks, -1);
+}
+
+/**
+ * The page to move on to from the block at `index` once it is done: the
+ * first block after it with a set not ticked off, or `blocks.length` (the
+ * finish page) when none is left after it.
+ */
+export function nextOpenPage(blocks: readonly Block<SessionExercise>[], index: number): number {
+  const next = blocks.findIndex((block, position) => position > index && hasSetsLeft(block));
+  return next === -1 ? blocks.length : next;
 }
 
 /**

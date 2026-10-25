@@ -1,20 +1,22 @@
 <!--
   Workout logging (`#/workout/:sessionId`), full screen and one exercise per
-  page: its 3D view on top (swiped sideways to its photos when it has no
-  animation), then its target, what was done last time and its sets as
-  circles to tap when done, with the weight of the selected set above them
-  (SetCircles). The ⋯ button by its name changes reps, adds a set or removes
-  the last one (BlockOptions). Scrolling snaps from page to page
-  (lib/pageSnap.ts); a slim top bar shows the day, which page this is and
-  the sets done. A superset is one page: its picture swipes between its
-  exercises, starting on the one whose set is next, and its circles have a
-  line per exercise and a column per round. The last page finishes
-  the workout into history. Back (the arrow or Android's back button)
-  discards it, asking first when anything was entered. A workout opens on
-  the first exercise with sets left; the exercise name opens its page.
-  Ticking a set starts a rest countdown docked at the bottom, on every page
-  (lib/userData/workoutTicks.ts says when and how long), and completing an
-  exercise or superset plays a short celebration.
+  page: its 3D view on top, filling the room the page leaves (swiped
+  sideways to its photos when it has no animation), then its target and its
+  sets as circles to tap when done, with the weight of the selected set
+  above them (SetCircles). The ⋯ button by its name shows its history,
+  changes reps, adds a set or removes the last one (BlockOptions). Scrolling
+  snaps from page to page (lib/pageSnap.ts); a slim top bar shows the day,
+  which page this is and the sets done. A superset is one page: its picture
+  swipes between its exercises, starting on the one whose set is next, and
+  its circles have a line per exercise and a column per round. The last
+  page finishes the workout into history. Back (the arrow or Android's back
+  button) discards it, asking first when anything was entered. A workout
+  opens on the first exercise with sets left; the exercise name opens its
+  page. Ticking a set starts a rest countdown docked at the bottom, on every
+  page (lib/userData/workoutTicks.ts says when and how long). Completing an
+  exercise or superset plays a short celebration, then moves on to the next
+  exercise with sets left, or the finish page, unless meanwhile the page was
+  changed, a set un-ticked, or the ⋯ options or the discard question opened.
 -->
 <script module lang="ts">
   import type { Session } from '../lib/schema/userData.ts';
@@ -56,7 +58,7 @@
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { restTimer } from '../lib/stores/restTimer.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { findPlan, findSession, lastTimeFor } from '../lib/userData/selectors.ts';
+  import { findPlan, findSession } from '../lib/userData/selectors.ts';
   import { deleteSession, finishSession } from '../lib/userData/sessions.ts';
   import {
     blockEntries,
@@ -71,9 +73,15 @@
     formatSupersetSummary,
     formatTargetWithRest,
   } from '../lib/userData/targets.ts';
-  import { firstOpenPage, hasEntries, nextSupersetPosition } from '../lib/userData/workoutPages.ts';
+  import {
+    firstOpenPage,
+    hasEntries,
+    hasSetsLeft,
+    nextOpenPage,
+    nextSupersetPosition,
+  } from '../lib/userData/workoutPages.ts';
   import { tickOutcome } from '../lib/userData/workoutTicks.ts';
-  import { formatDay, formatSets, sessionSetCounts } from '../lib/userData/workoutText.ts';
+  import { sessionSetCounts } from '../lib/userData/workoutText.ts';
   import { firstSlideOf, hasPicture, pictureSlides } from '../lib/workoutPicture.ts';
 
   let { sessionId }: { sessionId: string } = $props();
@@ -107,6 +115,11 @@
     return firstOpenPage(blocks);
   }
 
+  /**
+   * The exercise or superset (by `blockKey`) the celebration is for, to move
+   * on from when it ends; null when there is nothing to move on from.
+   */
+  let moveOnFrom: string | null = null;
   /** The page on the screen (`blocks.length` is the finish page). */
   let page = $state(0);
   show(initialPage());
@@ -133,13 +146,20 @@
     return set?.done ? current : null;
   });
 
+  /** The pager of the pages, while they are shown. */
+  let snapper: PageSnapper | null = null;
+
   const pager: Attachment<HTMLElement> = (scroller) => {
-    const snapper = new PageSnapper(
+    const pages = new PageSnapper(
       scroller,
       untrack(() => page),
       { onPageChange: show },
     );
-    return () => snapper.dispose();
+    snapper = pages;
+    return () => {
+      pages.dispose();
+      if (snapper === pages) snapper = null;
+    };
   };
 
   /** The rest countdown's dock, while it shows. */
@@ -170,7 +190,9 @@
     };
   };
 
+  /** Shows page `index`; a page change keeps the celebration from moving on. */
   function show(index: number) {
+    if (index !== page) moveOnFrom = null;
     page = index;
     lastPages.set(sessionId, pageKey(index));
   }
@@ -196,13 +218,15 @@
   }
 
   /**
-   * After a set was ticked off or un-ticked: any tick ends the countdown and
-   * may start the next one, or a celebration; un-ticking the set that started
-   * the countdown stops it.
+   * After a set was tapped and ticked off (with the sets before it) or
+   * un-ticked (with the sets after it): any tick ends the countdown and may
+   * start the next one, going by the tapped set, or a celebration; un-ticking
+   * the set that started the countdown, or a set before it, stops it.
    */
   function onSetDone(sessionExerciseId: string, setId: string, done: boolean) {
     if (!done) {
-      if (restTimer.startedBy(sessionExerciseId, setId)) restTimer.stop();
+      // `rest` is null once the set that started the countdown is not done.
+      if (rest === null) restTimer.stop();
       return;
     }
     const current = findSession(userData.data, sessionId);
@@ -213,7 +237,37 @@
     else restTimer.start({ sessionId, sessionExerciseId, setId, seconds: outcome.restSec });
     if (outcome.completed !== null) {
       celebration = { id: (celebration?.id ?? 0) + 1, label: doneLabel(outcome.completed) };
+      moveOnFrom = blockKey(outcome.completed);
     }
+  }
+
+  /**
+   * When the celebration is over: on to the next exercise with sets left
+   * after the one it was for, or the finish page; not when that one has a
+   * set un-ticked again, or when meanwhile the page was changed or a dialog
+   * opened (they forget `moveOnFrom`).
+   */
+  function onCelebrationEnd() {
+    celebration = null;
+    const from = moveOnFrom;
+    moveOnFrom = null;
+    const index = blocks.findIndex((block) => blockKey(block) === from);
+    const block = blocks[index];
+    if (block && !hasSetsLeft(block)) snapper?.goTo(nextOpenPage(blocks, index));
+  }
+
+  /** The slides of the picture on top of `block`'s page. */
+  function slidesOf(block: Block<SessionExercise>) {
+    return pictureSlides(
+      blockEntries(block).map((exercise, position) => {
+        const resolved = resolve(exercise);
+        return {
+          marker: block.kind === 'superset' ? supersetExerciseLabel(block.letter, position) : null,
+          resolved,
+          animation: resolved.exercise ? catalog.animation(resolved.exercise.id) : null,
+        };
+      }),
+    );
   }
 
   /** "Goblet Squat done", "Superset A done": the celebration's text for `block`. */
@@ -224,6 +278,7 @@
   }
 
   function openOptions(block: Block<SessionExercise>) {
+    moveOnFrom = null;
     options = { key: blockKey(block), sheet: 'menu' };
   }
 
@@ -248,8 +303,12 @@
   /** Back: discards the workout, after asking when anything was entered. */
   function leave() {
     const history = startHistories.get(sessionId) ?? userData.data.sessions;
-    if (session && hasEntries(session, history)) confirming = 'discard';
-    else discard();
+    if (session && hasEntries(session, history)) {
+      moveOnFrom = null;
+      confirming = 'discard';
+    } else {
+      discard();
+    }
   }
 
   function discard() {
@@ -339,13 +398,22 @@
 
     <div class="pages" data-testid="workout-pages" {@attach pager} {@attach revealFocused}>
       {#each blocks as block, index (blockKey(block))}
+        {@const slides = slidesOf(block)}
         <section
           class="slot"
+          class:pictured={hasPicture(slides)}
           data-testid="workout-page"
           data-page={index}
           aria-label={`Exercise ${index + 1} of ${blocks.length}`}
         >
-          {@render picture(block, index)}
+          {#if hasPicture(slides)}
+            <ExercisePicture
+              {slides}
+              initial={firstSlideOf(slides, nextSupersetPosition(blockEntries(block)))}
+              current={index === page}
+              live={Math.abs(index - page) <= 1}
+            />
+          {/if}
           {#if block.kind === 'exercise'}
             {@const exercise = block.entry}
             <div
@@ -447,33 +515,11 @@
     {/if}
     {#if celebration}
       {#key celebration.id}
-        <Celebration label={celebration.label} onend={() => (celebration = null)} />
+        <Celebration label={celebration.label} onend={onCelebrationEnd} />
       {/key}
     {/if}
   </div>
 {/if}
-
-{#snippet picture(block: Block<SessionExercise>, index: number)}
-  {@const entries = blockEntries(block)}
-  {@const slides = pictureSlides(
-    entries.map((exercise, position) => {
-      const resolved = resolve(exercise);
-      return {
-        marker: block.kind === 'superset' ? supersetExerciseLabel(block.letter, position) : null,
-        resolved,
-        animation: resolved.exercise ? catalog.animation(resolved.exercise.id) : null,
-      };
-    }),
-  )}
-  {#if hasPicture(slides)}
-    <ExercisePicture
-      {slides}
-      initial={firstSlideOf(slides, nextSupersetPosition(entries))}
-      current={index === page}
-      live={Math.abs(index - page) <= 1}
-    />
-  {/if}
-{/snippet}
 
 {#snippet optionsButton(onclick: () => void, label: string)}
   <button
@@ -495,7 +541,6 @@
   onoptions: (() => void) | null,
 )}
   {@const resolved = resolve(exercise)}
-  {@const last = lastTimeFor(userData.data.sessions, exercise.exercise, sessionId)}
   <header class="head">
     <span class="number" aria-hidden="true" data-testid="workout-exercise-label">{label}</span>
     <div class="titles">
@@ -524,16 +569,6 @@
       {@render optionsButton(onoptions, `${resolved.name} options`)}
     {/if}
   </header>
-
-  {#if last}
-    <p class="last-time" data-testid="last-time">
-      <Icon name="history" size={16} />
-      <span>
-        <span class="last-label">Last time · {formatDay(last.session.startedAt)}:</span>
-        {formatSets(last.sets, unit)}
-      </span>
-    </p>
-  {/if}
 {/snippet}
 
 <BlockOptions
@@ -658,8 +693,11 @@
   }
 
   /* Room below the content to scroll it out from under the rest countdown.
-     It is added at the bottom, so nothing on the screen moves. */
-  .resting .slot {
+     It is added at the bottom, so nothing on the screen moves. A page with a
+     picture keeps it at all times: its picture fills the room the page
+     leaves, and keeps its size when the countdown comes and goes. */
+  .resting .slot,
+  .slot.pictured {
     padding-bottom: calc(var(--space-6) + var(--safe-bottom) + var(--rest-height));
   }
 
@@ -757,29 +795,6 @@
     color: var(--text-3);
     font-size: var(--text-sm);
     font-style: italic;
-  }
-
-  .last-time {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-2);
-    margin: var(--space-1) var(--space-2) 0;
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-sm);
-    background: var(--surface-2);
-    color: var(--text-2);
-    font-size: var(--text-sm);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .last-time :global(.icon) {
-    margin-top: 2px;
-    color: var(--text-3);
-  }
-
-  .last-label {
-    color: var(--text);
-    font-weight: 700;
   }
 
   .superset-head {

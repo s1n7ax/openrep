@@ -61,7 +61,7 @@ describe('formatSessionDuration', () => {
 
 describe('dates', () => {
   it('formats days and months in a locale', () => {
-    expect(formatDay('2026-10-21T12:00:00.000Z', 'en-GB')).toBe('Wed 21 Oct');
+    expect(formatDay('2026-10-21T12:00:00.000Z', 'en-GB')).toBe('Wed, 21 Oct 2026');
     expect(formatMonth('2026-10-21T12:00:00.000Z', 'en-GB')).toBe('October 2026');
   });
 });

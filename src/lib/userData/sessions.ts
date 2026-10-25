@@ -11,6 +11,7 @@ import type {
 } from '../schema/userData.ts';
 import { cleanTarget } from './plans.ts';
 import { lastTimeFor } from './selectors.ts';
+import { blockEntries, blockHasEntry, groupBlocks, supersetRounds } from './supersets.ts';
 import { plannedReps } from './targets.ts';
 
 function updateSession(
@@ -301,10 +302,25 @@ export function deleteSession(data: UserData, sessionId: string): UserData {
   };
 }
 
+/** `set` ticked off, its empty reps or seconds filled from `target` (see `setLoggedSetDone`). */
+function tickedSet(set: LoggedSet, target: PlanTarget): LoggedSet {
+  return {
+    ...set,
+    done: true,
+    reps: set.reps ?? plannedReps(target.reps),
+    durationSec: set.durationSec ?? target.durationSec ?? null,
+  };
+}
+
 /**
- * Ticks a set off (or un-ticks it). Ticking fills empty reps from the reps
- * target, a range's low end ("10-12" → 10, see `plannedReps`), and an empty
- * duration from a timed target, so a set done as planned takes one tap.
+ * Ticks a set off (or un-ticks it), keeping the sets done in an unbroken
+ * line from the first set of its exercise or superset. Ticking also ticks
+ * every set before it that is not done; un-ticking also un-ticks every set
+ * after it that is. A superset's sets go in the order they are done: round
+ * by round, A1 before A2 (see `supersetRounds`). Ticking fills empty reps
+ * from the reps target, a range's low end ("10-12" → 10, see `plannedReps`),
+ * and an empty duration from a timed target, so a set done as planned takes
+ * one tap.
  */
 export function setLoggedSetDone(
   data: UserData,
@@ -313,20 +329,33 @@ export function setLoggedSetDone(
   setId: string,
   done: boolean,
 ): UserData {
-  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
-    let changed = false;
-    const { reps, durationSec } = exercise.target;
-    const sets = exercise.sets.map((set) => {
-      if (set.id !== setId || set.done === done) return set;
-      changed = true;
-      if (!done) return { ...set, done };
-      return {
-        ...set,
-        done,
-        reps: set.reps ?? plannedReps(reps),
-        durationSec: set.durationSec ?? durationSec ?? null,
-      };
-    });
-    return changed ? { ...exercise, sets } : exercise;
+  return updateSession(data, sessionId, (session) => {
+    const block = groupBlocks(session.exercises, session.supersets).find((candidate) =>
+      blockHasEntry(candidate, sessionExerciseId),
+    );
+    if (!block) return session;
+    const order = supersetRounds(blockEntries(block)).flat();
+    const index = order.findIndex(
+      ({ entry, set }) => entry.id === sessionExerciseId && set.id === setId,
+    );
+    if (index === -1) return session;
+    const changing = new Set(
+      (done ? order.slice(0, index + 1) : order.slice(index))
+        .map(({ set }) => set)
+        .filter((set) => set.done !== done),
+    );
+    if (changing.size === 0) return session;
+    const exercises = session.exercises.map((exercise) =>
+      exercise.sets.some((set) => changing.has(set))
+        ? {
+            ...exercise,
+            sets: exercise.sets.map((set) => {
+              if (!changing.has(set)) return set;
+              return done ? tickedSet(set, exercise.target) : { ...set, done };
+            }),
+          }
+        : exercise,
+    );
+    return { ...session, exercises };
   });
 }

@@ -1,7 +1,7 @@
 /**
  * Verification "Supersets": exercises grouped into a superset in the plan
  * editor show as a labelled group on the plan page, are logged round by
- * round, show "last time" per exercise and are grouped by round in history;
+ * round, show their history per exercise and are grouped by round in history;
  * a community schedule with a superset shows it, copies it into a plan and
  * Submit keeps it; a backup keeps supersets.
  */
@@ -22,7 +22,14 @@ import {
 import { REMOTE_CATALOG_URL } from './support/env.ts';
 import { expect, test } from './support/fixtures.ts';
 import { addExercise, createPlan, openPlan, startDay } from './support/plans.ts';
-import { changeAmounts, pickOption, tickSet, typeWeight } from './support/workout.ts';
+import {
+  changeAmounts,
+  openHistory,
+  pickOption,
+  setCircle,
+  tickSet,
+  typeWeight,
+} from './support/workout.ts';
 
 const BENCH = { id: 'barbell-bench-press-medium-grip', name: 'Barbell Bench Press - Medium Grip' };
 const FLYES = { id: 'dumbbell-flyes', name: 'Dumbbell Flyes' };
@@ -115,13 +122,10 @@ test('a superset is shown on the plan, logged round by round and in history', as
     page.getByTestId('workout-exercise').getByTestId('workout-exercise-name'),
   ).toHaveText(PUSHDOWN.name);
 
-  // Ticking all 6 rows advances the progress by 6 sets.
   const progress = page.getByTestId('workout-progress');
   await expect(progress).toHaveAttribute('data-done', '0');
   await expect(progress).toHaveAttribute('data-total', '9');
   await fillRounds(page);
-  for (const round of [1, 2, 3]) await logRound(page, round);
-  await expect(progress).toHaveAttribute('data-done', '6');
 
   // Add round: round 4, a circle more for each exercise.
   await pickOption(card, 'round-add');
@@ -133,6 +137,30 @@ test('a superset is shown on the plan, logged round by round and in history', as
   await expect(card.getByTestId('workout-superset-summary')).toHaveText(
     '4 rounds · rest 90 s after each round',
   );
+
+  /** Expects the rows ticked off in each round, A1's then A2's: "✓✓", "✓·", … */
+  async function expectTicked(...expected: string[]): Promise<void> {
+    for (const [index, round] of expected.entries()) {
+      for (const position of [0, 1]) {
+        await expect(setCircle(lines.nth(position), index)).toHaveAttribute(
+          'aria-pressed',
+          String(round[position] === '✓'),
+        );
+      }
+    }
+  }
+
+  // Round 2's A1 ticks the rows before it: round 1's A1 and A2.
+  await tickSet(lines.nth(0), 1);
+  await expectTicked('✓✓', '✓·', '··', '··');
+  // Un-ticking round 1's A2 un-ticks the row after it: round 2's A1.
+  await tickSet(lines.nth(1), 0, false);
+  await expectTicked('✓·', '··', '··', '··');
+
+  // Round 3's A2 ticks the rows of rounds 1–3: the progress is 6 sets.
+  await tickSet(lines.nth(1), 2);
+  await expectTicked('✓✓', '✓✓', '✓✓', '··');
+  await expect(progress).toHaveAttribute('data-done', '6');
 
   // History: the superset grouped by round.
   await page.getByTestId('workout-finish').click();
@@ -157,16 +185,20 @@ test('a superset is shown on the plan, logged round by round and in history', as
   ]);
   await expect(page.getByTestId('history-sets')).toHaveText('6 of 11');
 
-  // The next workout shows "last time" for each exercise of the superset.
+  // The next workout shows the history of each exercise of the superset.
   await openPlan(page, 'Push supersets');
   await startDay(page, 0);
-  const members = page.getByTestId('workout-superset-exercise');
-  await expect(members.nth(0).getByTestId('last-time')).toContainText(
+  const history = await openHistory(page.getByTestId('workout-superset'));
+  const members = history.getByTestId('history-sheet-exercise');
+  await expect(members).toHaveCount(2);
+  await expect(members.nth(0)).toContainText(BENCH.name);
+  await expect(members.nth(0).getByTestId('past-workout-sets')).toHaveText([
     '60 kg × 8, 60 kg × 8, 60 kg × 8',
-  );
-  await expect(members.nth(1).getByTestId('last-time')).toContainText(
+  ]);
+  await expect(members.nth(1)).toContainText(FLYES.name);
+  await expect(members.nth(1).getByTestId('past-workout-sets')).toHaveText([
     '14 kg × 12, 14 kg × 12, 14 kg × 12',
-  );
+  ]);
 });
 
 test('supersets can be extended, reordered, taken apart and ungrouped', async ({ page }) => {

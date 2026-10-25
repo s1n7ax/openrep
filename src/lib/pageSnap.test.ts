@@ -251,6 +251,30 @@ describe('PageSnapper', () => {
     });
   });
 
+  it('goes to a page it is told to, as a snap', () => {
+    const { scroller, changes, snapper } = pager();
+    snapper.goTo(2);
+    expect(scroller.style.overflowY).toBe('hidden');
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(1600);
+    expect(scroller.style.overflowY).toBe('');
+    expect(changes).toEqual([2]);
+    // There is no page 3.
+    snapper.goTo(3);
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(1600);
+  });
+
+  it('does not go to a page while a finger is on the screen', () => {
+    const { scroller, changes, snapper } = pager();
+    scroller.dispatch('touchstart');
+    snapper.goTo(1);
+    vi.advanceTimersByTime(1000);
+    expect(scroller.scrollTop).toBe(0);
+    expect(scroller.style.overflowY).toBe('');
+    expect(changes).toEqual([]);
+  });
+
   it('with reduced motion, jumps to the next page and stops the fling there', () => {
     reducedMotion = true;
     const { scroller, changes } = pager();

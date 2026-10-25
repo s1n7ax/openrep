@@ -1,9 +1,10 @@
 <!--
   The picture on top of a workout page: its slides side by side (see
   lib/workoutPicture.ts), swiped sideways, with dots showing which one is
-  shown. 3D views run only while the page is on or next to the screen, and
-  on a page off the screen only for the slide it shows, as each one holds a
-  WebGL context.
+  shown. It is at least `--picture-height` high and grows into the room the
+  page (a flex column) leaves. 3D views run only while the page is on or
+  next to the screen, and on a page off the screen only for the slide it
+  shows, as each one holds a WebGL context.
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
@@ -98,13 +99,15 @@
 <style>
   .picture {
     position: relative;
-    height: var(--picture-height);
+    flex: 1 0 var(--picture-height);
     background: var(--surface-2);
   }
 
+  /* Out of the flow, so the slides take the picture's height once it has grown. */
   .track {
+    position: absolute;
+    inset: 0;
     display: flex;
-    height: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;

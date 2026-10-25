@@ -1,6 +1,6 @@
 /**
- * Human-readable text for logged workouts: sets, "last time", session
- * duration and dates. Weights are shown in the user's unit.
+ * Human-readable text for logged workouts: sets, session duration and
+ * dates. Weights are shown in the user's unit.
  */
 import type { LoggedSet, Session, Unit } from '../schema/userData.ts';
 import { formatWeightWithUnit } from '../units.ts';
@@ -61,12 +61,13 @@ export function sessionSetCounts(session: Session): { done: number; total: numbe
   return { done, total };
 }
 
-/** "Wed 21 Oct" (in the device's locale unless `locale` is given). */
+/** "Wed 21 Oct 2026" (in the device's locale unless `locale` is given). */
 export function formatDay(iso: string, locale?: string): string {
   return new Date(iso).toLocaleDateString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
+    year: 'numeric',
   });
 }
 
