@@ -1,0 +1,69 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "standing-front-barbell-raise-over-head",
+  "durationSec": 3.4,
+  "camera": {"position": [2.9, 2.1, 1.9], "target": [0, 1.25, 0.1]},
+  "props": [{"type": "barbell", "attach": "hands"}],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "leftShoulder": [-10, 0, -3.5],
+        "leftElbow": [-12, -90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-10, 0, 3.5],
+        "rightElbow": [-12, 90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.2, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.42,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "spine": [-2, 0, 0],
+        "neck": [-4, 0, 0],
+        "leftShoulder": [-172, 0, -3.5],
+        "leftElbow": [-12, -90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-172, 0, 3.5],
+        "rightElbow": [-12, 90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.2, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.52,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "spine": [-2, 0, 0],
+        "neck": [-4, 0, 0],
+        "leftShoulder": [-172, 0, -3.5],
+        "leftElbow": [-12, -90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-172, 0, 3.5],
+        "rightElbow": [-12, 90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.2, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.965, 0], "rotation": [0, 0, 0]},
+        "leftShoulder": [-10, 0, -3.5],
+        "leftElbow": [-12, -90, 0],
+        "leftWrist": [0, 0, 0],
+        "rightShoulder": [-10, 0, 3.5],
+        "rightElbow": [-12, 90, 0],
+        "rightWrist": [0, 0, 0],
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.2, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.2, 0.5, 1]}
+      }
+    }
+  ]
+}
