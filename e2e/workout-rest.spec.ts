@@ -13,6 +13,7 @@ import { addExercise, copySchedule, createPlan, openPlan, startDay } from './sup
 import {
   amountFields,
   changeAmounts,
+  expectOffScreen,
   expectOnPage,
   expectSet,
   pickOption,
@@ -320,6 +321,12 @@ test('a superset rests after each round and celebrates once, when all its rounds
   await expect(celebration).toContainText('Superset A done');
   expect((await animationNames(celebration)).some((name) => name.includes('fly'))).toBe(true);
   await expect(celebration).toHaveCount(0);
+
+  // The superset's page (two lines of circles, and room under the countdown)
+  // is taller than the screen: it scrolls to its end before moving on.
+  await scrollWorkout(page, 0.25);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '0');
+  await expectOffScreen(page, 1);
 
   // The last exercise: its last set celebrates, with reduced motion without confetti.
   await scrollWorkout(page, 1 / 3);
