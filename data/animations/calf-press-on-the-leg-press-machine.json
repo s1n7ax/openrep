@@ -1,0 +1,60 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "calf-press-on-the-leg-press-machine",
+  "durationSec": 2.4,
+  "camera": {"position": [2.6, 0.45, 1.9], "target": [0, 0.95, 0.45]},
+  "props": [
+    {"type": "leg-press", "attach": "none", "position": [0, 0.6, 0]},
+    {"type": "leg-press", "attach": "feet", "position": [0, 0.106, -0.106]}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.6, 0], "rotation": [-38, 0, 0]},
+        "neck": [10, 0, 0],
+        "head": [8, 0, 0],
+        "leftHand": {"target": [0.29, 0.52, 0.06], "pole": [0.65, 0.75, -0.35]},
+        "rightHand": {"target": [-0.29, 0.52, 0.06], "pole": [-0.65, 0.75, -0.35]},
+        "leftFoot": {"target": [0.15, 1.215, 0.675], "pole": [0.3, 1.65, 0.25]},
+        "rightFoot": {"target": [-0.15, 1.215, 0.675], "pole": [-0.3, 1.65, 0.25]}
+      }
+    },
+    {
+      "t": 0.42,
+      "pose": {
+        "pelvis": {"position": [0, 0.6, 0], "rotation": [-38, 0, 0]},
+        "neck": [10, 0, 0],
+        "head": [8, 0, 0],
+        "leftHand": {"target": [0.29, 0.52, 0.06], "pole": [0.65, 0.75, -0.35]},
+        "rightHand": {"target": [-0.29, 0.52, 0.06], "pole": [-0.65, 0.75, -0.35]},
+        "leftFoot": {"target": [0.15, 1.266, 0.726], "pole": [0.3, 1.65, 0.25]},
+        "rightFoot": {"target": [-0.15, 1.266, 0.726], "pole": [-0.3, 1.65, 0.25]}
+      }
+    },
+    {
+      "t": 0.58,
+      "pose": {
+        "pelvis": {"position": [0, 0.6, 0], "rotation": [-38, 0, 0]},
+        "neck": [10, 0, 0],
+        "head": [8, 0, 0],
+        "leftHand": {"target": [0.29, 0.52, 0.06], "pole": [0.65, 0.75, -0.35]},
+        "rightHand": {"target": [-0.29, 0.52, 0.06], "pole": [-0.65, 0.75, -0.35]},
+        "leftFoot": {"target": [0.15, 1.266, 0.726], "pole": [0.3, 1.65, 0.25]},
+        "rightFoot": {"target": [-0.15, 1.266, 0.726], "pole": [-0.3, 1.65, 0.25]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.6, 0], "rotation": [-38, 0, 0]},
+        "neck": [10, 0, 0],
+        "head": [8, 0, 0],
+        "leftHand": {"target": [0.29, 0.52, 0.06], "pole": [0.65, 0.75, -0.35]},
+        "rightHand": {"target": [-0.29, 0.52, 0.06], "pole": [-0.65, 0.75, -0.35]},
+        "leftFoot": {"target": [0.15, 1.215, 0.675], "pole": [0.3, 1.65, 0.25]},
+        "rightFoot": {"target": [-0.15, 1.215, 0.675], "pole": [-0.3, 1.65, 0.25]}
+      }
+    }
+  ]
+}

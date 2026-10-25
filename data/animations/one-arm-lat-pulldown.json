@@ -1,0 +1,63 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "one-arm-lat-pulldown",
+  "durationSec": 2.8,
+  "props": [
+    {"type": "bench", "attach": "none", "position": [0, 0, -0.42]},
+    {"type": "cable-handle", "attach": "rightHand", "rotation": [180, 0, 0], "cableFrom": [-0.22, 2.32, 0.28]}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-4, 0, 0]},
+        "chest": [0, 0, 4],
+        "neck": [4, 0, 0],
+        "head": [-8, -6, 0],
+        "leftHand": {"target": [0.15, 0.702, 0.3], "pole": [0.6, 0.8, -0.3]},
+        "rightHand": {"target": [-0.24, 1.6, 0.07], "pole": [-0.8, 0.95, -0.2]},
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 0.45,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-10, 0, 0]},
+        "chest": [-4, -8, -2],
+        "neck": [6, 0, 0],
+        "head": [0, -4, 0],
+        "leftHand": {"target": [0.15, 0.702, 0.3], "pole": [0.6, 0.8, -0.3]},
+        "rightHand": {"target": [-0.285, 1.07, 0.08], "pole": [-0.4, 0.3, -0.25]},
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 0.55,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-10, 0, 0]},
+        "chest": [-4, -8, -2],
+        "neck": [6, 0, 0],
+        "head": [0, -4, 0],
+        "leftHand": {"target": [0.15, 0.702, 0.3], "pole": [0.6, 0.8, -0.3]},
+        "rightHand": {"target": [-0.285, 1.07, 0.08], "pole": [-0.4, 0.3, -0.25]},
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0], "rotation": [-4, 0, 0]},
+        "chest": [0, 0, 4],
+        "neck": [4, 0, 0],
+        "head": [-8, -6, 0],
+        "leftHand": {"target": [0.15, 0.702, 0.3], "pole": [0.6, 0.8, -0.3]},
+        "rightHand": {"target": [-0.24, 1.6, 0.07], "pole": [-0.8, 0.95, -0.2]},
+        "leftFoot": {"target": [0.17, 0, 0.56], "pole": [0.25, 1, 1]},
+        "rightFoot": {"target": [-0.17, 0, 0.56], "pole": [-0.25, 1, 1]}
+      }
+    }
+  ]
+}

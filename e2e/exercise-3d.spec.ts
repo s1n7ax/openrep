@@ -1,5 +1,5 @@
 /**
- * Verifications "3D core exercises" and "3D non-core": each of the 30 core
+ * Verifications "3D core exercises" and "3D non-core": each of the 70 core
  * exercises plays its movement with its primary and secondary muscles glowing
  * in different colours, and can be rotated and zoomed; other exercises show
  * the glow on a still figure that stops rendering while idle.
@@ -54,6 +54,46 @@ const CORE_EXERCISE_IDS = [
   'dips-triceps-version',
   'plank',
   'crunches',
+  'dumbbell-alternate-bicep-curl',
+  'front-dumbbell-raise',
+  'upright-barbell-row',
+  'arnold-dumbbell-press',
+  'concentration-curls',
+  'incline-dumbbell-curl',
+  'seated-palm-up-barbell-wrist-curl',
+  'tricep-dumbbell-kickback',
+  'bent-over-two-dumbbell-row',
+  'kettlebell-sumo-high-pull',
+  'dumbbell-bench-press',
+  'barbell-incline-bench-press-medium-grip',
+  'incline-dumbbell-flyes',
+  'close-grip-barbell-bench-press',
+  'lying-rear-delt-raise',
+  'dips-chest-version',
+  'hanging-leg-raise',
+  'seated-one-arm-cable-pulley-rows',
+  'alternating-renegade-row',
+  'superman',
+  'dumbbell-lunges',
+  'bodyweight-squat',
+  'dumbbell-rear-lunge',
+  'sumo-deadlift',
+  'good-morning',
+  'kettlebell-one-legged-deadlift',
+  'pull-through',
+  'butt-lift-bridge',
+  'glute-kickback',
+  'calf-press-on-the-leg-press-machine',
+  'one-arm-lat-pulldown',
+  'cable-crossover',
+  'straight-arm-pulldown',
+  'standing-biceps-cable-curl',
+  'cable-rope-overhead-triceps-extension',
+  'cable-crunch',
+  'russian-twist',
+  'air-bike',
+  'reverse-crunch',
+  'dead-bug',
 ];
 
 const NON_CORE_EXERCISE_ID = '3-4-sit-up';
