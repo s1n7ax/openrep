@@ -39,6 +39,11 @@ works offline.
 - **Community schedules**: browse schedules and copy one into your plans to
   edit it. Three starter schedules ship with the app: Beginner Full Body,
   Push/Pull/Legs and Upper/Lower.
+- **Plan files**: export a plan to one JSON file and import one from the Plans
+  tab, on this or another phone. The format carries everything a plan does —
+  days, supersets, weights, rest, notes and the custom exercises it uses — and
+  is described for AI assistants in [`llms.txt`](llms.txt), so an assistant can
+  write a personalized plan that imports in a few taps.
 - **Catalog updates**: when online, the app downloads the latest catalog from
   this repository; the copy built into the app works offline from the first
   launch.

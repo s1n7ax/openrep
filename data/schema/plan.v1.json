@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/s1n7ax/openrep/main/data/schema/plan.v1.json",
+  "type": "object",
+  "properties": {
+    "app": {
+      "type": "string",
+      "const": "openrep"
+    },
+    "kind": {
+      "type": "string",
+      "const": "plan"
+    },
+    "formatVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "plan": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Ignored on import: the app assigns a new id.",
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "pattern": "\\S",
+          "description": "Display name of the plan, e.g. \"Push/Pull/Legs\"."
+        },
+        "days": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "Ignored on import: the app assigns a new id.",
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "pattern": "\\S",
+                "description": "Display name of the day, e.g. \"Push\" or \"Day 1\"."
+              },
+              "exercises": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "Ignored on import: the app assigns a new id.",
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "exercise": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "catalog"
+                            },
+                            "exerciseId": {
+                              "type": "string",
+                              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+                              "description": "Id of the exercise in the OpenRep catalog, e.g. \"barbell-bench-press-medium-grip\"."
+                            },
+                            "name": {
+                              "type": "string",
+                              "pattern": "\\S",
+                              "description": "Display name of the exercise. When the id exists in the catalog, the catalog name is shown instead."
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "exerciseId",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "const": "custom"
+                            },
+                            "customExerciseId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "description": "Id of a custom exercise of this file (see customExercises), or of one you already have."
+                            },
+                            "name": {
+                              "type": "string",
+                              "pattern": "\\S",
+                              "description": "Display name of the exercise; used to find an existing custom exercise of that name."
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "customExerciseId",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ],
+                      "description": "The exercise an entry does: one of the catalog, or a custom exercise."
+                    },
+                    "sets": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20,
+                      "description": "Number of sets, 1–20."
+                    },
+                    "reps": {
+                      "type": "string",
+                      "pattern": "^[1-9]\\d{0,2}(-[1-9]\\d{0,2})?$",
+                      "description": "A number (\"8\") or an ascending range (\"8-12\")."
+                    },
+                    "durationSec": {
+                      "description": "Seconds an exercise is held instead of being done for reps, e.g. a 30 s plank.",
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3600
+                    },
+                    "weightKg": {
+                      "description": "Starting weight in kilograms (0–2000, decimals allowed). Leave out for bodyweight.",
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 2000
+                    },
+                    "restSec": {
+                      "description": "Rest after each set, in seconds.",
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 3600
+                    },
+                    "notes": {
+                      "description": "Form cues or a reminder, shown on the plan.",
+                      "type": "string"
+                    },
+                    "supersetId": {
+                      "description": "The id of the superset this exercise belongs to, if any.",
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "exercise",
+                    "sets"
+                  ],
+                  "additionalProperties": false,
+                  "description": "One exercise of a day: sets, and exactly one of reps / durationSec."
+                },
+                "description": "In the order they are done. A superset’s exercises come next to each other."
+              },
+              "supersets": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Id of the superset; its exercises carry it as supersetId, and must be next to each other."
+                    },
+                    "restSec": {
+                      "description": "Rest after each round, in seconds.",
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 3600
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "name",
+              "exercises"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Training days, in order."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+        }
+      },
+      "required": [
+        "name",
+        "days"
+      ],
+      "additionalProperties": false
+    },
+    "customExercises": {
+      "description": "The custom exercises the plan refers to, so it imports complete. Exercises already in the app are matched by name and reused; the rest are added.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Ignored on import: the app assigns a new id.",
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "pattern": "\\S",
+            "description": "Display name of the exercise."
+          },
+          "notes": {
+            "description": "Form cues or a reminder.",
+            "type": "string"
+          },
+          "equipment": {
+            "description": "Equipment used, or null when there is none.",
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "bands",
+                  "barbell",
+                  "body only",
+                  "cable",
+                  "dumbbell",
+                  "e-z curl bar",
+                  "exercise ball",
+                  "foam roll",
+                  "kettlebells",
+                  "machine",
+                  "medicine ball",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "primaryMuscles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "abdominals",
+                "abductors",
+                "adductors",
+                "biceps",
+                "calves",
+                "chest",
+                "forearms",
+                "glutes",
+                "hamstrings",
+                "lats",
+                "lower back",
+                "middle back",
+                "neck",
+                "quadriceps",
+                "shoulders",
+                "traps",
+                "triceps"
+              ]
+            }
+          },
+          "secondaryMuscles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "abdominals",
+                "abductors",
+                "adductors",
+                "biceps",
+                "calves",
+                "chest",
+                "forearms",
+                "glutes",
+                "hamstrings",
+                "lats",
+                "lower back",
+                "middle back",
+                "neck",
+                "quadriceps",
+                "shoulders",
+                "traps",
+                "triceps"
+              ]
+            }
+          },
+          "instructions": {
+            "description": "Step-by-step instructions, in order.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "app",
+    "kind",
+    "formatVersion",
+    "plan"
+  ],
+  "additionalProperties": false,
+  "title": "OpenRep plan file (v1)",
+  "description": "One workout plan for the OpenRep app, with the custom exercises it uses. Import it with Plans → Import plan, or export a plan to get one. Ids and timestamps are optional: the app assigns fresh ids on import."
+}
