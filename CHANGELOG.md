@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/s1n7ax/openrep/compare/v0.10.0...v0.11.0) (2026-10-28)
+
+
+### Features
+
+* **plans:** import and export plan files, documented for AI assistants ([#31](https://github.com/s1n7ax/openrep/issues/31)) ([1a2651d](https://github.com/s1n7ax/openrep/commit/1a2651d9bab39f1c4694394b79384bbbd4b5d05b))
+
 ## [0.10.0](https://github.com/s1n7ax/openrep/compare/v0.9.0...v0.10.0) (2026-10-25)
 
 
