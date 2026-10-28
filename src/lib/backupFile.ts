@@ -1,11 +1,7 @@
 /**
- * Saving and reading backup files. On iOS and Android the backup is written
- * to the app's cache directory and handed to the share sheet (save to files,
- * send to a drive, …); in a browser it is downloaded.
+ * Saving and reading backup files. The file is written by `shareFile.ts`:
+ * shared on iOS and Android, downloaded in a browser.
  */
-import { Capacitor } from '@capacitor/core';
-import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import {
   backupFileName,
   createBackup,
@@ -16,52 +12,17 @@ import {
 } from './backup.ts';
 import type { Backup } from './schema/backup.ts';
 import type { UserData } from './schema/userData.ts';
+import { shareOrDownload, type ExportOutcome } from './shareFile.ts';
 
-/** How an export ended: shared (native), downloaded (web) or cancelled from the share sheet. */
-export type ExportOutcome = 'shared' | 'downloaded' | 'cancelled';
+export type { ExportOutcome };
 
-function download(name: string, text: string): void {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = name;
-  link.rel = 'noopener';
-  document.body.append(link);
-  link.click();
-  link.remove();
-  // Revoking right away can cancel the download in some browsers.
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-
-/** Whether the share sheet was dismissed (the plugins reject with "Share canceled"). */
-function isShareCancel(error: unknown): boolean {
-  return error instanceof Error && /cancel/i.test(error.message);
-}
-
-/**
- * Exports all user data as a backup file. Rejects when the file cannot be
- * written or shared.
- */
+/** Exports all user data as a backup file. Rejects when the file cannot be written or shared. */
 export async function exportBackup(data: UserData, now = new Date()): Promise<ExportOutcome> {
-  const name = backupFileName(now);
-  const text = serializeBackup(createBackup(data, now.toISOString()));
-  if (!Capacitor.isNativePlatform()) {
-    download(name, text);
-    return 'downloaded';
-  }
-  const { uri } = await Filesystem.writeFile({
-    path: name,
-    data: text,
-    directory: Directory.Cache,
-    encoding: Encoding.UTF8,
-  });
-  try {
-    await Share.share({ title: name, files: [uri], dialogTitle: 'Save your OpenRep backup' });
-    return 'shared';
-  } catch (error) {
-    if (isShareCancel(error)) return 'cancelled';
-    throw error;
-  }
+  return shareOrDownload(
+    backupFileName(now),
+    serializeBackup(createBackup(data, now.toISOString())),
+    'Save your OpenRep backup',
+  );
 }
 
 /**

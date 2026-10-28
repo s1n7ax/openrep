@@ -11,6 +11,7 @@ import * as z from 'zod';
 import { animationSchema } from '../src/lib/schema/animation.ts';
 import { catalogV1Schema, catalogV2Schema } from '../src/lib/schema/catalog.ts';
 import { exerciseSchema } from '../src/lib/schema/exercise.ts';
+import { planFileSchema } from '../src/lib/schema/planFile.ts';
 import { scheduleV1Schema, scheduleV2Schema } from '../src/lib/schema/schedule.ts';
 import { DATA_DIR } from './lib/paths.ts';
 
@@ -24,6 +25,7 @@ const SCHEMAS: Record<string, z.ZodType> = {
   'schedule.v2.json': scheduleV2Schema,
   'catalog.v1.json': catalogV1Schema,
   'catalog.v2.json': catalogV2Schema,
+  'plan.v1.json': planFileSchema,
 };
 
 /** Renders one zod schema as the text of its JSON Schema file. */

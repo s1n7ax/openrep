@@ -1,0 +1,257 @@
+# OpenRep
+
+OpenRep is a free, open-source, offline gym app for iOS and Android: workout
+plans, a catalog of 870+ exercises, and a workout log. No account and no API.
+
+Use this file to **write a workout plan the user can import into OpenRep**.
+You produce one JSON document (a *plan file*); the user saves it and imports it
+with **Plans → Import**. Nothing is replaced: the plan is added to their plans,
+ready to edit and start.
+
+- Plan file JSON Schema (draft 2020-12):
+  https://raw.githubusercontent.com/s1n7ax/openrep/main/data/schema/plan.v1.json
+- Exercise catalog (all exercises, their ids, muscles and equipment):
+  https://raw.githubusercontent.com/s1n7ax/openrep/catalog/catalog.json
+- Source of this file:
+  https://raw.githubusercontent.com/s1n7ax/openrep/main/llms.txt
+
+## How to write a plan
+
+1. Pick exercises from the catalog: use each `exercises[].id` as `exerciseId`.
+   Never invent a catalog id — an id that does not exist still imports, but the
+   app shows "No longer in catalog" and no photo or 3D view.
+2. Lay the days out in the order they are trained. Put the work in a sensible
+   order (compound lifts first), and give each exercise sets and either reps or
+   a duration.
+3. Choose weights only when the user told you what they lift, or asked for a
+   starting weight; otherwise leave `weightKg` out and the app fills it from
+   their history.
+4. Optionally add form cues in `notes`.
+5. Save the document as `openrep-plan-<name>.json` and tell the user to import
+   it (step 3 below).
+
+For an exercise that is not in the catalog, add it to `customExercises` and
+refer to it with `kind: "custom"` (see the example). The app reuses an existing
+custom exercise of the same name (ignoring case and spacing) instead of adding
+a duplicate.
+
+## The file
+
+```text
+{
+  "app": "openrep",
+  "kind": "plan",
+  "formatVersion": 1,
+  "plan": { … },
+  "customExercises": [ … ]      // optional
+}
+```
+
+Only these fields are allowed, at every level: an unknown field is an error.
+
+### `plan`
+
+| Field       | Type                | Description                                                     |
+| ----------- | ------------------- | --------------------------------------------------------------- |
+| `name`      | text                | Display name, e.g. `"Push/Pull/Legs"`.                          |
+| `days`      | day[] (at least 1)  | Training days, in order.                                        |
+| `id`        | string, optional    | Ignored: the app assigns a new id on import.                    |
+| `createdAt` | timestamp, optional | Ignored: the app stamps the import time.                        |
+| `updatedAt` | timestamp, optional | Ignored, as above.                                              |
+
+### day
+
+| Field       | Type                 | Description                                                    |
+| ----------- | -------------------- | -------------------------------------------------------------- |
+| `name`      | text                 | Display name, e.g. `"Push"` or `"Upper A"`.                    |
+| `exercises` | exercise[]           | In the order they are done. May be empty.                      |
+| `supersets` | superset[], optional | The supersets the day's exercises belong to.                   |
+| `id`        | string, optional     | Ignored.                                                       |
+
+### exercise
+
+| Field         | Type                | Description                                                                                   |
+| ------------- | ------------------- | --------------------------------------------------------------------------------------------- |
+| `exercise`    | reference           | The exercise: `{ "kind": "catalog", "exerciseId": …, "name": … }` or `{ "kind": "custom", "customExerciseId": …, "name": … }`. |
+| `sets`        | integer, 1–20       | Number of sets (for a superset's exercise: sets per member per round).                        |
+| `reps`        | string, optional    | A number (`"8"`) or an ascending range (`"8-12"`). Set exactly one of `reps`/`durationSec`.  |
+| `durationSec` | integer, 1–3600     | Seconds held, for timed exercises such as a plank.                                            |
+| `weightKg`    | number, 0–2000      | Starting weight in **kilograms** (decimals allowed). Leave out for bodyweight.               |
+| `restSec`     | integer, 0–3600     | Rest after each set, in seconds.                                                              |
+| `notes`       | string, optional    | Form cues or a reminder, shown under the exercise.                                            |
+| `supersetId`  | string, optional    | The `id` of the superset this exercise belongs to.                                            |
+| `id`          | string, optional    | Ignored.                                                                                      |
+
+`name` on a reference is the display name; when a catalog `exerciseId` exists,
+the app shows the catalog name instead.
+
+### superset
+
+Two or more exercises done alternately: one set of each, in order, makes a
+round; the rest comes after each round.
+
+| Field     | Type                | Description                                          |
+| --------- | ------------------- | ---------------------------------------------------- |
+| `id`      | string              | Referenced by its exercises' `supersetId`.           |
+| `restSec` | integer, 0–3600     | Rest after each round, in seconds. Optional.         |
+
+A superset's exercises must be **next to each other** in `exercises` (the app
+groups them only then), and every one of them needs the superset's `id` as
+`supersetId`. Put `restSec` on the superset, not on its exercises.
+
+### customExercise
+
+| Field              | Type                | Description                                                                 |
+| ------------------ | ------------------- | --------------------------------------------------------------------------- |
+| `name`             | text                | Display name.                                                               |
+| `id`               | string, optional    | Referenced by a custom exercise reference's `customExerciseId`.             |
+| `notes`            | string, optional    | Form cues or a reminder.                                                    |
+| `equipment`        | equipment or null   | `bands`, `barbell`, `body only`, `cable`, `dumbbell`, `e-z curl bar`, `exercise ball`, `foam roll`, `kettlebells`, `machine`, `medicine ball`, `other`. |
+| `primaryMuscles`   | muscle[]            | `abdominals`, `abductors`, `adductors`, `biceps`, `calves`, `chest`, `forearms`, `glutes`, `hamstrings`, `lats`, `lower back`, `middle back`, `neck`, `quadriceps`, `shoulders`, `traps`, `triceps`. |
+| `secondaryMuscles` | muscle[]            | As above.                                                                   |
+| `instructions`     | string[]            | Step-by-step instructions, in order.                                        |
+| `createdAt`        | timestamp, optional | Ignored.                                                                    |
+| `updatedAt`        | timestamp, optional | Ignored.                                                                    |
+
+## Rules that get files rejected
+
+- Exactly one of `reps` and `durationSec` on every exercise; `reps` is a string.
+- Weights are kilograms, not pounds (1 lb = 0.45359237 kg), and never `"60 kg"`.
+- Text fields must not be empty or only whitespace.
+- `sets` is 1–20, `durationSec` 1–3600, `restSec` 0–3600, `weightKg` 0–2000.
+- No unknown fields, no comments, no trailing commas: plain JSON.
+- Ids are opaque strings the app replaces; only superset ids need to match.
+
+## Example
+
+A two-day upper/lower plan with a superset, a timed exercise and one custom
+exercise. It is a complete, valid file.
+
+```json
+{
+  "app": "openrep",
+  "kind": "plan",
+  "formatVersion": 1,
+  "plan": {
+    "name": "Upper/Lower — 2 days a week",
+    "days": [
+      {
+        "name": "Upper",
+        "exercises": [
+          {
+            "exercise": {
+              "kind": "catalog",
+              "exerciseId": "barbell-bench-press-medium-grip",
+              "name": "Barbell Bench Press"
+            },
+            "sets": 4,
+            "reps": "5",
+            "weightKg": 72.5,
+            "restSec": 180,
+            "notes": "Two warm-up sets before the work sets."
+          },
+          {
+            "exercise": {
+              "kind": "catalog",
+              "exerciseId": "bent-over-barbell-row",
+              "name": "Bent Over Barbell Row"
+            },
+            "sets": 4,
+            "reps": "8-10",
+            "weightKg": 60,
+            "restSec": 120
+          },
+          {
+            "exercise": {
+              "kind": "catalog",
+              "exerciseId": "dumbbell-flyes",
+              "name": "Dumbbell Flyes"
+            },
+            "sets": 3,
+            "reps": "12",
+            "weightKg": 14,
+            "supersetId": "arms"
+          },
+          {
+            "exercise": {
+              "kind": "catalog",
+              "exerciseId": "triceps-pushdown",
+              "name": "Triceps Pushdown"
+            },
+            "sets": 3,
+            "reps": "12-15",
+            "weightKg": 25,
+            "supersetId": "arms"
+          }
+        ],
+        "supersets": [
+          {
+            "id": "arms",
+            "restSec": 90
+          }
+        ]
+      },
+      {
+        "name": "Lower",
+        "exercises": [
+          {
+            "exercise": {
+              "kind": "catalog",
+              "exerciseId": "barbell-squat",
+              "name": "Barbell Squat"
+            },
+            "sets": 3,
+            "reps": "5",
+            "weightKg": 90,
+            "restSec": 180
+          },
+          {
+            "exercise": {
+              "kind": "catalog",
+              "exerciseId": "plank",
+              "name": "Plank"
+            },
+            "sets": 3,
+            "durationSec": 40,
+            "restSec": 60
+          },
+          {
+            "exercise": {
+              "kind": "custom",
+              "customExerciseId": "sled-push",
+              "name": "Sled Push"
+            },
+            "sets": 4,
+            "reps": "1",
+            "restSec": 120,
+            "notes": "20 m, heavy."
+          }
+        ]
+      }
+    ]
+  },
+  "customExercises": [
+    {
+      "id": "sled-push",
+      "name": "Sled Push",
+      "notes": "Drive through the legs, arms straight.",
+      "equipment": "other",
+      "primaryMuscles": ["quadriceps", "glutes"],
+      "secondaryMuscles": ["calves"],
+      "instructions": ["Load the sled.", "Push it 20 m without stopping."]
+    }
+  ]
+}
+```
+
+## Importing and exporting
+
+1. Save the document as a `.json` file (for example
+   `openrep-plan-upper-lower.json`) and send it to the user's phone or computer.
+2. Export a real plan from the app for a reference or to personalize it: open
+   the plan, then **Export** on the plan screen. That file uses this same
+   format, weights included.
+3. Import: **Plans** tab → **Import** → choose the file. The app validates it,
+   adds it at the end of the plans and opens it. If the file is rejected, the
+   app says the plan is damaged or incomplete; check it against the JSON Schema
+   above.

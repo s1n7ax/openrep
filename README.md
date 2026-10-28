@@ -39,6 +39,11 @@ works offline.
 - **Community schedules**: browse schedules and copy one into your plans to
   edit it. Three starter schedules ship with the app: Beginner Full Body,
   Push/Pull/Legs and Upper/Lower.
+- **Plan files**: export a plan to one JSON file and import one from the Plans
+  tab, on this or another phone. The format carries everything a plan does —
+  days, supersets, weights, rest, notes and the custom exercises it uses — and
+  is described for AI assistants in [`llms.txt`](llms.txt), so an assistant can
+  write a personalized plan that imports in a few taps.
 - **Catalog updates**: when online, the app downloads the latest catalog from
   this repository; the copy built into the app works offline from the first
   launch.
@@ -62,6 +67,29 @@ build) is signed with a different key and does not install over it.
 
 **iOS**: there is no direct-download install yet. You can build the app from
 source with Xcode (see [Building](#building)).
+
+## Build a plan with an AI assistant
+
+Any assistant with web access can write a plan for you. [`llms.txt`](llms.txt)
+describes the plan file format, links the JSON Schema and the exercise catalog,
+and tells the assistant to use real exercise ids, so the file imports cleanly.
+
+1. Paste a prompt like this one into a chat, changing the details to yours:
+
+```text
+Read https://raw.githubusercontent.com/s1n7ax/openrep/main/llms.txt and write
+me a plan file: 3 days a week, push/pull/legs, I train at home with dumbbells
+and a bench, 45 minutes per session, intermediate level.
+```
+
+2. Save the assistant's JSON answer as a file, for example
+   `openrep-plan-push-pull-legs.json`.
+3. In the app, open **Plans** → **Import** and choose the file. The plan is
+   added at the end of your plans and opened; nothing you already have is
+   replaced.
+
+To personalize an existing plan, open it and choose **Export**, then give the
+assistant that file: it uses the same format, weights included.
 
 ## Privacy
 

@@ -524,30 +524,6 @@
     gap: var(--space-2);
   }
 
-  .message {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-2);
-    padding: var(--space-3);
-    border-radius: var(--radius-sm);
-    font-size: var(--text-sm);
-    font-weight: 600;
-  }
-
-  .message :global(.icon) {
-    margin-top: 1px;
-  }
-
-  .message.error {
-    background: var(--danger-soft);
-    color: var(--danger);
-  }
-
-  .message.ok {
-    background: var(--accent-soft);
-    color: var(--accent-text);
-  }
-
   .about {
     display: flex;
     align-items: center;

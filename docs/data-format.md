@@ -15,6 +15,10 @@ data/
 └── LICENSE                        CC0 1.0
 ```
 
+One schema is not a data format: `schema/plan.v1.json` is the app's own
+[plan file](#plan-file-app-exchange-format), which never appears in `data/` or
+in the catalog.
+
 The formats are defined once, as [Zod](https://zod.dev) schemas in
 `src/lib/schema/`. The JSON Schema files in `data/schema/` are generated from
 them (`npm run generate:schema`) for use outside this repository, one file
@@ -372,6 +376,25 @@ and is newer: a later `generatedAt`, or the same `generatedAt` and a greater
 by the same rule, of the catalog it downloaded and the one bundled with it, so
 it never goes back to older data.
 
+## Plan file (app exchange format)
+
+`data/schema/plan.v1.json` is the JSON Schema of a **plan file**: one plan of
+the app, plus the custom exercises it uses, in a single JSON document. The app
+exports a plan to this format (a plan's **Export** button) and imports it as a
+new plan (**Plans** tab → **Import**). Nothing is replaced, and every id is
+replaced on import, so a file can be imported more than once.
+
+The file carries everything a plan does — days, supersets, per-exercise sets,
+reps or time, weight in kilograms, rest, notes and custom exercises — so an AI
+assistant can write a plan a person then imports. [`llms.txt`](../llms.txt) in
+the repository root is the format's description for assistants; the schema is
+generated from `src/lib/schema/planFile.ts` like the data schemas above, and
+CI fails when it is out of date.
+
+Unlike the formats above it is not versioned with the catalog and
+`npm run validate:data` does not see it: plan files live on the user's device,
+not in this repository.
+
 ## Validation
 
 `npm run validate:data` (also run on every pull request) reports every problem
@@ -406,7 +429,9 @@ with its file and exits 1 when there is any. Beyond the schemas it checks that:
   changes, watch the `catalog` branch or read the files from `main`.
 - Validate your copy, or data you produce for OpenRep, with the JSON Schema
   files in `data/schema/`, or run `npm run validate:data -- --data <dir>` on a
-  directory with the same layout as `data/`.
+  directory with the same layout as `data/`. For a plan file the app imports,
+  use `data/schema/plan.v1.json` (see
+  [Plan file](#plan-file-app-exchange-format)).
 - To render animations yourself, `src/lib/three/` is a reference
   implementation (GPL-3.0): `animation.ts` samples keyframes, `ik.ts` solves
   the two-bone IK, `pose.ts` applies a pose and `props.ts` places the props.

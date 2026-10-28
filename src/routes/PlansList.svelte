@@ -9,6 +9,12 @@
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import { newId, nowIso } from '../lib/ids.ts';
+  import {
+    describePlanFileProblem,
+    importPlanFile,
+    InvalidPlanFileError,
+  } from '../lib/planFile.ts';
+  import { readPlanFile } from '../lib/planFileIO.ts';
   import { href, paths, router } from '../lib/router.ts';
   import type { Plan } from '../lib/schema/userData.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
@@ -22,6 +28,9 @@
   let creating = $state(false);
   let newName = $state('');
   let deleting = $state<Plan | null>(null);
+  let fileInput: HTMLInputElement | undefined = $state();
+  let importing = $state(false);
+  let importError = $state<string | null>(null);
 
   /** Edit mode (reorder and delete buttons); off once the last plan is deleted. */
   const editing = $derived(reordering && plans.length > 0);
@@ -48,6 +57,34 @@
     if (plan) userData.update((data) => deletePlan(data, plan.id));
   }
 
+  async function onFileChosen(event: Event & { currentTarget: HTMLInputElement }) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    // Let the same file be chosen again after a failed attempt.
+    input.value = '';
+    if (!file) return;
+    importError = null;
+    importing = true;
+    try {
+      const imported = importPlanFile(userData.data, await readPlanFile(file), {
+        newId,
+        now: nowIso(),
+      });
+      userData.update(() => imported.data);
+      router.navigate(paths.plan(imported.planId));
+    } catch (error) {
+      if (error instanceof InvalidPlanFileError) {
+        console.info('Plan file rejected:', error);
+        importError = describePlanFileProblem(error.problem);
+      } else {
+        console.error('Reading the plan file failed:', error);
+        importError = 'The file could not be read.';
+      }
+    } finally {
+      importing = false;
+    }
+  }
+
   function summary(plan: Plan): string {
     const { days, exercises } = planStats(plan);
     return `${days} ${days === 1 ? 'day' : 'days'} · ${exercises} ${exercises === 1 ? 'exercise' : 'exercises'}`;
@@ -60,10 +97,19 @@
 
 <PageHeader title="Plans" large>
   {#snippet actions()}
+    <button
+      type="button"
+      class="btn btn-ghost header-action"
+      disabled={importing}
+      data-testid="plan-import"
+      onclick={() => fileInput?.click()}
+    >
+      Import
+    </button>
     {#if plans.length > 0}
       <button
         type="button"
-        class="btn btn-ghost reorder-toggle"
+        class="btn btn-ghost header-action"
         aria-pressed={editing}
         data-testid="plans-reorder-toggle"
         onclick={() => (reordering = !editing)}
@@ -75,6 +121,13 @@
 </PageHeader>
 
 <div class="page with-fab">
+  {#if importError}
+    <p class="message error" role="alert" data-testid="plan-import-error">
+      <Icon name="alert" size={18} />
+      {importError}
+    </p>
+  {/if}
+
   {#if active}
     <a class="resume" href={href(paths.workout(active.id))} data-testid="resume-workout">
       <span class="resume-icon"><Icon name="play" size={20} /></span>
@@ -109,6 +162,15 @@
         >
           Browse starter schedules
         </a>
+        <button
+          type="button"
+          class="btn btn-outline btn-lg"
+          disabled={importing}
+          data-testid="plan-import-empty"
+          onclick={() => fileInput?.click()}
+        >
+          Import a plan file
+        </button>
       {/snippet}
     </EmptyState>
   {:else}
@@ -186,6 +248,17 @@
   </button>
 {/if}
 
+<input
+  bind:this={fileInput}
+  class="visually-hidden"
+  type="file"
+  accept=".json,application/json"
+  tabindex="-1"
+  aria-hidden="true"
+  data-testid="plan-file-input"
+  onchange={onFileChosen}
+/>
+
 <Dialog
   open={creating}
   title="New plan"
@@ -234,7 +307,7 @@
     padding-bottom: 112px;
   }
 
-  .reorder-toggle {
+  .header-action {
     min-height: 40px;
     padding: 0 var(--space-3);
   }

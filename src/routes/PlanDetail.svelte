@@ -17,6 +17,7 @@
   } from '../lib/contribute.ts';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { newId, nowIso } from '../lib/ids.ts';
+  import { exportPlanFile } from '../lib/planFileIO.ts';
   import { paths, router } from '../lib/router.ts';
   import type { Plan, PlanDay, PlanExercise } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
@@ -38,6 +39,27 @@
   const active = $derived(activeSession(userData.data));
   /** A day the user wants to start while another workout is in progress. */
   let pendingDay = $state<PlanDay | null>(null);
+  let exporting = $state(false);
+  let exportMessage = $state<string | null>(null);
+  let exportError = $state<string | null>(null);
+
+  async function exportCurrent() {
+    const current = plan;
+    if (!current || exporting) return;
+    exportMessage = null;
+    exportError = null;
+    exporting = true;
+    try {
+      const outcome = await exportPlanFile(current, userData.data.customExercises);
+      if (outcome === 'downloaded') exportMessage = 'Plan file saved to your downloads.';
+      else if (outcome === 'shared') exportMessage = 'Plan file ready to share.';
+    } catch (error) {
+      console.error('Exporting the plan file failed:', error);
+      exportError = 'The plan file could not be created. Try again.';
+    } finally {
+      exporting = false;
+    }
+  }
 
   function begin(day: PlanDay) {
     const sessionId = newId();
@@ -87,7 +109,16 @@
     {#if plan}
       <button
         type="button"
-        class="btn btn-ghost edit"
+        class="btn btn-ghost header-action"
+        disabled={exporting}
+        data-testid="plan-export"
+        onclick={exportCurrent}
+      >
+        Export
+      </button>
+      <button
+        type="button"
+        class="btn btn-ghost header-action"
         data-testid="plan-edit"
         onclick={() => router.navigate(paths.planEdit(planId))}
       >
@@ -98,6 +129,18 @@
 </PageHeader>
 
 <div class="page">
+  {#if exportError}
+    <p class="message error" role="alert" data-testid="plan-export-error">
+      <Icon name="alert" size={18} />
+      {exportError}
+    </p>
+  {:else if exportMessage}
+    <p class="message ok" role="status" data-testid="plan-export-message">
+      <Icon name="check" size={18} />
+      {exportMessage}
+    </p>
+  {/if}
+
   {#if !plan}
     <EmptyState
       icon="alert"
@@ -282,7 +325,7 @@
 </Dialog>
 
 <style>
-  .edit {
+  .header-action {
     min-height: 40px;
     padding: 0 var(--space-3);
   }
