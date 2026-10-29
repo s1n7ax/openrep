@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "incline-cable-chest-press",
+  "durationSec": 3,
+  "props": [
+    {"type": "incline-bench", "attach": "none", "position": [0, 0, 0]},
+    {"type": "cable-handle", "attach": "leftHand", "rotation": [0, 0, -60], "cableFrom": [1.2, 0.12, -0.55]},
+    {"type": "cable-handle", "attach": "rightHand", "rotation": [0, 0, 60], "cableFrom": [-1.2, 0.12, -0.55]}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.56, -0.04], "rotation": [-55, 0, 0]},
+        "neck": [10, 0, 0],
+        "leftHand": {"target": [0.365, 0.95, -0.096], "pole": [0.985, 0.204, -0.129]},
+        "rightHand": {"target": [-0.365, 0.95, -0.096], "pole": [-0.985, 0.204, -0.129]},
+        "leftFoot": {"target": [0.22, 0, 0.55], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.55], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 0.42,
+      "pose": {
+        "pelvis": {"position": [0, 0.56, -0.04], "rotation": [-55, 0, 0]},
+        "neck": [10, 0, 0],
+        "leftHand": {"target": [0.065, 1.269, -0.037], "pole": [0.9, 0.707, 0.094]},
+        "rightHand": {"target": [-0.065, 1.269, -0.037], "pole": [-0.9, 0.707, 0.094]},
+        "leftFoot": {"target": [0.22, 0, 0.55], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.55], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 0.54,
+      "pose": {
+        "pelvis": {"position": [0, 0.56, -0.04], "rotation": [-55, 0, 0]},
+        "neck": [10, 0, 0],
+        "leftHand": {"target": [0.065, 1.269, -0.037], "pole": [0.9, 0.707, 0.094]},
+        "rightHand": {"target": [-0.065, 1.269, -0.037], "pole": [-0.9, 0.707, 0.094]},
+        "leftFoot": {"target": [0.22, 0, 0.55], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.55], "pole": [-0.4, 1, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.56, -0.04], "rotation": [-55, 0, 0]},
+        "neck": [10, 0, 0],
+        "leftHand": {"target": [0.365, 0.95, -0.096], "pole": [0.985, 0.204, -0.129]},
+        "rightHand": {"target": [-0.365, 0.95, -0.096], "pole": [-0.985, 0.204, -0.129]},
+        "leftFoot": {"target": [0.22, 0, 0.55], "pole": [0.4, 1, 1]},
+        "rightFoot": {"target": [-0.22, 0, 0.55], "pole": [-0.4, 1, 1]}
+      }
+    }
+  ]
+}
