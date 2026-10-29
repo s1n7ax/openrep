@@ -14,11 +14,13 @@ import { Clipboard } from '@capacitor/clipboard';
  * is a dynamically imported chunk, which an offline tap could not fetch.
  */
 export async function openExternal(url: string): Promise<void> {
-  if (!Capacitor.isNativePlatform()) {
-    window.open(url, '_blank');
+  if (Capacitor.isNativePlatform()) {
+    await Browser.open({ url });
     return;
   }
-  await Browser.open({ url });
+  if (window.open(url, '_blank') === null) {
+    throw new Error('The browser could not be opened.');
+  }
 }
 
 /** YouTube search results for `query`, e.g. an exercise's name. */

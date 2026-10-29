@@ -6,6 +6,7 @@
  */
 import type { Locator, Page } from '@playwright/test';
 import { openApp } from './support/app.ts';
+import { openedUrl, recordOpenedWindows } from './support/external.ts';
 import { expect, test } from './support/fixtures.ts';
 import { hold } from './support/touch.ts';
 import { waitForFrameAfter } from './support/viewer.ts';
@@ -16,40 +17,28 @@ const CURL = { id: 'dumbbell-bicep-curl', name: 'Dumbbell Bicep Curl' };
 const CUSTOM = 'Landmine Press';
 
 test.beforeEach(async ({ page }) => {
-  // On the web, @capacitor/browser opens pages with window.open: record them instead.
-  await page.addInitScript(() => {
-    const opened: string[] = [];
-    Object.assign(window, { openedUrls: opened });
-    window.open = (url?: string | URL) => {
-      opened.push(String(url));
-      return null;
-    };
-  });
+  await recordOpenedWindows(page);
 });
-
-/** The single URL the app opened. */
-async function openedUrl(page: Page): Promise<URL> {
-  await expect
-    .poll(() => page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls))
-    .toHaveLength(1);
-  const [url] = await page.evaluate(
-    () => (window as unknown as { openedUrls: string[] }).openedUrls,
-  );
-  return new URL(url!);
-}
 
 function expectYouTubeSearch(url: URL, name: string): void {
   expect(`${url.origin}${url.pathname}`).toBe('https://www.youtube.com/results');
   expect(url.searchParams.get('search_query')).toBe(name);
 }
 
-/** The button sits over `area`, clear of its 0.5 rem inset. */
+/** The button sits inside `area`, inset from its bottom-right corner. */
 async function expectOverlayBottomRight(area: Locator, button: Locator): Promise<void> {
   const [box, control] = [await area.boundingBox(), await button.boundingBox()];
   expect(box, 'the preview on the screen').not.toBeNull();
   expect(control, 'the video button on the screen').not.toBeNull();
-  expect(box!.x + box!.width - (control!.x + control!.width)).toBeLessThan(24);
-  expect(box!.y + box!.height - (control!.y + control!.height)).toBeLessThan(24);
+  const [right, bottom] = [
+    box!.x + box!.width - (control!.x + control!.width),
+    box!.y + box!.height - (control!.y + control!.height),
+  ];
+  // Inside the overflow-hidden stage (not clipped away), near its corner.
+  expect(right).toBeGreaterThanOrEqual(0);
+  expect(right).toBeLessThan(24);
+  expect(bottom).toBeGreaterThanOrEqual(0);
+  expect(bottom).toBeLessThan(24);
 }
 
 /** Creates a custom exercise from the Exercises tab; ends on its page. */
@@ -120,4 +109,20 @@ test('offline, the video still opens YouTube and lets the browser say so', async
 
   expectYouTubeSearch(await openedUrl(page), CURL.name);
   await page.context().setOffline(false);
+});
+
+test('a browser that blocks the tab says the video could not be opened', async ({ page }) => {
+  // A blocked pop-up, as a browser reports it.
+  await page.addInitScript(() => {
+    window.open = () => null;
+    // The failure is handled and shown; the console line is not the test's subject.
+    console.error = () => {};
+  });
+  await openApp(page, `#/exercises/${CURL.id}`);
+
+  await page.getByTestId('exercise-video').click();
+  await expect(page.getByTestId('exercise-video-error')).toHaveText('YouTube could not be opened.');
+  await expect(
+    page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls),
+  ).resolves.toEqual([]);
 });
