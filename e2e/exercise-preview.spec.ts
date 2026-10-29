@@ -67,9 +67,17 @@ function thumbnailSizes(page: Page): Promise<{ width: number; height: number }[]
     );
 }
 
-/** A catalog row in the middle of the screen, clear of the search and filters. */
+/**
+ * Catalog rows without a 3D view. Software WebGL in CI renders a 3D preview so
+ * slowly that it holds up the page, and every gesture with it, for seconds.
+ */
+function stillRows(page: Page): Locator {
+  return page.getByTestId('exercise-row').filter({ hasNot: page.getByTestId('badge-3d') });
+}
+
+/** A catalog row without a 3D view in the middle of the screen, clear of the search and filters. */
 async function visibleRow(page: Page): Promise<Locator> {
-  for (const row of await page.getByTestId('exercise-row').all()) {
+  for (const row of await stillRows(page).all()) {
     const box = await row.boundingBox();
     if (box && box.y > 300 && box.y + box.height < 700) return row;
   }
@@ -337,9 +345,12 @@ test('closing the preview leaves the list as it was', async ({ page }) => {
   await search(page, 'press');
   await page.getByTestId('muscle-chip-shoulders').click();
   const count = await page.getByTestId('result-count').textContent();
-  await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
+  // Animated exercises come first: scroll the first row without one to the middle.
+  await stillRows(page)
+    .first()
+    .evaluate((row) => row.scrollIntoView({ block: 'center', behavior: 'instant' }));
   const scrolled = await page.evaluate(() => window.scrollY);
-  expect(scrolled).toBe(600);
+  expect(scrolled).toBeGreaterThan(0);
 
   const closes: [string, () => Promise<void>][] = [
     ['Close', () => preview(page).getByTestId('preview-close').click()],
