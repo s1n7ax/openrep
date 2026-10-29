@@ -18,13 +18,14 @@ export async function recordOpenedWindows(page: Page): Promise<void> {
   });
 }
 
+/** The URLs the app opened, in order. */
+export function openedUrls(page: Page): Promise<string[]> {
+  return page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls);
+}
+
 /** The single URL the app opened. */
 export async function openedUrl(page: Page): Promise<URL> {
-  await expect
-    .poll(() => page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls))
-    .toHaveLength(1);
-  const [url] = await page.evaluate(
-    () => (window as unknown as { openedUrls: string[] }).openedUrls,
-  );
+  await expect.poll(() => openedUrls(page)).toHaveLength(1);
+  const [url] = await openedUrls(page);
   return new URL(url!);
 }

@@ -10,9 +10,9 @@ import type { Page } from '@playwright/test';
 import { exerciseSchema } from '../src/lib/schema/exercise.ts';
 import { scheduleSchema } from '../src/lib/schema/schedule.ts';
 import { openApp } from './support/app.ts';
+import { openedUrl, recordOpenedWindows } from './support/external.ts';
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule } from './support/plans.ts';
-import { openedUrl, recordOpenedWindows } from './support/external.ts';
 
 const NEW_FILE_PAGE = 'https://github.com/s1n7ax/openrep/new/main';
 

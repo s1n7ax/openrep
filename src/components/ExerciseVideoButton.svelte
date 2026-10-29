@@ -9,15 +9,15 @@
 
   let { name }: { name: string } = $props();
 
-  let openError = $state<string | null>(null);
+  let failed = $state(false);
 
   async function open() {
-    openError = null;
+    failed = false;
     try {
       await openExternal(youTubeSearchUrl(name));
     } catch (error) {
       console.error('Opening YouTube failed:', error);
-      openError = 'YouTube could not be opened.';
+      failed = true;
     }
   }
 </script>
@@ -31,8 +31,8 @@
 >
   <Icon name="youtube" />
 </button>
-{#if openError}
-  <p class="error" role="alert" data-testid="exercise-video-error">{openError}</p>
+{#if failed}
+  <p class="error" role="alert" data-testid="exercise-video-error">YouTube could not be opened.</p>
 {/if}
 
 <style>
@@ -56,10 +56,10 @@
     margin: 0;
     padding: 0.35rem 0.6rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md, 10px);
+    border-radius: var(--radius-md);
     background: var(--surface);
     color: var(--text);
-    font-size: var(--text-xs, 0.75rem);
+    font-size: var(--text-xs);
     white-space: nowrap;
     box-shadow: var(--shadow-sm);
   }

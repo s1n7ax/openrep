@@ -6,7 +6,7 @@
  */
 import type { Locator, Page } from '@playwright/test';
 import { openApp } from './support/app.ts';
-import { openedUrl, recordOpenedWindows } from './support/external.ts';
+import { openedUrl, openedUrls, recordOpenedWindows } from './support/external.ts';
 import { expect, test } from './support/fixtures.ts';
 import { hold } from './support/touch.ts';
 import { waitForFrameAfter } from './support/viewer.ts';
@@ -108,7 +108,6 @@ test('offline, the video still opens YouTube and lets the browser say so', async
   await page.getByTestId('exercise-video').click();
 
   expectYouTubeSearch(await openedUrl(page), CURL.name);
-  await page.context().setOffline(false);
 });
 
 test('a browser that blocks the tab says the video could not be opened', async ({ page }) => {
@@ -122,7 +121,5 @@ test('a browser that blocks the tab says the video could not be opened', async (
 
   await page.getByTestId('exercise-video').click();
   await expect(page.getByTestId('exercise-video-error')).toHaveText('YouTube could not be opened.');
-  await expect(
-    page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls),
-  ).resolves.toEqual([]);
+  expect(await openedUrls(page)).toEqual([]);
 });
