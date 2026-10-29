@@ -213,7 +213,6 @@
     },
     {
       "t": 1,
-      "ease": "linear",
       "pose": {
         "pelvis": {"position": [0, 0.504, -0.2], "rotation": [83, 0, 0]},
         "neck": [-24, 0, 0],
