@@ -27,7 +27,8 @@
     | 'send'
     | 'link'
     | 'unlink'
-    | 'timer';
+    | 'timer'
+    | 'youtube';
 </script>
 
 <script lang="ts">
@@ -120,6 +121,9 @@
   {:else if name === 'timer'}
     <circle cx="12" cy="13.5" r="7.5" />
     <path d="M12 9.5v4l2.5 1.5M9.5 2.75h5M18.25 6.75l1.5-1.5" />
+  {:else if name === 'youtube'}
+    <rect x="2.75" y="5.5" width="18.5" height="13" rx="4" />
+    <path d="M10.25 9.25v5.5L15 12l-4.75-2.75Z" fill="currentColor" stroke="none" />
   {/if}
 </svg>
 

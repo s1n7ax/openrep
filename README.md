@@ -16,12 +16,13 @@ works offline.
   [free-exercise-db](https://github.com/yuhonas/free-exercise-db) plus community
   contributions. Search by name or alternative name ("skull crusher" finds
   Lying Triceps Press), filter by muscle and equipment. Hold an exercise in
-  the list to preview it (its 3D movement, or its start and end photos)
-  before adding or opening it. Exercises that are missing can be added as
-  your own custom exercises.
+  the list to preview it (its 3D movement, or its start and end photos), and
+  a YouTube icon on the preview searches YouTube for videos of it. Exercises
+  that are missing can be added as your own custom exercises.
 - **Exercise pages**: alternative names, equipment, primary and secondary
   muscles, step-by-step instructions, photos and a 3D view you can rotate and
-  zoom. Primary muscles glow strongly, secondary ones faintly. 170 core
+  zoom, with a YouTube icon over it that searches YouTube for videos of the
+  exercise. Primary muscles glow strongly, secondary ones faintly. 170 core
   exercises (bench press, squat, deadlift, pull-up, plank, …) play the full
   movement; every other exercise shows the glow on a still figure.
 - **Workout log**: start a day of a plan and go through it one exercise per
