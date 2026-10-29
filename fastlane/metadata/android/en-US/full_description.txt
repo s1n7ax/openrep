@@ -2,7 +2,7 @@ OpenRep is a free, open-source gym companion. Open your plan at the gym, tap an 
 
 • Plans: any number of workout plans with days and exercises. Per exercise: sets, reps (a number or a range such as 8–12) or a time, optional weight, rest and notes. Edit, reorder and delete plans, days and exercises.
 • Exercise catalog: over 870 exercises. Search by name or alternative name ("skull crusher" finds Lying Triceps Press) and filter by muscle and equipment. Add the ones that are missing as your own custom exercises.
-• Exercise pages: equipment, primary and secondary muscles, step-by-step instructions, photos and a 3D view you can rotate and zoom. Primary muscles glow strongly, secondary ones faintly. 270 core exercises (bench press, squat, deadlift, pull-up, plank and more) play the full movement.
+• Exercise pages: equipment, primary and secondary muscles, step-by-step instructions, photos and a 3D view you can rotate and zoom. Primary muscles glow strongly, secondary ones faintly. 320 core exercises (bench press, squat, deadlift, pull-up, plank and more) play the full movement.
 • Workout log: start a day of a plan, enter weights and reps, tick off sets and see what you did last time. History lists past workouts. Weights in kg or lb.
 • Community schedules: copy a schedule into your plans and edit it. Beginner Full Body, Push/Pull/Legs and Upper/Lower come with the app.
 • Catalog updates: when online, the app downloads the latest exercise catalog; the copy built into the app works offline from the first launch.
