@@ -1,0 +1,84 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "lying-one-arm-lateral-raise",
+  "durationSec": 3,
+  "camera": {"position": [-1.3, 1.6, 2.4], "target": [-0.15, 0.4, 0.3]},
+  "props": [
+    {"type": "bench", "attach": "none", "position": [0, 0, 0]},
+    {"type": "dumbbell", "attach": "rightHand"}
+  ],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0.04], "rotation": [90, 0, 0]},
+        "neck": [-10, 0, 0],
+        "head": [-6, 0, 0],
+        "rightShoulder": [-89.6, -13.4, -36.9],
+        "rightElbow": [-30.5, -7.1, 0],
+        "rightWrist": [0, 0, 0],
+        "leftHand": {"target": [0.05, 0.2, 0.455], "pole": [0.6, 0.4, 0.3]},
+        "leftHip": [0, 0, 2],
+        "leftKnee": [4, 0, 0],
+        "leftAnkle": [30, 0, 0],
+        "rightHip": [0, 0, -2],
+        "rightKnee": [4, 0, 0],
+        "rightAnkle": [30, 0, 0]
+      }
+    },
+    {
+      "t": 0.4,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0.04], "rotation": [90, 0, 0]},
+        "neck": [-10, 0, 0],
+        "head": [-6, 0, 0],
+        "rightShoulder": [-90.5, -14.8, -90.8],
+        "rightElbow": [-31.1, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftHand": {"target": [0.05, 0.2, 0.455], "pole": [0.6, 0.4, 0.3]},
+        "leftHip": [0, 0, 2],
+        "leftKnee": [4, 0, 0],
+        "leftAnkle": [30, 0, 0],
+        "rightHip": [0, 0, -2],
+        "rightKnee": [4, 0, 0],
+        "rightAnkle": [30, 0, 0]
+      }
+    },
+    {
+      "t": 0.55,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0.04], "rotation": [90, 0, 0]},
+        "neck": [-10, 0, 0],
+        "head": [-6, 0, 0],
+        "rightShoulder": [-90.5, -14.8, -90.8],
+        "rightElbow": [-31.1, 0, 0],
+        "rightWrist": [0, 0, 0],
+        "leftHand": {"target": [0.05, 0.2, 0.455], "pole": [0.6, 0.4, 0.3]},
+        "leftHip": [0, 0, 2],
+        "leftKnee": [4, 0, 0],
+        "leftAnkle": [30, 0, 0],
+        "rightHip": [0, 0, -2],
+        "rightKnee": [4, 0, 0],
+        "rightAnkle": [30, 0, 0]
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.575, 0.04], "rotation": [90, 0, 0]},
+        "neck": [-10, 0, 0],
+        "head": [-6, 0, 0],
+        "rightShoulder": [-89.6, -13.4, -36.9],
+        "rightElbow": [-30.5, -7.1, 0],
+        "rightWrist": [0, 0, 0],
+        "leftHand": {"target": [0.05, 0.2, 0.455], "pole": [0.6, 0.4, 0.3]},
+        "leftHip": [0, 0, 2],
+        "leftKnee": [4, 0, 0],
+        "leftAnkle": [30, 0, 0],
+        "rightHip": [0, 0, -2],
+        "rightKnee": [4, 0, 0],
+        "rightAnkle": [30, 0, 0]
+      }
+    }
+  ]
+}
