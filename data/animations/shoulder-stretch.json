@@ -1,0 +1,736 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "shoulder-stretch",
+  "durationSec": 6,
+  "props": [],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "leftShoulder": [
+          0,
+          0,
+          5
+        ],
+        "leftElbow": [
+          -8,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "t": 0.06,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "leftShoulder": [
+          0,
+          0,
+          5
+        ],
+        "leftElbow": [
+          -8,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "t": 0.2,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        },
+        "leftShoulder": [
+          -77.1,
+          0,
+          0
+        ],
+        "leftElbow": [
+          -9.2,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "t": 0.32,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        },
+        "leftShoulder": [
+          -66.9,
+          21,
+          -41.7
+        ],
+        "leftElbow": [
+          -9.2,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "t": 0.68,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        },
+        "leftShoulder": [
+          -66.9,
+          21,
+          -41.7
+        ],
+        "leftElbow": [
+          -9.2,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "t": 0.8,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        },
+        "leftShoulder": [
+          -77.1,
+          0,
+          0
+        ],
+        "leftElbow": [
+          -9.2,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "t": 0.94,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "leftShoulder": [
+          0,
+          0,
+          5
+        ],
+        "leftElbow": [
+          -8,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {
+          "position": [
+            0,
+            0.965,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ]
+        },
+        "spine": [
+          0,
+          0,
+          0
+        ],
+        "chest": [
+          0,
+          0,
+          0
+        ],
+        "neck": [
+          0,
+          0,
+          0
+        ],
+        "head": [
+          0,
+          0,
+          0
+        ],
+        "leftShoulder": [
+          0,
+          0,
+          5
+        ],
+        "leftElbow": [
+          -8,
+          0,
+          0
+        ],
+        "leftWrist": [
+          0,
+          0,
+          0
+        ],
+        "rightShoulder": [
+          0,
+          0,
+          -5
+        ],
+        "rightElbow": [
+          -8,
+          0,
+          0
+        ],
+        "rightWrist": [
+          0,
+          0,
+          0
+        ],
+        "leftFoot": {
+          "target": [
+            0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            0.14,
+            0.5,
+            1
+          ]
+        },
+        "rightFoot": {
+          "target": [
+            -0.12,
+            0,
+            0.145
+          ],
+          "pole": [
+            -0.14,
+            0.5,
+            1
+          ]
+        }
+      }
+    }
+  ]
+}
