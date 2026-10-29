@@ -8,6 +8,7 @@ import type { Locator, Page } from '@playwright/test';
 import { openApp } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { hold } from './support/touch.ts';
+import { waitForFrameAfter } from './support/viewer.ts';
 
 test.use({ hasTouch: true });
 
@@ -112,6 +113,8 @@ test('a custom exercise without a 3D view still offers the video', async ({ page
 
 test('offline, the video still opens YouTube and lets the browser say so', async ({ page }) => {
   await openApp(page, `#/exercises/${CURL.id}`);
+  // Let the 3D view load its figure first: only the video must work offline.
+  await waitForFrameAfter(page, 0);
   await page.context().setOffline(true);
   await page.getByTestId('exercise-video').click();
 
