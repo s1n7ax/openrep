@@ -1,0 +1,2 @@
+Features
+• exercises: open YouTube videos from the exercise preview
