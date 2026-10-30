@@ -1,10 +1,12 @@
 <!--
   A custom exercise (`#/custom/:id`): still 3D figure with the chosen muscles
-  glowing, notes, equipment, steps; Edit, Delete and Submit to the community.
+  glowing (with a shortcut to YouTube videos of it), notes, equipment, steps;
+  Edit, Delete and Submit to the community.
 -->
 <script lang="ts">
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import EmptyState from '../components/EmptyState.svelte';
+  import ExerciseVideoButton from '../components/ExerciseVideoButton.svelte';
   import ExerciseViewer from '../components/ExerciseViewer.svelte';
   import FactGrid from '../components/FactGrid.svelte';
   import Icon from '../components/Icon.svelte';
@@ -93,12 +95,17 @@
   {:else}
     {#if exercise.primaryMuscles.length > 0}
       <div class="viewer">
-        <ExerciseViewer {exercise} animation={null} />
+        <ExerciseViewer {exercise} animation={null}>
+          {#snippet actions()}
+            <ExerciseVideoButton name={exercise.name} />
+          {/snippet}
+        </ExerciseViewer>
       </div>
     {:else}
       <div class="no-muscles card">
         <Icon name="cube" size={28} />
         <p>Add muscles to see them glow on the 3D figure.</p>
+        <div class="video"><ExerciseVideoButton name={exercise.name} /></div>
       </div>
     {/if}
 
@@ -159,12 +166,19 @@
   }
 
   .no-muscles {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--space-3);
     margin-bottom: var(--space-5);
-    padding: var(--space-4);
+    padding: var(--space-4) 4.5rem var(--space-4) var(--space-4);
     color: var(--text-2);
+  }
+
+  .no-muscles .video {
+    position: absolute;
+    right: var(--space-2);
+    bottom: var(--space-2);
   }
 
   .intro {

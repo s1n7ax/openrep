@@ -1,10 +1,11 @@
 <!--
   Exercise page (`#/exercises/:id`): 3D view (animated for the core set,
-  still with muscle glow otherwise), names, equipment and details, numbered
-  steps and photos.
+  still with muscle glow otherwise) with a shortcut to YouTube videos of the
+  exercise, names, equipment and details, numbered steps and photos.
 -->
 <script lang="ts">
   import EmptyState from '../components/EmptyState.svelte';
+  import ExerciseVideoButton from '../components/ExerciseVideoButton.svelte';
   import ExerciseViewer from '../components/ExerciseViewer.svelte';
   import FactGrid, { type Fact } from '../components/FactGrid.svelte';
   import PageHeader from '../components/PageHeader.svelte';
@@ -58,7 +59,11 @@
     />
   {:else}
     <div class="viewer">
-      <ExerciseViewer {exercise} {animation} />
+      <ExerciseViewer {exercise} {animation}>
+        {#snippet actions()}
+          <ExerciseVideoButton name={exercise.name} />
+        {/snippet}
+      </ExerciseViewer>
     </div>
 
     <section class="intro">

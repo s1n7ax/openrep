@@ -6,7 +6,7 @@
   that are scrolled and swiped through.
 -->
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, type Snippet } from 'svelte';
   import type { Animation } from '../lib/schema/animation.ts';
   import type { Muscle } from '../lib/schema/common.ts';
   import { GLOW_COLORS } from '../lib/three/colors.ts';
@@ -31,6 +31,8 @@
     fill?: boolean;
     /** No legend and buttons; drags and swipes go to the page instead of turning the figure. */
     compact?: boolean;
+    /** Extra overlay actions, next to Play and Reset view (hidden when compact). */
+    actions?: Snippet;
   }
 
   let {
@@ -42,6 +44,7 @@
     focus = null,
     fill = false,
     compact = false,
+    actions,
   }: Props = $props();
 
   let canvas: HTMLCanvasElement | undefined = $state();
@@ -147,6 +150,7 @@
           </button>
         {/if}
         <button type="button" onclick={resetView}>Reset view</button>
+        {@render actions?.()}
       </div>
     {/if}
   </div>

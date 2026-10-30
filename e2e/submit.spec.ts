@@ -10,6 +10,7 @@ import type { Page } from '@playwright/test';
 import { exerciseSchema } from '../src/lib/schema/exercise.ts';
 import { scheduleSchema } from '../src/lib/schema/schedule.ts';
 import { openApp } from './support/app.ts';
+import { openedUrl, recordOpenedWindows } from './support/external.ts';
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule } from './support/plans.ts';
 
@@ -18,27 +19,8 @@ const NEW_FILE_PAGE = 'https://github.com/s1n7ax/openrep/new/main';
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
 test.beforeEach(async ({ page }) => {
-  // On the web, @capacitor/browser opens pages with window.open: record them instead.
-  await page.addInitScript(() => {
-    const opened: string[] = [];
-    Object.assign(window, { openedUrls: opened });
-    window.open = (url?: string | URL) => {
-      opened.push(String(url));
-      return null;
-    };
-  });
+  await recordOpenedWindows(page);
 });
-
-/** The single URL the app opened. */
-async function openedUrl(page: Page): Promise<URL> {
-  await expect
-    .poll(() => page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls))
-    .toHaveLength(1);
-  const [url] = await page.evaluate(
-    () => (window as unknown as { openedUrls: string[] }).openedUrls,
-  );
-  return new URL(url!);
-}
 
 async function clipboardText(page: Page): Promise<string> {
   return page.evaluate(() => navigator.clipboard.readText());
