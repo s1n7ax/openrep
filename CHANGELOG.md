@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/s1n7ax/openrep/compare/v0.11.0...v0.12.0) (2026-10-30)
+
+
+### Features
+
+* **exercises:** open YouTube videos from the exercise preview ([#34](https://github.com/s1n7ax/openrep/issues/34)) ([5218072](https://github.com/s1n7ax/openrep/commit/521807225ca41819a01df0df1591f1faa90635e8))
+
 ## [0.11.0](https://github.com/s1n7ax/openrep/compare/v0.10.0...v0.11.0) (2026-10-28)
 
 
