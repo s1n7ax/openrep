@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/s1n7ax/openrep/compare/v0.12.0...v0.13.0) (2026-10-30)
+
+
+### Features
+
+* **animations:** 3D animations for 100 more exercises ([#33](https://github.com/s1n7ax/openrep/issues/33)) ([479dacd](https://github.com/s1n7ax/openrep/commit/479dacd398b22b33db7032de87d826737590898a))
+
 ## [0.12.0](https://github.com/s1n7ax/openrep/compare/v0.11.0...v0.12.0) (2026-10-30)
 
 
