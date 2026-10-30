@@ -1,9 +1,9 @@
 <!--
   Preview of an exercise held in the exercise list: its name and its 3D
   animation, else its photos taking turns (start and end of the movement),
-  else the still figure with its muscles glowing. Close and the list's own
-  action (Add or Open) below; the list keeps its search and scroll position
-  underneath.
+  else the still figure with its muscles glowing, plus a shortcut to YouTube
+  videos of the exercise. Close and the list's own action (Add or Open)
+  below; the list keeps its search and scroll position underneath.
 -->
 <script lang="ts" module>
   import type { Exercise } from '../lib/schema/exercise.ts';
@@ -17,6 +17,7 @@
   import type { Snippet } from 'svelte';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import Dialog from './Dialog.svelte';
+  import ExerciseVideoButton from './ExerciseVideoButton.svelte';
   import ExerciseViewer from './ExerciseViewer.svelte';
   import Icon from './Icon.svelte';
 
@@ -68,8 +69,13 @@
 
 <Dialog open={previewed !== null} title={exercise?.name ?? ''} {onclose} testid="exercise-preview">
   {#if exercise}
-    {#if photos.length > 0}
-      <div class="stage photos" data-testid="preview-photos" data-shown={shown}>
+    <div
+      class="stage"
+      class:photos={photos.length > 0}
+      data-testid={photos.length > 0 ? 'preview-photos' : undefined}
+      data-shown={photos.length > 0 ? shown : undefined}
+    >
+      {#if photos.length > 0}
         {#each photos as image, index (image)}
           <figure class="photo" class:shown={index === shown}>
             {#if failedImages.includes(image)}
@@ -85,19 +91,16 @@
             {/if}
           </figure>
         {/each}
-      </div>
-    {:else}
-      <div class="stage">
-        {#if animation || exercise.primaryMuscles.length > 0}
-          <ExerciseViewer {exercise} {animation} compact />
-        {:else}
-          <p class="empty">
-            <Icon name="cube" size={28} />
-            Add muscles to see them glow on the 3D figure.
-          </p>
-        {/if}
-      </div>
-    {/if}
+      {:else if animation || exercise.primaryMuscles.length > 0}
+        <ExerciseViewer {exercise} {animation} compact />
+      {:else}
+        <p class="empty">
+          <Icon name="cube" size={28} />
+          Add muscles to see them glow on the 3D figure.
+        </p>
+      {/if}
+      <div class="video"><ExerciseVideoButton name={exercise.name} /></div>
+    </div>
   {/if}
   {#snippet actions()}
     <button type="button" class="btn btn-outline" data-testid="preview-close" onclick={onclose}>
@@ -112,10 +115,17 @@
 <style>
   .stage {
     --viewer-height: min(46dvh, 22rem);
+    position: relative;
     height: var(--viewer-height);
     overflow: hidden;
     border-radius: 12px;
     background: var(--surface-2);
+  }
+
+  .video {
+    position: absolute;
+    right: var(--space-2);
+    bottom: var(--space-2);
   }
 
   /* As tall as the photos (most are landscape), up to the height of the 3D view. */

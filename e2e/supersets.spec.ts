@@ -20,6 +20,7 @@ import {
   waitForApp,
 } from './support/app.ts';
 import { REMOTE_CATALOG_URL } from './support/env.ts';
+import { openedUrl, recordOpenedWindows } from './support/external.ts';
 import { expect, test } from './support/fixtures.ts';
 import { addExercise, createPlan, openPlan, startDay } from './support/plans.ts';
 import {
@@ -301,15 +302,7 @@ test.describe('community schedules with supersets', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
   test.beforeEach(async ({ page }) => {
-    // On the web, @capacitor/browser opens pages with window.open: record them instead.
-    await page.addInitScript(() => {
-      const opened: string[] = [];
-      Object.assign(window, { openedUrls: opened });
-      window.open = (url?: string | URL) => {
-        opened.push(String(url));
-        return null;
-      };
-    });
+    await recordOpenedWindows(page);
   });
 
   /**
@@ -381,13 +374,7 @@ test.describe('community schedules with supersets', () => {
     // Submit produces a schedule file with the superset that passes validation.
     await page.getByTestId('plan-submit').click();
     await expect(page.getByTestId('submit-dialog')).toBeVisible();
-    await expect
-      .poll(() => page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls))
-      .toHaveLength(1);
-    const [opened] = await page.evaluate(
-      () => (window as unknown as { openedUrls: string[] }).openedUrls,
-    );
-    const value = new URL(opened!).searchParams.get('value');
+    const value = (await openedUrl(page)).searchParams.get('value');
     expect(value).not.toBeNull();
     const submitted = scheduleSchema.parse(JSON.parse(value!));
     expect(submitted.formatVersion).toBe(2);
