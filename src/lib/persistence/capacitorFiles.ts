@@ -52,13 +52,26 @@ export const capacitorFiles: TextFiles = {
   },
 
   async write(path, text) {
-    await Filesystem.writeFile({
+    const options = {
       path,
       data: text,
       directory: Directory.Data,
       encoding: Encoding.UTF8,
       recursive: true,
-    });
+    };
+    try {
+      await Filesystem.writeFile(options);
+    } catch (error) {
+      // On the web the plugin checks for the missing directory, then creates
+      // it, and fails when another write creates it in between (on a first
+      // launch the catalog and the user data are saved to the same directory
+      // at once). The directory is there now, so writing again succeeds.
+      const slash = path.lastIndexOf('/');
+      const dir = slash === -1 ? '' : path.slice(0, slash);
+      if (await isMissing(dir).catch(() => true)) throw error;
+      console.info(`Writing "${path}" failed, writing it again:`, error);
+      await Filesystem.writeFile(options);
+    }
   },
 
   async remove(path) {

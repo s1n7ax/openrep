@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "exerciseId": "barbell-rear-delt-row",
+  "durationSec": 2.8,
+  "props": [{"type": "barbell", "attach": "hands"}],
+  "keyframes": [
+    {
+      "t": 0,
+      "pose": {
+        "pelvis": {"position": [0, 0.84, -0.3], "rotation": [80, 0, 0]},
+        "neck": [-30, 0, 0],
+        "head": [-12, 0, 0],
+        "leftHand": {"target": [0.4, 0.36, 0.22], "pole": [0.75, 0.6, 0.2]},
+        "rightHand": {"target": [-0.4, 0.36, 0.22], "pole": [-0.75, 0.6, 0.2]},
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.25, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.25, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.42,
+      "pose": {
+        "pelvis": {"position": [0, 0.84, -0.3], "rotation": [80, 0, 0]},
+        "neck": [-30, 0, 0],
+        "head": [-12, 0, 0],
+        "leftHand": {"target": [0.38, 0.788, 0.17], "pole": [0.9, 1.5, 0.15]},
+        "rightHand": {"target": [-0.38, 0.788, 0.17], "pole": [-0.9, 1.5, 0.15]},
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.25, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.25, 0.5, 1]}
+      }
+    },
+    {
+      "t": 0.52,
+      "pose": {
+        "pelvis": {"position": [0, 0.84, -0.3], "rotation": [80, 0, 0]},
+        "neck": [-30, 0, 0],
+        "head": [-12, 0, 0],
+        "leftHand": {"target": [0.38, 0.788, 0.17], "pole": [0.9, 1.5, 0.15]},
+        "rightHand": {"target": [-0.38, 0.788, 0.17], "pole": [-0.9, 1.5, 0.15]},
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.25, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.25, 0.5, 1]}
+      }
+    },
+    {
+      "t": 1,
+      "pose": {
+        "pelvis": {"position": [0, 0.84, -0.3], "rotation": [80, 0, 0]},
+        "neck": [-30, 0, 0],
+        "head": [-12, 0, 0],
+        "leftHand": {"target": [0.4, 0.36, 0.22], "pole": [0.75, 0.6, 0.2]},
+        "rightHand": {"target": [-0.4, 0.36, 0.22], "pole": [-0.75, 0.6, 0.2]},
+        "leftFoot": {"target": [0.15, 0, 0.145], "pole": [0.25, 0.5, 1]},
+        "rightFoot": {"target": [-0.15, 0, 0.145], "pole": [-0.25, 0.5, 1]}
+      }
+    }
+  ]
+}

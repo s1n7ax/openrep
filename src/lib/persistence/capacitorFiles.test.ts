@@ -127,6 +127,25 @@ describe('capacitorFiles', () => {
     expect(await capacitorFiles.list('openrep')).toEqual(['a.json']);
   });
 
+  it('writes again when another write created the missing directory meanwhile', async () => {
+    // The web plugin's failure when the directory it is about to create appeared.
+    vi.mocked(Filesystem.writeFile).mockImplementationOnce(async () => {
+      store.set('openrep/catalog.json.tmp', '{}');
+      throw new MockFilesystemError('Current directory does already exist.');
+    });
+    await capacitorFiles.write('openrep/userdata.json.tmp', 'data');
+    expect(Filesystem.writeFile).toHaveBeenCalledTimes(2);
+    expect(store.get('openrep/userdata.json.tmp')).toBe('data');
+  });
+
+  it('rejects without writing again when the directory is still missing', async () => {
+    const ioError = new MockFilesystemError('I/O error');
+    vi.mocked(Filesystem.writeFile).mockRejectedValueOnce(ioError);
+    await expect(capacitorFiles.write('openrep/userdata.json.tmp', 'data')).rejects.toBe(ioError);
+    expect(Filesystem.writeFile).toHaveBeenCalledTimes(1);
+    expect(store.size).toBe(0);
+  });
+
   it('saves and loads user data through the plugin', async () => {
     const data = setUnit(emptyUserData(), 'lb');
     await saveUserDataFile(capacitorFiles, data);
