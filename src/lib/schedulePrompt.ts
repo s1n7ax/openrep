@@ -13,6 +13,12 @@ import { formatWeightWithUnit } from './units.ts';
 import { recentBestSets } from './userData/selectors.ts';
 import { formatLoggedSet } from './userData/workoutText.ts';
 
+/** Always available; exercises the catalog gives no equipment count as bodyweight. */
+const BODYWEIGHT: Equipment = 'body only';
+
+/** The equipment to choose from: bodyweight is always allowed, so it is no choice. */
+export const EQUIPMENT_CHOICES = EQUIPMENT.filter((item) => item !== BODYWEIGHT);
+
 /** The answers of the creator's menus: what is picked is what the prompt says. */
 export const GOALS = [
   'Build muscle',
@@ -33,26 +39,11 @@ export const SEXES = ['Female', 'Male'] as const;
 export const REQUIRED_ANSWERS = ['goal', 'daysPerWeek', 'sessionMinutes', 'experience'] as const;
 
 /** How far back the logged lifts in the prompt go, in days. */
-export const LOGGED_LIFTS_DAYS = 90;
+const LOGGED_LIFTS_DAYS = 90;
 /** Most exercises the logged lifts in the prompt cover. */
 export const LOGGED_LIFTS_LIMIT = 30;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Always available; exercises the catalog gives no equipment count as bodyweight. */
-const BODYWEIGHT: Equipment = 'body only';
-
-/** The exercises of each piece of equipment the user has, in catalog order; bodyweight last. */
-function exercisesByEquipment(
-  exercises: readonly Exercise[],
-  equipment: readonly Equipment[],
-): [Equipment, Exercise[]][] {
-  const available = EQUIPMENT.filter((item) => item !== BODYWEIGHT && equipment.includes(item));
-  return [...available, BODYWEIGHT].map((item) => [
-    item,
-    exercises.filter((exercise) => (exercise.equipment ?? BODYWEIGHT) === item),
-  ]);
-}
 
 /** Free text on one line. */
 function oneLine(text: string): string {
@@ -66,10 +57,10 @@ function supersetsAnswer(answer: string): string {
 }
 
 /** The answered questions, as "- Label: value" lines. */
-function aboutMe(answers: ScheduleAnswers, groups: readonly Equipment[], unit: Unit): string[] {
+function aboutMe(answers: ScheduleAnswers, equipment: readonly Equipment[], unit: Unit): string[] {
   const weight = (kg: number | null) => (kg === null ? '' : formatWeightWithUnit(kg, unit));
   const facts: [string, string][] = [
-    ['Equipment', groups.map(equipmentLabel).join(', ')],
+    ['Equipment', equipment.map(equipmentLabel).join(', ')],
     ['Main goal', answers.goal],
     ['Training days per week', answers.daysPerWeek],
     ['Time per session', answers.sessionMinutes && `${answers.sessionMinutes} minutes`],
@@ -164,8 +155,11 @@ export interface SchedulePromptInput {
 /** The prompt to give an AI assistant. */
 export function buildSchedulePrompt(input: SchedulePromptInput): string {
   const { answers, unit, exercises, sessions, now } = input;
-  const groups = exercisesByEquipment(exercises, answers.equipment);
-  const equipment = groups.map(([item]) => item);
+  // In catalog order; bodyweight last.
+  const equipment = [
+    ...EQUIPMENT_CHOICES.filter((item) => answers.equipment.includes(item)),
+    BODYWEIGHT,
+  ];
   const since = new Date(now.getTime() - LOGGED_LIFTS_DAYS * DAY_MS).toISOString();
   const lifts = recentBestSets(sessions, since, LOGGED_LIFTS_LIMIT);
 
@@ -187,11 +181,13 @@ export function buildSchedulePrompt(input: SchedulePromptInput): string {
       '## Exercises',
       '',
       'Use these exercises, by id: they are the ones I have the equipment for. Each line is an `exerciseId`, then the main muscles it works.',
-      ...groups.flatMap(([item, list]) => [
+      ...equipment.flatMap((item) => [
         '',
         `### ${equipmentLabel(item)}`,
         '',
-        ...list.map((exercise) => `${exercise.id}: ${exercise.primaryMuscles.join(', ')}`),
+        ...exercises
+          .filter((exercise) => (exercise.equipment ?? BODYWEIGHT) === item)
+          .map((exercise) => `${exercise.id}: ${exercise.primaryMuscles.join(', ')}`),
       ]),
     ].join('\n'),
     [

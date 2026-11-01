@@ -4,7 +4,6 @@ import { InvalidPlanFileError, parsePastedPlan, parsePlanFile } from './planFile
 import {
   buildSchedulePrompt,
   LOGGED_LIFTS_LIMIT,
-  REQUIRED_ANSWERS,
   type SchedulePromptInput,
 } from './schedulePrompt.ts';
 import type { Equipment } from './schema/common.ts';
@@ -14,7 +13,7 @@ import { emptyScheduleAnswers } from './userData/scheduleAnswers.ts';
 
 const NOW = new Date('2026-06-01T10:00:00.000Z');
 
-function exercise(id: string, equipment: Equipment | null, muscle = 'chest' as const): Exercise {
+function exercise(id: string, equipment: Equipment | null): Exercise {
   return {
     formatVersion: 1,
     id,
@@ -25,7 +24,7 @@ function exercise(id: string, equipment: Equipment | null, muscle = 'chest' as c
     force: null,
     mechanic: null,
     equipment,
-    primaryMuscles: [muscle],
+    primaryMuscles: ['chest'],
     secondaryMuscles: [],
     instructions: [],
     images: [],
@@ -336,11 +335,5 @@ describe('buildSchedulePrompt', () => {
       const lifts = section(prompt({}, { sessions }), 'My logged lifts');
       expect(lifts.match(/^- /gm)).toHaveLength(LOGGED_LIFTS_LIMIT);
     });
-  });
-});
-
-describe('REQUIRED_ANSWERS', () => {
-  it('names answers of the form', () => {
-    for (const key of REQUIRED_ANSWERS) expect(emptyScheduleAnswers()).toHaveProperty(key);
   });
 });

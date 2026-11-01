@@ -11,6 +11,7 @@
   import { paths, router } from '../lib/router.ts';
   import {
     DAYS_PER_WEEK,
+    EQUIPMENT_CHOICES,
     EXPERIENCE,
     GOALS,
     REQUIRED_ANSWERS,
@@ -20,7 +21,7 @@
     STRENGTH_LEVELS,
     SUPERSETS,
   } from '../lib/schedulePrompt.ts';
-  import { EQUIPMENT, type Equipment, type Muscle } from '../lib/schema/common.ts';
+  import type { Equipment, Muscle } from '../lib/schema/common.ts';
   import type { ScheduleAnswers } from '../lib/schema/userData.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { emptyScheduleAnswers, setScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
@@ -39,9 +40,6 @@
   type TextKey =
     'injuries' | 'weekLayout' | 'avoidExercises' | 'includeExercises' | 'otherSports' | 'notes';
 
-  /** Bodyweight exercises are always allowed, so there is nothing to choose. */
-  const EQUIPMENT_CHOICES = EQUIPMENT.filter((equipment) => equipment !== 'body only');
-
   const unit = $derived(userData.data.settings.unit);
 
   // The form edits a copy; the saved answers are read once when the screen opens.
@@ -54,7 +52,9 @@
   let triedCreate = $state(false);
   let form: HTMLDivElement | undefined = $state();
 
-  const missing = $derived(REQUIRED_ANSWERS.filter((key) => answers[key] === ''));
+  const missing = $derived<readonly string[]>(
+    REQUIRED_ANSWERS.filter((key) => answers[key] === ''),
+  );
 
   $effect(() => {
     const next = $state.snapshot(answers);
@@ -62,7 +62,7 @@
   });
 
   function weightText(kg: number | null): string {
-    return kg === null ? '' : formatWeight(kg, userData.data.settings.unit);
+    return kg === null ? '' : formatWeight(kg, unit);
   }
 
   function weightInvalid(key: WeightKey): boolean {
@@ -99,7 +99,7 @@
 </script>
 
 {#snippet menu(key: MenuKey, label: string, options: readonly string[], blank: string)}
-  {@const invalid = triedCreate && (missing as readonly string[]).includes(key)}
+  {@const invalid = triedCreate && missing.includes(key)}
   <div class="field">
     <label class="field-label" for={`creator-${key}`}>{label}</label>
     <select
@@ -165,20 +165,17 @@
 
     <section class="section">
       <h2 class="section-title">Your equipment</h2>
-      <fieldset class="group">
-        <legend class="visually-hidden">Equipment you have</legend>
-        <div class="chips">
-          {#each EQUIPMENT_CHOICES as equipment (equipment)}
-            <button
-              type="button"
-              class="chip"
-              aria-pressed={answers.equipment.includes(equipment)}
-              data-testid={`creator-equipment-${equipment.replace(/\s+/g, '-')}`}
-              onclick={() => toggleEquipment(equipment)}>{equipmentLabel(equipment)}</button
-            >
-          {/each}
-        </div>
-      </fieldset>
+      <div class="chips" role="group" aria-label="Equipment you have">
+        {#each EQUIPMENT_CHOICES as equipment (equipment)}
+          <button
+            type="button"
+            class="chip"
+            aria-pressed={answers.equipment.includes(equipment)}
+            data-testid={`creator-equipment-${equipment.replace(/\s+/g, '-')}`}
+            onclick={() => toggleEquipment(equipment)}>{equipmentLabel(equipment)}</button
+          >
+        {/each}
+      </div>
       <p class="field-hint">Bodyweight exercises are always included.</p>
     </section>
 
@@ -276,13 +273,6 @@
 
   .lead {
     color: var(--text-2);
-  }
-
-  .group {
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: none;
   }
 
   .chips {
