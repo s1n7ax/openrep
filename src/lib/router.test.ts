@@ -23,6 +23,9 @@ describe('parseRoute', () => {
       name: 'schedule',
       scheduleId: 'push-pull-legs',
     });
+    expect(parseRoute('#/schedule-creator')).toEqual({ name: 'schedule-creator' });
+    expect(parseRoute('#/schedule-creator/prompt')).toEqual({ name: 'schedule-creator-prompt' });
+    expect(parseRoute('#/schedule-creator/paste')).toEqual({ name: 'schedule-creator-paste' });
     expect(parseRoute('#/workout/s1')).toEqual({ name: 'workout', sessionId: 's1' });
     expect(parseRoute('#/history/s1')).toEqual({ name: 'history-session', sessionId: 's1' });
     expect(parseRoute('#/settings')).toEqual({ name: 'settings' });
@@ -75,7 +78,12 @@ describe('navigation helpers', () => {
     expect(isTabRoot(parseRoute('#/plans/p1'))).toBe(false);
     expect(tabOf(parseRoute('#/workout/s1'))).toBe('plans');
     expect(tabOf(parseRoute('#/custom/c1'))).toBe('exercises');
+    expect(tabOf(parseRoute('#/schedule-creator'))).toBe('schedules');
+    expect(tabOf(parseRoute('#/schedule-creator/paste'))).toBe('schedules');
     expect(tabOf(parseRoute('#/dev/pose/plank'))).toBeNull();
+    expect(parentPath(parseRoute('#/schedule-creator'))).toBe('/schedules');
+    expect(parentPath(parseRoute('#/schedule-creator/prompt'))).toBe('/schedule-creator');
+    expect(parentPath(parseRoute('#/schedule-creator/paste'))).toBe('/schedules');
     expect(parentPath(parseRoute('#/plans/p1/edit'))).toBe('/plans/p1');
     expect(parentPath(parseRoute('#/plans/p1/days/d1/add'))).toBe('/plans/p1/edit');
     expect(parentPath(parseRoute('#/custom/new?plan=p1&day=d1'))).toBe('/plans/p1/days/d1/add');
