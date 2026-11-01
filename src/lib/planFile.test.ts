@@ -5,6 +5,8 @@ import {
   describePlanFileProblem,
   importPlanFile,
   InvalidPlanFileError,
+  MAX_PLAN_FILE_BYTES,
+  parsePastedPlan,
   parsePlanFile,
   planFileName,
   serializePlanFile,
@@ -482,4 +484,69 @@ describe('the example in llms.txt', () => {
       expect(data.plans).toHaveLength(1);
     },
   );
+});
+
+describe('parsePastedPlan', () => {
+  const json = JSON.stringify(validFile, null, 2);
+
+  function problemOf(text: string): PlanFileProblem | undefined {
+    try {
+      parsePastedPlan(text);
+      return undefined;
+    } catch (error) {
+      if (error instanceof InvalidPlanFileError) return error.problem;
+      throw error;
+    }
+  }
+
+  it('reads bare JSON, with spaces around it', () => {
+    expect(parsePastedPlan(`\n  ${json}  \n`)).toEqual(validFile);
+  });
+
+  it('reads a plan in a code fence surrounded by chat text', () => {
+    const reply = `Here is your plan:\n\n\`\`\`json\n${json}\n\`\`\`\n\nHave fun!`;
+    expect(parsePastedPlan(reply)).toEqual(validFile);
+  });
+
+  it('reads a plan in a fence without a language', () => {
+    expect(parsePastedPlan(`\`\`\`\n${json}\n\`\`\``)).toEqual(validFile);
+  });
+
+  it('reads a plan in chat text with no fence', () => {
+    expect(parsePastedPlan(`Sure! ${json} Let me know.`)).toEqual(validFile);
+  });
+
+  it('skips a fence that is not the plan', () => {
+    const reply = `Save as:\n\`\`\`\nplan.json\n\`\`\`\n\`\`\`json\n${json}\n\`\`\`\n`;
+    expect(parsePastedPlan(reply)).toEqual(validFile);
+  });
+
+  it('rejects text with no JSON in it', () => {
+    expect(problemOf('Sorry, I cannot help with that.')).toBe('not-json');
+    expect(problemOf('')).toBe('not-json');
+    expect(problemOf('} a stray brace {')).toBe('not-json');
+  });
+
+  it('rejects a reply cut off halfway', () => {
+    expect(problemOf(json.slice(0, json.length / 2))).toBe('not-json');
+  });
+
+  it('rejects JSON that is not a plan', () => {
+    expect(problemOf('```json\n{"hello": "world"}\n```')).toBe('not-plan');
+  });
+
+  it('reports a plan that is present but invalid, not "no JSON"', () => {
+    const broken = JSON.stringify({ ...validFile, extra: true });
+    expect(problemOf(`Your plan:\n\`\`\`json\n${broken}\n\`\`\``)).toBe('invalid');
+  });
+
+  it('rejects text too long to be a plan', () => {
+    expect(problemOf(' '.repeat(MAX_PLAN_FILE_BYTES + 1))).toBe('too-large');
+  });
+
+  it('words its problems for text', () => {
+    expect(describePlanFileProblem('not-json', 'text')).toBe(
+      'This text is not an OpenRep plan, or it is damaged.',
+    );
+  });
 });

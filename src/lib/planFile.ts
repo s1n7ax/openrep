@@ -50,15 +50,18 @@ export class InvalidPlanFileError extends Error {
   }
 }
 
-/** The message shown when a file cannot be imported as a plan. */
-export function describePlanFileProblem(problem: PlanFileProblem): string {
+/** The message shown when a file, or pasted text, cannot be imported as a plan. */
+export function describePlanFileProblem(
+  problem: PlanFileProblem,
+  source: 'file' | 'text' = 'file',
+): string {
   switch (problem) {
     case 'too-large':
-      return 'This file is too large to be an OpenRep plan.';
+      return `This ${source} is too large to be an OpenRep plan.`;
     case 'not-json':
-      return 'This file is not an OpenRep plan, or it is damaged.';
+      return `This ${source} is not an OpenRep plan, or it is damaged.`;
     case 'not-plan':
-      return 'This file is not an OpenRep plan.';
+      return `This ${source} is not an OpenRep plan.`;
     case 'newer-version':
       return 'This plan was made by a newer version of OpenRep. Update the app to import it.';
     case 'invalid':
@@ -99,6 +102,40 @@ export function parsePlanFile(text: string): PlanFile {
     });
   }
   return result.data;
+}
+
+/**
+ * Where a plan's JSON can be in an AI assistant's reply, most likely first:
+ * the whole text, each code fence, or between the first and last brace.
+ */
+function planCandidates(text: string): string[] {
+  const fenced = [...text.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map((match) => match[1] ?? '');
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  return [text.trim(), ...fenced, ...(end > start ? [text.slice(start, end + 1)] : [])];
+}
+
+/**
+ * Reads and validates a plan pasted from an AI assistant's reply, which may
+ * wrap the JSON in a code fence or chat text.
+ *
+ * @throws {InvalidPlanFileError} when the text is too long or holds no valid
+ *   plan file; a plan that is present but invalid is reported as such.
+ */
+export function parsePastedPlan(text: string): PlanFile {
+  if (text.length > MAX_PLAN_FILE_BYTES) {
+    throw new InvalidPlanFileError('too-large', `Pasted text is ${text.length} characters`);
+  }
+  let rejection = new InvalidPlanFileError('not-json', 'Pasted text holds no JSON');
+  for (const candidate of planCandidates(text)) {
+    try {
+      return parsePlanFile(candidate);
+    } catch (error) {
+      if (!(error instanceof InvalidPlanFileError)) throw error;
+      if (rejection.problem === 'not-json') rejection = error;
+    }
+  }
+  throw rejection;
 }
 
 /** Text that is not only whitespace, or `fallback`. */
