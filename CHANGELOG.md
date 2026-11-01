@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/s1n7ax/openrep/compare/v0.13.0...v0.14.0) (2026-11-01)
+
+
+### Features
+
+* **schedules:** create a schedule with an AI assistant ([#39](https://github.com/s1n7ax/openrep/issues/39)) ([75901f7](https://github.com/s1n7ax/openrep/commit/75901f70dbd7b21da1206ed07464626d857b497c))
+
 ## [0.13.0](https://github.com/s1n7ax/openrep/compare/v0.12.0...v0.13.0) (2026-10-30)
 
 
