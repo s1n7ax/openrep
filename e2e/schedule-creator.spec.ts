@@ -100,6 +100,12 @@ test('a required answer left blank keeps the prompt from being made', async ({ p
 
   await answerRequired(page);
   await expect(page.getByTestId('creator-goal-error')).toHaveCount(0);
+
+  // The keyboard's Done key in a field does not end the form early.
+  await page.getByTestId('creator-bodyWeightKg').fill('80');
+  await page.getByTestId('creator-bodyWeightKg').press('Enter');
+  await expect(page.getByTestId('creator-create')).toBeVisible();
+
   await page.getByTestId('creator-bodyWeightKg').fill('heavy');
   await page.getByTestId('creator-create').click();
   await expect(page.getByTestId('creator-bodyWeightKg')).toBeFocused();

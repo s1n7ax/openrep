@@ -105,7 +105,7 @@ function compareSets(a: LoggedSet, b: LoggedSet): number {
 /**
  * The best set of each exercise over the finished sessions started at or after
  * `since` (ISO timestamp), most recently trained first, at most `limit`. Only
- * sets marked done that hold a weight, reps or a time count.
+ * sets marked done with reps or a time count: a failed lift has neither.
  */
 export function recentBestSets(
   sessions: readonly Session[],
@@ -120,9 +120,7 @@ export function recentBestSets(
         exercise.kind === 'catalog'
           ? `catalog:${exercise.exerciseId}`
           : `custom:${exercise.customExerciseId}`;
-      const logged = sets.filter(
-        (set) => set.done && (set.weightKg || set.reps || set.durationSec),
-      );
+      const logged = sets.filter((set) => set.done && (set.reps || set.durationSec));
       const previous = best.get(key);
       const top = [...logged, ...(previous ? [previous.set] : [])].sort(compareSets)[0];
       if (top) best.set(key, { name: previous?.name ?? exercise.name, set: top });

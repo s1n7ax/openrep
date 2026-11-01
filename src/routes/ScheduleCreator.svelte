@@ -52,7 +52,7 @@
     targetWeightKg: weightText(saved.targetWeightKg),
   });
   let triedCreate = $state(false);
-  let form: HTMLFormElement | undefined = $state();
+  let form: HTMLDivElement | undefined = $state();
 
   const missing = $derived(REQUIRED_ANSWERS.filter((key) => answers[key] === ''));
 
@@ -87,8 +87,7 @@
       : [...answers.priorityMuscles, muscle];
   }
 
-  async function createPrompt(event: SubmitEvent) {
-    event.preventDefault();
+  async function createPrompt() {
     triedCreate = true;
     if (missing.length > 0 || weightInvalid('bodyWeightKg') || weightInvalid('targetWeightKg')) {
       await tick();
@@ -158,7 +157,8 @@
 <PageHeader title="Create a schedule" back={paths.schedules()} />
 
 <div class="page">
-  <form bind:this={form} class="form" onsubmit={createPrompt} novalidate>
+  <!-- Not a <form>: the Done key in a field must not create the prompt halfway through. -->
+  <div bind:this={form} class="form">
     <p class="lead">
       Your answers stay on this device. Only the prompt you copy goes to your AI assistant.
     </p>
@@ -248,10 +248,15 @@
       {@render text('notes', 'Anything else', 'Anything your assistant should know…')}
     </section>
 
-    <button type="submit" class="btn btn-primary btn-lg btn-block" data-testid="creator-create">
+    <button
+      type="button"
+      class="btn btn-primary btn-lg btn-block"
+      data-testid="creator-create"
+      onclick={createPrompt}
+    >
       Create prompt
     </button>
-  </form>
+  </div>
 </div>
 
 <style>

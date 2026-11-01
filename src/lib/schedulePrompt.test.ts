@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { parsePlanFile } from './planFile.ts';
+import { InvalidPlanFileError, parsePastedPlan, parsePlanFile } from './planFile.ts';
 import {
   buildSchedulePrompt,
   LOGGED_LIFTS_LIMIT,
@@ -196,10 +196,26 @@ describe('buildSchedulePrompt', () => {
     expect(prompt(FILLED)).not.toMatch(/https?:/);
   });
 
-  it('carries a format example the app accepts', () => {
+  it('carries a format example the app accepts once its placeholder is filled in', () => {
     const example = /```json\n([\s\S]*?)```/.exec(prompt())?.[1];
     expect(example).toBeDefined();
-    expect(parsePlanFile(example!).plan.days[0]?.supersets).toEqual([{ id: 'pair', restSec: 90 }]);
+    const filled = example!.replaceAll('<id from the list>', 'pushups');
+    expect(parsePlanFile(filled).plan.days[0]?.supersets).toEqual([{ id: 'pair', restSec: 90 }]);
+  });
+
+  it('does not import as a plan when pasted back by mistake', () => {
+    expect(() => parsePastedPlan(prompt(FILLED))).toThrow(InvalidPlanFileError);
+  });
+
+  it('gives way to the real plan when pasted back along with the reply', () => {
+    const plan = {
+      app: 'openrep',
+      kind: 'plan',
+      formatVersion: 1,
+      plan: { name: 'Real plan', days: [{ name: 'Day 1', exercises: [] }] },
+    };
+    const chat = `${prompt(FILLED)}\n\`\`\`json\n${JSON.stringify(plan)}\n\`\`\``;
+    expect(parsePastedPlan(chat).plan.name).toBe('Real plan');
   });
 
   it('describes the custom exercise form the app accepts', () => {
@@ -276,6 +292,21 @@ describe('buildSchedulePrompt', () => {
         '- Bench: 154.3 lb × 5',
         '',
       ]);
+    });
+
+    it('does not take a failed lift for the best set', () => {
+      const text = prompt(
+        {},
+        {
+          sessions: [
+            session('s', '2026-05-20T10:00:00.000Z', 'Bench', [
+              { weightKg: 90, reps: 5 },
+              { weightKg: 100, reps: 0 },
+            ]),
+          ],
+        },
+      );
+      expect(text).toContain('- Bench: 90 kg × 5');
     });
 
     it('ignores sessions older than the window and sets not done', () => {

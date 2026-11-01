@@ -95,7 +95,10 @@ function aboutMe(answers: ScheduleAnswers, groups: readonly Equipment[], unit: U
   );
 }
 
-/** The plan file format, with a complete example that a unit test parses. */
+/**
+ * The plan file format. Its example is complete, but its placeholder ids are
+ * not valid ids: pasted back by mistake, the prompt must not import as a plan.
+ */
 const FORMAT = `## Plan file format
 
 Reply with the plan file only: one JSON document in one code block.
@@ -106,13 +109,13 @@ Reply with the plan file only: one JSON document in one code block.
   "kind": "plan",
   "formatVersion": 1,
   "plan": {
-    "name": "Plan name",
+    "name": "<plan name>",
     "days": [
       {
-        "name": "Day name",
+        "name": "<day name>",
         "exercises": [
           {
-            "exercise": { "kind": "catalog", "exerciseId": "first-listed-id", "name": "First Exercise" },
+            "exercise": { "kind": "catalog", "exerciseId": "<id from the list>", "name": "<exercise name>" },
             "sets": 3,
             "reps": "8-12",
             "weightKg": 40,
@@ -120,13 +123,13 @@ Reply with the plan file only: one JSON document in one code block.
             "notes": "Two warm-up sets first."
           },
           {
-            "exercise": { "kind": "catalog", "exerciseId": "second-listed-id", "name": "Second Exercise" },
+            "exercise": { "kind": "catalog", "exerciseId": "<id from the list>", "name": "<exercise name>" },
             "sets": 3,
             "reps": "12",
             "supersetId": "pair"
           },
           {
-            "exercise": { "kind": "catalog", "exerciseId": "third-listed-id", "name": "Third Exercise" },
+            "exercise": { "kind": "catalog", "exerciseId": "<id from the list>", "name": "<exercise name>" },
             "sets": 3,
             "durationSec": 40,
             "supersetId": "pair"
