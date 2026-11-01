@@ -1,6 +1,6 @@
 # OpenRep privacy policy
 
-_Effective 23 October 2026._
+_Effective 1 November 2026._
 
 OpenRep is a free, open-source gym companion app for Android and iOS, made by
 the OpenRep project (https://github.com/s1n7ax/openrep). This policy covers
@@ -14,13 +14,24 @@ no tracking, and it does not share anything with anyone.
 
 ## Data on your device
 
-Your plans, custom exercises, workout history and settings are stored only on
-your device, in the app's private storage. Phone backups (Google, iCloud) do
-not include them. They leave the device only when you export a backup
-(Settings → Backup), and the backup file goes wherever you choose to save or
-share it.
+Your plans, custom exercises, workout history, schedule creator answers and
+settings are stored only on your device, in the app's private storage. Phone
+backups (Google, iCloud) do not include them. They leave the device only when
+you export a backup (Settings → Backup), and the backup file goes wherever you
+choose to save or share it.
 
 Uninstalling the app deletes this data.
+
+## Schedule creator
+
+The schedule creator asks for details such as your equipment, goal, injuries,
+body weight, age, sex and height, and turns them into a prompt for an AI
+assistant of your choice. The prompt also lists your recent best sets. Your
+answers are stored on your device like the rest of your data.
+
+The app never sends the prompt anywhere. It leaves your device only if you copy
+it and give it to an assistant yourself, so read it first. What happens to it
+then is covered by that assistant's privacy policy, not by this one.
 
 ## Network connections
 

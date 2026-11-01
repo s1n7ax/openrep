@@ -44,6 +44,9 @@ works offline.
   days, supersets, weights, rest, notes and the custom exercises it uses — and
   is described for AI assistants in [`llms.txt`](llms.txt), so an assistant can
   write a personalized plan that imports in a few taps.
+- **Schedule creator**: on the Schedules tab, choose your equipment and answer
+  a few questions about your goal, injuries, week and body. The app writes a
+  prompt for any AI assistant; paste the reply back and it becomes a plan.
 - **Catalog updates**: when online, the app downloads the latest catalog from
   this repository; the copy built into the app works offline from the first
   launch.
@@ -70,9 +73,14 @@ source with Xcode (see [Building](#building)).
 
 ## Build a plan with an AI assistant
 
-Any assistant with web access can write a plan for you. [`llms.txt`](llms.txt)
-describes the plan file format, links the JSON Schema and the exercise catalog,
-and tells the assistant to use real exercise ids, so the file imports cleanly.
+The quickest way is in the app: open **Schedules** → **Create a schedule**,
+answer the questions and copy the prompt into any assistant, even one without
+web access. Then choose **Paste a plan** and paste the whole reply.
+
+You can also start from a prompt of your own, if the assistant has web access.
+[`llms.txt`](llms.txt) describes the plan file format, links the JSON Schema and
+the exercise catalog, and tells the assistant to use real exercise ids, so the
+file imports cleanly.
 
 1. Paste a prompt like this one into a chat, changing the details to yours:
 
@@ -94,8 +102,8 @@ assistant that file: it uses the same format, weights included.
 ## Privacy
 
 - No account, no login, no analytics, no ads, no tracking.
-- Your plans, custom exercises, workouts and settings are stored only on your
-  device. Phone backups (Google, iCloud) do not include them. To move to a new
+- Your plans, custom exercises, workouts, schedule creator answers and settings
+  are stored only on your device. Phone backups (Google, iCloud) do not include them. To move to a new
   phone, use Settings → Backup: Export backup on the old phone, then Import
   backup on the new one.
 - The app goes online only to download catalog updates from GitHub
