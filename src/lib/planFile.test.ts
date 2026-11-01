@@ -521,6 +521,16 @@ describe('parsePastedPlan', () => {
     expect(parsePastedPlan(reply)).toEqual(validFile);
   });
 
+  it('reads a bare plan when the chat text around it has braces of its own', () => {
+    expect(parsePastedPlan(`Using {your} answers:\n${json}`)).toEqual(validFile);
+    expect(parsePastedPlan(`${json}\nAdjust {weightKg} as you like.`)).toEqual(validFile);
+  });
+
+  it('reads a plan whose text holds braces', () => {
+    const file = { ...validFile, plan: { ...validFile.plan, name: 'Odd } name {' } };
+    expect(parsePastedPlan(`Here: ${JSON.stringify(file)}`).plan.name).toBe('Odd } name {');
+  });
+
   it('rejects text with no JSON in it', () => {
     expect(problemOf('Sorry, I cannot help with that.')).toBe('not-json');
     expect(problemOf('')).toBe('not-json');
@@ -538,6 +548,12 @@ describe('parsePastedPlan', () => {
   it('reports a plan that is present but invalid, not "no JSON"', () => {
     const broken = JSON.stringify({ ...validFile, extra: true });
     expect(problemOf(`Your plan:\n\`\`\`json\n${broken}\n\`\`\``)).toBe('invalid');
+  });
+
+  it('reports the plan with a fault over JSON that is no plan', () => {
+    const broken = JSON.stringify({ ...validFile, extra: true });
+    const reply = `\`\`\`json\n{"note": "x"}\n\`\`\`\n\`\`\`json\n${broken}\n\`\`\``;
+    expect(problemOf(reply)).toBe('invalid');
   });
 
   it('rejects text too long to be a plan', () => {

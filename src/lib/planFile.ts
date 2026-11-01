@@ -104,16 +104,52 @@ export function parsePlanFile(text: string): PlanFile {
   return result.data;
 }
 
+/** Index of the `}` closing the object opened at `start`, or -1 when it never closes. */
+function objectEnd(text: string, start: number): number {
+  let depth = 0;
+  let inString = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (inString) {
+      if (char === '\\') index += 1;
+      else if (char === '"') inString = false;
+    } else if (char === '"') {
+      inString = true;
+    } else if (char === '{') {
+      depth += 1;
+    } else if (char === '}') {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
 /**
- * Where a plan's JSON can be in an AI assistant's reply, most likely first:
- * the whole text, each code fence, or between the first and last brace.
+ * The top-level `{…}` of an AI assistant's reply, in order: the plan may sit in
+ * a code fence or in chat text that has braces of its own. A brace that never
+ * closes ends the search: the reply was cut off there.
  */
 function planCandidates(text: string): string[] {
-  const fenced = [...text.matchAll(/```[^\n]*\n([\s\S]*?)```/g)].map((match) => match[1] ?? '');
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  return [text.trim(), ...fenced, ...(end > start ? [text.slice(start, end + 1)] : [])];
+  const candidates: string[] = [];
+  let start = text.indexOf('{');
+  while (start !== -1) {
+    const end = objectEnd(text, start);
+    if (end === -1) break;
+    candidates.push(text.slice(start, end + 1));
+    start = text.indexOf('{', end + 1);
+  }
+  return candidates;
 }
+
+/** How much a rejection says: a plan with a fault beats text that is no plan at all. */
+const PROBLEM_DETAIL: Record<PlanFileProblem, number> = {
+  'too-large': 0,
+  'not-json': 0,
+  'not-plan': 1,
+  'newer-version': 2,
+  invalid: 2,
+};
 
 /**
  * Reads and validates a plan pasted from an AI assistant's reply, which may
@@ -132,7 +168,7 @@ export function parsePastedPlan(text: string): PlanFile {
       return parsePlanFile(candidate);
     } catch (error) {
       if (!(error instanceof InvalidPlanFileError)) throw error;
-      if (rejection.problem === 'not-json') rejection = error;
+      if (PROBLEM_DETAIL[error.problem] > PROBLEM_DETAIL[rejection.problem]) rejection = error;
     }
   }
   throw rejection;
