@@ -531,6 +531,22 @@ describe('parsePastedPlan', () => {
     expect(parsePastedPlan(`Here: ${JSON.stringify(file)}`).plan.name).toBe('Odd } name {');
   });
 
+  it('reads a plan after an opening brace or quote that never closes', () => {
+    const fenced = `\`\`\`json\n${json}\n\`\`\``;
+    expect(parsePastedPlan(`Every plan starts with a { as usual.\n${fenced}`)).toEqual(validFile);
+    expect(parsePastedPlan(`Sorry about that :{ here it is.\n${fenced}`)).toEqual(validFile);
+    expect(parsePastedPlan(`A " stray quote, then { one more:\n${json}`)).toEqual(validFile);
+  });
+
+  it('reads a plan between braces that pair up around it', () => {
+    expect(parsePastedPlan(`Here :{\n${json}\nThat is it :}`)).toEqual(validFile);
+  });
+
+  it('reads a whole plan pasted after one cut off halfway', () => {
+    const cut = json.slice(0, json.length / 2);
+    expect(parsePastedPlan(`${cut}\n\nContinue.\n\n${json}`)).toEqual(validFile);
+  });
+
   it('rejects text with no JSON in it', () => {
     expect(problemOf('Sorry, I cannot help with that.')).toBe('not-json');
     expect(problemOf('')).toBe('not-json');
@@ -542,7 +558,7 @@ describe('parsePastedPlan', () => {
   });
 
   it('rejects JSON that is not a plan', () => {
-    expect(problemOf('```json\n{"hello": "world"}\n```')).toBe('not-plan');
+    expect(problemOf('```json\n{"hello": "world"}\n```')).toBe('not-json');
   });
 
   it('reports a plan that is present but invalid, not "no JSON"', () => {

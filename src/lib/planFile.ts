@@ -126,30 +126,16 @@ function objectEnd(text: string, start: number): number {
 }
 
 /**
- * The top-level `{…}` of an AI assistant's reply, in order: the plan may sit in
- * a code fence or in chat text that has braces of its own. A brace that never
- * closes ends the search: the reply was cut off there.
+ * Every balanced `{…}` of an AI assistant's reply, in the order they open. Each
+ * opening brace is tried on its own, so no brace or quote in the chat text
+ * around a plan can hide it.
  */
-function planCandidates(text: string): string[] {
-  const candidates: string[] = [];
-  let start = text.indexOf('{');
-  while (start !== -1) {
+function* objectsIn(text: string): Generator<string> {
+  for (let start = text.indexOf('{'); start !== -1; start = text.indexOf('{', start + 1)) {
     const end = objectEnd(text, start);
-    if (end === -1) break;
-    candidates.push(text.slice(start, end + 1));
-    start = text.indexOf('{', end + 1);
+    if (end !== -1) yield text.slice(start, end + 1);
   }
-  return candidates;
 }
-
-/** How much a rejection says: a plan with a fault beats text that is no plan at all. */
-const PROBLEM_DETAIL: Record<PlanFileProblem, number> = {
-  'too-large': 0,
-  'not-json': 0,
-  'not-plan': 1,
-  'newer-version': 2,
-  invalid: 2,
-};
 
 /**
  * Reads and validates a plan pasted from an AI assistant's reply, which may
@@ -162,16 +148,16 @@ export function parsePastedPlan(text: string): PlanFile {
   if (text.length > MAX_PLAN_FILE_BYTES) {
     throw new InvalidPlanFileError('too-large', `Pasted text is ${text.length} characters`);
   }
-  let rejection = new InvalidPlanFileError('not-json', 'Pasted text holds no JSON');
-  for (const candidate of planCandidates(text)) {
+  let fault: InvalidPlanFileError | undefined;
+  for (const candidate of objectsIn(text)) {
     try {
       return parsePlanFile(candidate);
     } catch (error) {
       if (!(error instanceof InvalidPlanFileError)) throw error;
-      if (PROBLEM_DETAIL[error.problem] > PROBLEM_DETAIL[rejection.problem]) rejection = error;
+      if (error.problem !== 'not-json' && error.problem !== 'not-plan') fault ??= error;
     }
   }
-  throw rejection;
+  throw fault ?? new InvalidPlanFileError('not-json', 'Pasted text holds no plan');
 }
 
 /** Text that is not only whitespace, or `fallback`. */
