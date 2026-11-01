@@ -87,6 +87,48 @@ export function lastTimeFor(
   return exerciseHistory(sessions, ref, excludeSessionId)[0] ?? null;
 }
 
+/** The best set of one exercise, for `recentBestSets`. */
+export interface BestSet {
+  name: string;
+  set: LoggedSet;
+}
+
+/** Order of two sets by how impressive they are: heaviest, then most reps, then longest. */
+function compareSets(a: LoggedSet, b: LoggedSet): number {
+  return (
+    (b.weightKg ?? 0) - (a.weightKg ?? 0) ||
+    (b.reps ?? 0) - (a.reps ?? 0) ||
+    (b.durationSec ?? 0) - (a.durationSec ?? 0)
+  );
+}
+
+/**
+ * The best set of each exercise over the finished sessions started at or after
+ * `since` (ISO timestamp), most recently trained first, at most `limit`. Only
+ * sets marked done with reps or a time count: a failed lift has neither.
+ */
+export function recentBestSets(
+  sessions: readonly Session[],
+  since: string,
+  limit: number,
+): BestSet[] {
+  const best = new Map<string, BestSet>();
+  for (const session of history(sessions)) {
+    if (session.startedAt < since) break;
+    for (const { exercise, sets } of session.exercises) {
+      const key =
+        exercise.kind === 'catalog'
+          ? `catalog:${exercise.exerciseId}`
+          : `custom:${exercise.customExerciseId}`;
+      const logged = sets.filter((set) => set.done && (set.reps || set.durationSec));
+      const previous = best.get(key);
+      const top = [...logged, ...(previous ? [previous.set] : [])].sort(compareSets)[0];
+      if (top) best.set(key, { name: previous?.name ?? exercise.name, set: top });
+    }
+  }
+  return [...best.values()].slice(0, limit);
+}
+
 /** Number of days and of exercises across all days. */
 export function planStats(plan: Plan): { days: number; exercises: number } {
   return {

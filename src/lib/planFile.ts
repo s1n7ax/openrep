@@ -50,15 +50,18 @@ export class InvalidPlanFileError extends Error {
   }
 }
 
-/** The message shown when a file cannot be imported as a plan. */
-export function describePlanFileProblem(problem: PlanFileProblem): string {
+/** The message shown when a file, or pasted text, cannot be imported as a plan. */
+export function describePlanFileProblem(
+  problem: PlanFileProblem,
+  source: 'file' | 'text' = 'file',
+): string {
   switch (problem) {
     case 'too-large':
-      return 'This file is too large to be an OpenRep plan.';
+      return `This ${source} is too large to be an OpenRep plan.`;
     case 'not-json':
-      return 'This file is not an OpenRep plan, or it is damaged.';
+      return `This ${source} is not an OpenRep plan, or it is damaged.`;
     case 'not-plan':
-      return 'This file is not an OpenRep plan.';
+      return `This ${source} is not an OpenRep plan.`;
     case 'newer-version':
       return 'This plan was made by a newer version of OpenRep. Update the app to import it.';
     case 'invalid':
@@ -99,6 +102,62 @@ export function parsePlanFile(text: string): PlanFile {
     });
   }
   return result.data;
+}
+
+/** Index of the `}` closing the object opened at `start`, or -1 when it never closes. */
+function objectEnd(text: string, start: number): number {
+  let depth = 0;
+  let inString = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (inString) {
+      if (char === '\\') index += 1;
+      else if (char === '"') inString = false;
+    } else if (char === '"') {
+      inString = true;
+    } else if (char === '{') {
+      depth += 1;
+    } else if (char === '}') {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Every balanced `{…}` of an AI assistant's reply, in the order they open. Each
+ * opening brace is tried on its own, so no brace or quote in the chat text
+ * around a plan can hide it.
+ */
+function* objectsIn(text: string): Generator<string> {
+  for (let start = text.indexOf('{'); start !== -1; start = text.indexOf('{', start + 1)) {
+    const end = objectEnd(text, start);
+    if (end !== -1) yield text.slice(start, end + 1);
+  }
+}
+
+/**
+ * Reads and validates a plan pasted from an AI assistant's reply, which may
+ * wrap the JSON in a code fence or chat text.
+ *
+ * @throws {InvalidPlanFileError} when the text is too long or holds no valid
+ *   plan file; a plan that is present but invalid is reported as such.
+ */
+export function parsePastedPlan(text: string): PlanFile {
+  if (text.length > MAX_PLAN_FILE_BYTES) {
+    throw new InvalidPlanFileError('too-large', `Pasted text is ${text.length} characters`);
+  }
+  let fault: InvalidPlanFileError | undefined;
+  for (const candidate of objectsIn(text)) {
+    try {
+      return parsePlanFile(candidate);
+    } catch (error) {
+      if (!(error instanceof InvalidPlanFileError)) throw error;
+      if (error.problem !== 'not-json' && error.problem !== 'not-plan') fault ??= error;
+    }
+  }
+  throw fault ?? new InvalidPlanFileError('not-json', 'Pasted text holds no plan');
 }
 
 /** Text that is not only whitespace, or `fallback`. */

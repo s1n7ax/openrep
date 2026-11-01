@@ -1,6 +1,7 @@
 <!--
-  Schedules tab (`#/schedules`): the community schedules of the catalog,
-  each opening its detail page where it can be copied into the user's plans.
+  Schedules tab (`#/schedules`): the way into the schedule creator, then the
+  community schedules of the catalog, each opening its detail page where it
+  can be copied into the user's plans.
 -->
 <script lang="ts">
   import EmptyState from '../components/EmptyState.svelte';
@@ -33,6 +34,30 @@
 <PageHeader title="Schedules" large />
 
 <div class="page">
+  <section class="creator card" data-testid="schedule-creator-card">
+    <h2 class="name">Make your own</h2>
+    <p class="creator-text">
+      Tell the app what you have and what you want. It writes a prompt for your AI assistant, whose
+      answer becomes a plan.
+    </p>
+    <div class="creator-actions">
+      <a
+        class="btn btn-primary"
+        href={href(paths.scheduleCreator())}
+        data-testid="schedule-creator-open"
+      >
+        Create a schedule
+      </a>
+      <a
+        class="btn btn-outline"
+        href={href(paths.scheduleCreatorPaste())}
+        data-testid="schedule-creator-paste-open"
+      >
+        Paste a plan
+      </a>
+    </div>
+  </section>
+
   <p class="lead">
     Ready-made schedules from the community. Copy one into your plans and make it yours.
   </p>
@@ -75,6 +100,26 @@
 </div>
 
 <style>
+  .creator {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .creator-text {
+    color: var(--text-2);
+    font-size: var(--text-sm);
+  }
+
+  .creator-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
   .lead {
     margin-bottom: var(--space-4);
     color: var(--text-2);

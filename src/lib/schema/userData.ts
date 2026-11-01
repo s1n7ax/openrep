@@ -164,6 +164,35 @@ export const catalogMetaSchema = z.object({
 });
 export type CatalogMeta = z.infer<typeof catalogMetaSchema>;
 
+/**
+ * What the user told the schedule creator, kept so its form reopens filled in.
+ * Text is what they typed or picked, `''` when left blank; weights are in
+ * kilograms, `null` when left blank.
+ */
+export const scheduleAnswersSchema = z.object({
+  equipment: z.array(equipmentSchema),
+  goal: z.string(),
+  injuries: z.string(),
+  daysPerWeek: z.string(),
+  sessionMinutes: z.string(),
+  weekLayout: z.string(),
+  split: z.string(),
+  supersets: z.string(),
+  experience: z.string(),
+  strengthLevel: z.string(),
+  bodyWeightKg: weightKgSchema.nullable(),
+  targetWeightKg: weightKgSchema.nullable(),
+  age: z.string(),
+  sex: z.string(),
+  height: z.string(),
+  avoidExercises: z.string(),
+  includeExercises: z.string(),
+  priorityMuscles: z.array(muscleSchema),
+  otherSports: z.string(),
+  notes: z.string(),
+});
+export type ScheduleAnswers = z.infer<typeof scheduleAnswersSchema>;
+
 /** Everything the user created, saved as one document on the device. */
 export const userDataSchema = z.object({
   formatVersion: z.literal(1),
@@ -173,6 +202,8 @@ export const userDataSchema = z.object({
   sessions: z.array(sessionSchema),
   activeSessionId: localIdSchema.nullable(),
   catalogMeta: catalogMetaSchema,
+  /** Missing until the schedule creator is first used, and in files saved before it existed. */
+  scheduleAnswers: scheduleAnswersSchema.optional(),
 });
 export type UserData = z.infer<typeof userDataSchema>;
 

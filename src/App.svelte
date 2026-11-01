@@ -24,6 +24,9 @@
   import PlanDetail from './routes/PlanDetail.svelte';
   import PlanEditor from './routes/PlanEditor.svelte';
   import PlansList from './routes/PlansList.svelte';
+  import ScheduleCreator from './routes/ScheduleCreator.svelte';
+  import ScheduleCreatorPaste from './routes/ScheduleCreatorPaste.svelte';
+  import ScheduleCreatorPrompt from './routes/ScheduleCreatorPrompt.svelte';
   import ScheduleDetail from './routes/ScheduleDetail.svelte';
   import SchedulesList from './routes/SchedulesList.svelte';
   import Settings from './routes/Settings.svelte';
@@ -114,6 +117,12 @@
             <SchedulesList />
           {:else if route.name === 'schedule'}
             <ScheduleDetail scheduleId={route.scheduleId} />
+          {:else if route.name === 'schedule-creator'}
+            <ScheduleCreator />
+          {:else if route.name === 'schedule-creator-prompt'}
+            <ScheduleCreatorPrompt />
+          {:else if route.name === 'schedule-creator-paste'}
+            <ScheduleCreatorPaste />
           {:else if route.name === 'history'}
             <HistoryList />
           {:else if route.name === 'history-session'}
