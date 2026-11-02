@@ -1,0 +1,2 @@
+Features
+• schedules: create a schedule with an AI assistant
