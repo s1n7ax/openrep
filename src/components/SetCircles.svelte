@@ -3,7 +3,9 @@
   screen: one per set, its reps or seconds inside and its weight under it.
   Tapping a circle ticks the set off along with the sets before it, or
   un-ticks it along with the sets after it (a superset's go round by round,
-  A1 before A2). A row above changes the weight of the selected set with
+  A1 before A2). Tapping a timed set that is not done starts its countdown
+  instead (the workout screen ticks it at zero); tapping it again while it
+  runs stops it. A row above changes the weight of the selected set with
   − / + or by typing; the selection starts on, and after each tick moves
   to, the next set, and tapping a weight selects that set. A superset has a
   line of circles per exercise (A1, A2, …) and a column per round. Many
@@ -27,9 +29,11 @@
   } from '../lib/units.ts';
   import { setLoggedSetDone, setLoggedWeight } from '../lib/userData/sessions.ts';
   import {
+    amountBase,
     amountKind,
     circleLines,
     circlesPerLine,
+    loggedAmount,
     nextSet,
     shownAmount,
   } from '../lib/userData/setCircles.ts';
@@ -47,11 +51,18 @@
     /** The superset's letter; null for an exercise on its own. */
     letter: string | null;
     unit: Unit;
+    /** The set whose countdown runs, if it is one of these. */
+    timedSetId: string | null;
     /** Called after a set was tapped and ticked off (`done` true) or un-ticked. */
     ondone: (sessionExerciseId: string, setId: string, done: boolean) => void;
+    /** Called when a timed set was tapped to start its countdown of `seconds`. */
+    ontimestart: (sessionExerciseId: string, setId: string, seconds: number) => void;
+    /** Called when the set whose countdown runs was tapped again. */
+    ontimestop: () => void;
   }
 
-  let { sessionId, entries, letter, unit, ondone }: Props = $props();
+  let { sessionId, entries, letter, unit, timedSetId, ondone, ontimestart, ontimestop }: Props =
+    $props();
 
   type Place = RoundSet<SessionExercise, LoggedSet>;
 
@@ -120,8 +131,24 @@
     if (event.key === 'Enter') event.currentTarget.blur();
   }
 
+  /** The seconds a tap on `place` counts down: a timed set not done with more than 0 s; null to tick it. */
+  function countdownSeconds({ entry, set }: Place): number | null {
+    if (set.done || amountKind(entry.target) !== 'time') return null;
+    const seconds = loggedAmount(set, 'time') ?? amountBase(entry.target);
+    return seconds > 0 ? seconds : null;
+  }
+
   function toggle(place: Place) {
     const { entry, set } = place;
+    if (set.id === timedSetId) {
+      ontimestop();
+      return;
+    }
+    const seconds = countdownSeconds(place);
+    if (seconds !== null) {
+      ontimestart(entry.id, set.id, seconds);
+      return;
+    }
     const done = !set.done;
     // A tick, which ticks the sets before it too, moves the selection on to
     // the next set, if one is left after it.
@@ -239,21 +266,23 @@
   {@const set = place.set}
   {@const kind = amountKind(place.entry.target)}
   {@const amount = shownAmount(set, place.entry.target)}
-  {@const isNext = !set.done && next?.set.id === set.id}
+  {@const running = set.id === timedSetId}
+  {@const isNext = !set.done && !running && next?.set.id === set.id}
   {@const unitWord = kind === 'time' ? 's' : amount === '1' ? 'rep' : 'reps'}
   <button
     type="button"
     class="circle"
     class:done={set.done}
     class:next={isNext}
+    class:running
     class:long={amount.length > 3}
     aria-pressed={set.done}
     aria-label={`${setName(place)} done: ${amount} ${unitWord}${
       set.weightKg === null ? '' : ` at ${formatWeightWithUnit(set.weightKg, unit)}`
-    }`}
+    }${running ? ', counting down' : ''}`}
     data-testid="set-circle"
     data-set-id={set.id}
-    data-state={set.done ? 'done' : isNext ? 'next' : 'open'}
+    data-state={set.done ? 'done' : running ? 'running' : isNext ? 'next' : 'open'}
     onclick={() => toggle(place)}
   >
     <span class="amount" data-testid="set-amount">{amount}</span>
@@ -527,6 +556,13 @@
     70% {
       box-shadow: 0 0 0 14px transparent;
     }
+  }
+
+  /* A timed set counting down: a dashed accent ring. */
+  .circle.running {
+    border: 4px dashed var(--accent);
+    color: var(--text);
+    box-shadow: 0 0 0 5px var(--accent-soft);
   }
 
   .circle.done {

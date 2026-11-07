@@ -167,6 +167,8 @@ test('exercises without an animation swipe to their photos; the last page finish
 });
 
 test('entering sets and history work on every page', async ({ page }) => {
+  // The plank's set counts its 45 s down; the clock skips them.
+  await page.clock.install();
   await openApp(page);
   await createFocusPlan(page, 'Every page');
   await startDay(page, 0);
@@ -182,7 +184,14 @@ test('entering sets and history work on every page', async ({ page }) => {
     await typeWeight(current, 0, '20');
     await changeAmounts(current, { 0: amount });
     await expect(setCircle(current, 0).getByTestId('set-amount')).toHaveText(amount);
-    await tickSet(current, 0);
+    if (index === 2) {
+      await setCircle(current, 0).click();
+      await expect(page.getByTestId('set-timer')).toHaveAttribute('data-seconds', amount);
+      await page.clock.fastForward(Number(amount) * 1000);
+      await expect(setCircle(current, 0)).toHaveAttribute('aria-pressed', 'true');
+    } else {
+      await tickSet(current, 0);
+    }
     await pickOption(current, 'set-add');
     await expect(circles).toHaveCount(4);
     await pickOption(current, 'set-remove-last');
