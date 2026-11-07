@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/s1n7ax/openrep/compare/v0.14.0...v0.15.0) (2026-11-07)
+
+
+### Features
+
+* **workout:** count down timed sets ([#41](https://github.com/s1n7ax/openrep/issues/41)) ([51e6380](https://github.com/s1n7ax/openrep/commit/51e63801ff06410317a7bc9a86c6dba6da4da936)), closes [#27](https://github.com/s1n7ax/openrep/issues/27)
+
 ## [0.14.0](https://github.com/s1n7ax/openrep/compare/v0.13.0...v0.14.0) (2026-11-01)
 
 
