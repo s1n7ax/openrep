@@ -13,7 +13,9 @@
   button) discards it, asking first when anything was entered. A workout
   opens on the first exercise with sets left; the exercise name opens its
   page. Ticking a set starts a rest countdown docked at the bottom, on every
-  page (lib/userData/workoutTicks.ts says when and how long). Completing an
+  page (lib/userData/workoutTicks.ts says when and how long). Tapping a
+  timed set counts its seconds down in the same place instead, and ticks it
+  off at zero, or at once with Done (logging the seconds held). Completing an
   exercise or superset plays a short celebration, then moves on to the next
   exercise with sets left, or the finish page, unless meanwhile the pages
   were scrolled or changed, a set un-ticked, or the ⋯ options or the discard
@@ -50,6 +52,7 @@
   import PageHeader from '../components/PageHeader.svelte';
   import RestTimer from '../components/RestTimer.svelte';
   import SetCircles from '../components/SetCircles.svelte';
+  import SetTimer from '../components/SetTimer.svelte';
   import SupersetLabel from '../components/SupersetLabel.svelte';
   import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { nowIso } from '../lib/ids.ts';
@@ -58,9 +61,15 @@
   import type { SessionExercise } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { restTimer } from '../lib/stores/restTimer.svelte.ts';
+  import { heldSeconds, setTimer, type TimedSet } from '../lib/stores/setTimer.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { findPlan, findSession } from '../lib/userData/selectors.ts';
-  import { deleteSession, finishSession } from '../lib/userData/sessions.ts';
+  import {
+    deleteSession,
+    finishSession,
+    setLoggedSetDone,
+    updateLoggedSet,
+  } from '../lib/userData/sessions.ts';
   import {
     blockEntries,
     blockKey,
@@ -147,6 +156,33 @@
     return set?.done ? current : null;
   });
 
+  /** This workout's timed-set countdown, while its set is there and not done. */
+  const timed = $derived.by(() => {
+    const current = setTimer.current;
+    if (current === null || current.sessionId !== sessionId) return null;
+    const set = session?.exercises
+      .find((exercise) => exercise.id === current.sessionExerciseId)
+      ?.sets.find((candidate) => candidate.id === current.setId);
+    return set && !set.done ? current : null;
+  });
+
+  // A countdown whose set was removed meanwhile is dropped.
+  $effect(() => {
+    if (timed === null && setTimer.current?.sessionId === sessionId) setTimer.stop();
+  });
+
+  // At zero the set ticks itself off; one that ran out while the screen was
+  // closed does as soon as it opens.
+  $effect(() => {
+    const current = timed;
+    if (current === null) return;
+    const timer = setTimeout(
+      () => finishTimedSet(current, current.endsAt),
+      current.endsAt - Date.now(),
+    );
+    return () => clearTimeout(timer);
+  });
+
   /** The pager of the pages, while they are shown. */
   let snapper: PageSnapper | null = null;
 
@@ -169,11 +205,11 @@
     };
   };
 
-  /** The rest countdown's dock, while it shows. */
+  /** The dock of the rest or set countdown, while one shows. */
   let restDock = $state<HTMLElement | null>(null);
 
   /**
-   * While the countdown shows, a field that gets focus, or that has it when
+   * While a countdown shows, a field that gets focus, or that has it when
    * the pages shrink (the keyboard opening), is scrolled just far enough to
    * sit above the countdown: the browser counts a field under it as visible,
    * as it floats over the pages. Never past the page, whose room below covers
@@ -230,7 +266,8 @@
    * start the next one, going by the tapped set, or a celebration; un-ticking
    * the set that started the countdown, or a set before it, stops it.
    */
-  function onSetDone(sessionExerciseId: string, setId: string, done: boolean) {
+  function onSetDone(sessionExerciseId: string, setId: string, done: boolean, at = Date.now()) {
+    setTimer.stop();
     if (!done) {
       // `rest` is null once the set that started the countdown is not done.
       if (rest === null) restTimer.stop();
@@ -241,11 +278,41 @@
     const { defaultRestSec } = userData.data.settings;
     const outcome = tickOutcome(current, sessionExerciseId, setId, defaultRestSec);
     if (outcome.restSec === null) restTimer.stop();
-    else restTimer.start({ sessionId, sessionExerciseId, setId, seconds: outcome.restSec });
+    else restTimer.start({ sessionId, sessionExerciseId, setId, seconds: outcome.restSec }, at);
     if (outcome.completed !== null) {
       celebration = { id: (celebration?.id ?? 0) + 1, label: doneLabel(outcome.completed) };
       moveOnFrom = blockKey(outcome.completed);
     }
+  }
+
+  /** A timed set was tapped: its countdown starts, ending any rest. */
+  function onTimeStart(sessionExerciseId: string, setId: string, seconds: number) {
+    restTimer.stop();
+    setTimer.start({ sessionId, sessionExerciseId, setId, seconds });
+  }
+
+  /**
+   * Ticks off the set of countdown `current` at `at` (ms since the epoch), as
+   * a tap would: at zero with its seconds, or with Done (`held` given) with
+   * the seconds held.
+   */
+  function finishTimedSet(current: TimedSet, at: number, held?: number) {
+    if (setTimer.current !== current) return;
+    const { sessionExerciseId, setId } = current;
+    userData.update((data) => {
+      const logged =
+        held === undefined
+          ? data
+          : updateLoggedSet(data, sessionId, sessionExerciseId, setId, { durationSec: held });
+      return setLoggedSetDone(logged, sessionId, sessionExerciseId, setId, true);
+    });
+    onSetDone(sessionExerciseId, setId, true, at);
+  }
+
+  function onTimedDone() {
+    if (timed === null) return;
+    const now = Date.now();
+    finishTimedSet(timed, now, heldSeconds(timed, now));
   }
 
   /**
@@ -305,6 +372,7 @@
     lastPages.delete(sessionId);
     startHistories.delete(sessionId);
     restTimer.stop();
+    setTimer.stop();
   }
 
   /** Back: discards the workout, after asking when anything was entered. */
@@ -359,7 +427,7 @@
 {:else}
   <div
     class="workout"
-    class:resting={rest !== null}
+    class:resting={rest !== null || timed !== null}
     data-testid="workout"
     data-session-id={sessionId}
     data-page={page}
@@ -440,7 +508,10 @@
                 entries={[exercise]}
                 letter={null}
                 {unit}
+                timedSetId={timed?.setId ?? null}
                 ondone={onSetDone}
+                ontimestart={onTimeStart}
+                ontimestop={() => setTimer.stop()}
               />
             </div>
           {:else}
@@ -483,7 +554,10 @@
                 entries={block.entries}
                 letter={block.letter}
                 {unit}
+                timedSetId={timed?.setId ?? null}
                 ondone={onSetDone}
+                ontimestart={onTimeStart}
+                ontimestop={() => setTimer.stop()}
               />
             </div>
           {/if}
@@ -514,7 +588,13 @@
       </section>
     </div>
 
-    {#if rest}
+    {#if timed}
+      <div class="rest-dock" bind:this={restDock}>
+        {#key timed}
+          <SetTimer {timed} ondone={onTimedDone} oncancel={() => setTimer.stop()} />
+        {/key}
+      </div>
+    {:else if rest}
       <div class="rest-dock" bind:this={restDock}>
         {#key rest}
           <RestTimer {rest} ondismiss={() => restTimer.stop()} />

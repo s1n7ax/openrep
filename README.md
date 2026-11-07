@@ -32,7 +32,9 @@ works offline.
   (it carries to the sets after it), and see the exercise's past workouts,
   change reps or add and remove sets in the ⋯ options. Ticking a set starts
   a rest countdown (the plan's rest, or the default rest from Settings) that
-  shows when to start the next set, and finishing an exercise plays a short
+  shows when to start the next set. Tapping a timed set (a plank held for
+  30 s) counts its seconds down and ticks it off at zero, or at once with
+  Done. Finishing an exercise plays a short
   celebration, then moves on to the next one. Supersets are logged round by
   round on one screen, with the rest after each round. History lists past
   workouts. Weights in kg or lb.
