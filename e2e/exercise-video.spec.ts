@@ -1,6 +1,7 @@
 /**
  * Verification "Exercise video": the exercise page, the custom exercise page
- * and the exercise list preview show a YouTube icon over the preview; it
+ * and the exercise list preview show a YouTube icon over the preview, and a
+ * workout page shows one by the exercise's name; it
  * opens YouTube search results for the exercise's name in the browser
  * (recorded here instead of opened), offline too. The app embeds no player.
  */
@@ -8,6 +9,7 @@ import type { Locator, Page } from '@playwright/test';
 import { openApp } from './support/app.ts';
 import { openedUrl, openedUrls, recordOpenedWindows } from './support/external.ts';
 import { expect, test } from './support/fixtures.ts';
+import { addExercise, createPlan, startDay } from './support/plans.ts';
 import { hold } from './support/touch.ts';
 import { waitForFrameAfter } from './support/viewer.ts';
 
@@ -77,6 +79,26 @@ test('the exercise list preview opens YouTube search for the exercise', async ({
 
   await video.click();
   expectYouTubeSearch(await openedUrl(page), CURL.name);
+});
+
+test('a workout page opens YouTube search for its exercise', async ({ page }) => {
+  // The page starts a 3D view, which takes seconds with software WebGL.
+  test.setTimeout(120_000);
+  await openApp(page);
+  await createPlan(page, 'Arms');
+  await addExercise(page, 0, 'dumbbell bicep curl', CURL.id);
+  await page.getByTestId('editor-done').click();
+  await startDay(page, 0);
+
+  const exercise = page.getByTestId('workout-exercise');
+  const video = exercise.getByTestId('exercise-video');
+  await expect(video).toBeVisible();
+  await expect(video).toHaveAccessibleName(`Watch videos of ${CURL.name} on YouTube`);
+
+  await video.click();
+  expectYouTubeSearch(await openedUrl(page), CURL.name);
+  // Still on the workout: the video opened outside it.
+  await expect(page.getByTestId('workout-exercise-name')).toHaveText(CURL.name);
 });
 
 test('a custom exercise opens YouTube search for its name', async ({ page }) => {

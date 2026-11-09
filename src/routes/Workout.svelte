@@ -12,7 +12,7 @@
   page finishes the workout into history. Back (the arrow or Android's back
   button) discards it, asking first when anything was entered. A workout
   opens on the first exercise with sets left; the exercise name opens its
-  page. Ticking a set starts a rest countdown docked at the bottom, on every
+  page, and the YouTube button by it opens videos of it outside the app. Ticking a set starts a rest countdown docked at the bottom, on every
   page (lib/userData/workoutTicks.ts says when and how long). Tapping a
   timed set counts its seconds down in the same place instead, and ticks it
   off at zero, or at once with Done (logging the seconds held). Completing an
@@ -48,6 +48,7 @@
   import ConfirmDialog from '../components/ConfirmDialog.svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import ExercisePicture from '../components/ExercisePicture.svelte';
+  import ExerciseVideoButton from '../components/ExerciseVideoButton.svelte';
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import RestTimer from '../components/RestTimer.svelte';
@@ -653,6 +654,7 @@
         <span class="notes">{exercise.target.notes}</span>
       {/if}
     </div>
+    <div class="video"><ExerciseVideoButton name={resolved.name} plain /></div>
     {#if onoptions}
       {@render optionsButton(onoptions, `${resolved.name} options`)}
     {/if}
@@ -861,6 +863,13 @@
 
   /* The ⋯ button, at the top right of the exercise or superset. */
   .more {
+    margin: -9px calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-1));
+  }
+
+  /* The YouTube button, before the ⋯ button (or last, in a superset). */
+  .video {
+    position: relative;
+    flex: none;
     margin: -9px calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-1));
   }
 

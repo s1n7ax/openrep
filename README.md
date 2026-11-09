@@ -17,7 +17,8 @@ works offline.
   contributions. Search by name or alternative name ("skull crusher" finds
   Lying Triceps Press), filter by muscle and equipment. Hold an exercise in
   the list to preview it (its 3D movement, or its start and end photos), and
-  a YouTube icon on the preview searches YouTube for videos of it. Exercises
+  a YouTube icon on the preview (and by its name during a workout) searches
+  YouTube for videos of it, in the YouTube app when it is installed. Exercises
   that are missing can be added as your own custom exercises.
 - **Exercise pages**: alternative names, equipment, primary and secondary
   muscles, step-by-step instructions, photos and a 3D view you can rotate and
