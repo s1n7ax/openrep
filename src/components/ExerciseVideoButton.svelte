@@ -1,20 +1,21 @@
 <!--
-  The YouTube shortcut over an exercise's preview: opens YouTube search
-  results for the exercise's name in the system browser (the YouTube app on
-  iOS and Android). An overlay, never a row of its own.
+  The YouTube shortcut for an exercise: opens YouTube search results for the
+  exercise's name outside the app, in the YouTube app when it is installed
+  (lib/external.ts). An overlay on an exercise's preview, never a row of its
+  own; on a workout page it sits by the exercise's name, flat (`plain`).
 -->
 <script lang="ts">
-  import { openExternal, youTubeSearchUrl } from '../lib/external.ts';
+  import { openYouTubeSearch } from '../lib/external.ts';
   import Icon from './Icon.svelte';
 
-  let { name }: { name: string } = $props();
+  let { name, plain = false }: { name: string; plain?: boolean } = $props();
 
   let failed = $state(false);
 
   async function open() {
     failed = false;
     try {
-      await openExternal(youTubeSearchUrl(name));
+      await openYouTubeSearch(name);
     } catch (error) {
       console.error('Opening YouTube failed:', error);
       failed = true;
@@ -25,6 +26,7 @@
 <button
   type="button"
   class="video"
+  class:plain
   aria-label={`Watch videos of ${name} on YouTube`}
   data-testid="exercise-video"
   onclick={open}
@@ -47,6 +49,13 @@
     background: var(--button-bg, var(--surface));
     color: var(--viewer-text, var(--text));
     backdrop-filter: blur(6px);
+  }
+
+  .video.plain {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-2);
+    backdrop-filter: none;
   }
 
   .error {
