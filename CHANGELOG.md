@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/s1n7ax/openrep/compare/v0.15.0...v0.16.0) (2026-11-09)
+
+
+### Features
+
+* **workout:** open YouTube videos from the workout page, in the YouTube app ([#43](https://github.com/s1n7ax/openrep/issues/43)) ([750e5c0](https://github.com/s1n7ax/openrep/commit/750e5c07792dfcb68e1f11d9ab6a54a1d3ac2c76))
+
 ## [0.15.0](https://github.com/s1n7ax/openrep/compare/v0.14.0...v0.15.0) (2026-11-07)
 
 
