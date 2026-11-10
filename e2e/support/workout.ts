@@ -58,14 +58,8 @@ export async function swipe(page: Page, from: Point, to: Point): Promise<void> {
  * previous one.
  */
 export async function scrollWorkout(page: Page, fraction: number): Promise<void> {
-  const { width, height } = page.viewportSize()!;
-  const distance = Math.abs(fraction) * height + TOUCH_SLOP;
-  const x = Math.round(width * 0.06);
-  const [from, to] =
-    fraction > 0
-      ? [height * 0.9, height * 0.9 - distance]
-      : [height * 0.15, height * 0.15 + distance];
-  await swipe(page, { x, y: from }, { x, y: to });
+  const [from, to] = workoutStroke(page, fraction, 0.9, 0.15);
+  await swipe(page, from, to);
 }
 
 /**
@@ -74,16 +68,34 @@ export async function scrollWorkout(page: Page, fraction: number): Promise<void>
  * (a fling): positive towards the next page, negative towards the previous one.
  */
 export async function flingWorkout(page: Page, fraction: number): Promise<void> {
+  const [from, to] = workoutStroke(page, fraction, 0.6, 0.3);
+  const finger = await fingerDown(page, from);
+  await finger.move(to, 8);
+  await finger.lift();
+}
+
+/**
+ * Where a finger goes down and stops to scroll the workout by `fraction` of
+ * the screen height along its left edge: from `downFrom` of the way down the
+ * screen scrolling towards the next page, from `upFrom` towards the previous.
+ */
+function workoutStroke(
+  page: Page,
+  fraction: number,
+  downFrom: number,
+  upFrom: number,
+): [Point, Point] {
   const { width, height } = page.viewportSize()!;
   const distance = Math.abs(fraction) * height + TOUCH_SLOP;
   const x = Math.round(width * 0.06);
   const [from, to] =
     fraction > 0
-      ? [height * 0.6, height * 0.6 - distance]
-      : [height * 0.3, height * 0.3 + distance];
-  const finger = await fingerDown(page, { x, y: from });
-  await finger.move({ x, y: to }, 8);
-  await finger.lift();
+      ? [height * downFrom, height * downFrom - distance]
+      : [height * upFrom, height * upFrom + distance];
+  return [
+    { x, y: from },
+    { x, y: to },
+  ];
 }
 
 /**

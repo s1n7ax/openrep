@@ -7,8 +7,9 @@
  * page taller than the screen scrolls freely and snaps only past its top or
  * bottom edge, and only for a scroll that began at that edge: a scroll (or
  * its momentum) that began within the page stops at its edge. (CSS scroll
- * snapping snaps to the nearest page, so a third of a screen would snap back.) The app can also move to a page itself (`goTo`),
- * and hears when the user starts scrolling (`onUserScroll`).
+ * snapping snaps to the nearest page, so a third of a screen would snap
+ * back.) The app can also move to a page itself (`goTo`), and hears when the
+ * user starts scrolling (`onUserScroll`).
  */
 
 /** How far, as a share of the screen height, a scroll goes past a page's edge to move on. */
@@ -214,11 +215,13 @@ export class PageSnapper {
 
   readonly #onScroll = () => {
     const top = this.#scroller.scrollTop;
-    // The wheel, or a scroll from outside, begins where the last one left off.
-    if (!this.#touching && this.#frame === null) this.#start ??= this.#lastTop;
-    this.#lastTop = top;
     if (this.#touching) this.#noticeSwipe();
-    else if (this.#frame === null) this.#update(false, true);
+    else if (this.#frame === null) {
+      // The wheel, or a scroll from outside, begins where the last one left off.
+      this.#start ??= this.#lastTop;
+      this.#update(false, true);
+    }
+    this.#lastTop = top;
   };
 
   readonly #onWheel = (event: WheelEvent) => {
@@ -298,8 +301,8 @@ export class PageSnapper {
   /**
    * Scrolls to `snap` with an ease-out, or at once with reduced motion or
    * when `atOnce`. The scroll is locked meanwhile (when at once, as long as
-   * the shortest snap), which also stops momentum. Pages that change size meanwhile (a
-   * tap outside them, say) move the end along with its page.
+   * the shortest snap), which also stops momentum. Pages that change size
+   * meanwhile (a tap outside them, say) move the end along with its page.
    */
   #animate(snap: Snap, atOnce = false): void {
     const scroller = this.#scroller;
