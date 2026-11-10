@@ -1,0 +1,2 @@
+Features
+• workout: open YouTube videos from the workout page, in the YouTube app
