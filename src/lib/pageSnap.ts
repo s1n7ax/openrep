@@ -71,6 +71,20 @@ export function snapTarget(
   start: number | null = null,
 ): Snap | null {
   if (pages.length === 0) return null;
+  // A scroll that began within `current`, short of an edge it went past
+  // (however far: a fling may land wholly on the next page in one event).
+  const resting = pages[current];
+  if (start !== null && resting) {
+    const end = restEnd(resting, viewport);
+    if (start >= resting.top - EPSILON && start <= end + EPSILON) {
+      if (position > end + EPSILON && start < end - EPSILON) {
+        return { page: current, top: Math.floor(end), held: true };
+      }
+      if (position < resting.top - EPSILON && start > resting.top + EPSILON) {
+        return { page: current, top: Math.ceil(resting.top), held: true };
+      }
+    }
+  }
   for (const [index, page] of pages.entries()) {
     if (position <= restEnd(page, viewport) + EPSILON) {
       if (position >= page.top - EPSILON || index === 0) return { page: index, top: position };
@@ -83,16 +97,6 @@ export function snapTarget(
       const toBelow = { page: index, top: upper };
       const stay = current === index - 1 ? toAbove : current === index ? toBelow : null;
       if (stay === null) return position - lower < upper - position ? toAbove : toBelow;
-      // A scroll that began within `current`, short of the edge it crossed.
-      const resting = pages[current]!;
-      if (
-        start !== null &&
-        start >= resting.top - EPSILON &&
-        start <= restEnd(resting, viewport) + EPSILON &&
-        (current === index - 1 ? start < lower - EPSILON : start > upper + EPSILON)
-      ) {
-        return { ...stay, held: true };
-      }
       // Where the scroll started: the edge of `current`, or where a snap was grabbed.
       const from = grabbed !== null && grabbed > lower && grabbed < upper ? grabbed : stay.top;
       const threshold = PAGE_THRESHOLD * viewport;

@@ -72,6 +72,13 @@ describe('snapTarget', () => {
       page: 0,
       top: 0,
     });
+    // Even when it landed wholly on the next (or previous) page.
+    expect(snapTarget(tall, SCREEN, 2200, 1, false, null, 1100)).toEqual(held);
+    expect(snapTarget(tall, SCREEN, 0, 1, false, null, 1100)).toEqual({
+      page: 1,
+      top: 800,
+      held: true,
+    });
     // A page that fits the screen has no within: the threshold as before.
     expect(snapTarget(three, SCREEN, SCREEN / 3, 0, false, null, 0)).toEqual({ page: 1, top: 800 });
   });
@@ -391,6 +398,21 @@ describe('PageSnapper', () => {
       vi.advanceTimersByTime(1000);
       expect(scroller.scrollTop).toBe(1400);
       expect(scroller.style.overflowY).toBe('');
+      expect(changes).toEqual([]);
+    });
+
+    it('stops a fling whose first scroll lands wholly on the page above', () => {
+      const { scroller, changes } = tall();
+      scroller.drag(1200);
+      vi.advanceTimersByTime(1000);
+      // A flick let go before its first scroll, which is already at the top.
+      scroller.dispatch('touchstart');
+      scroller.dispatch('touchend');
+      scroller.scrollTop = 0;
+      scroller.dispatch('scroll');
+      expect(scroller.scrollTop).toBe(800);
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(800);
       expect(changes).toEqual([]);
     });
 
