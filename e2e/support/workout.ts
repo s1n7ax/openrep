@@ -69,6 +69,24 @@ export async function scrollWorkout(page: Page, fraction: number): Promise<void>
 }
 
 /**
+ * Flicks the workout by `fraction` of the screen height with a quick swipe
+ * along its left edge, let go while still moving, so its momentum scrolls on
+ * (a fling): positive towards the next page, negative towards the previous one.
+ */
+export async function flingWorkout(page: Page, fraction: number): Promise<void> {
+  const { width, height } = page.viewportSize()!;
+  const distance = Math.abs(fraction) * height + TOUCH_SLOP;
+  const x = Math.round(width * 0.06);
+  const [from, to] =
+    fraction > 0
+      ? [height * 0.6, height * 0.6 - distance]
+      : [height * 0.3, height * 0.3 + distance];
+  const finger = await fingerDown(page, { x, y: from });
+  await finger.move({ x, y: to }, 8);
+  await finger.lift();
+}
+
+/**
  * Waits until the pager rests on page `index` and it fills the screen (all of
  * it, or of a tall one, part). Coming to rest there starts the 3D views next
  * to it, which can hold up the page before this sees the new page.

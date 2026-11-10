@@ -50,6 +50,32 @@ describe('snapTarget', () => {
     expect(snapTarget(tall, SCREEN, 2200 - SCREEN / 3, 2, false)).toEqual({ page: 1, top: 1400 });
   });
 
+  it('holds a scroll that began within a tall page at its edge, however far it went', () => {
+    const tall = pages(SCREEN, 1400, SCREEN);
+    const held = { page: 1, top: 1400, held: true };
+    // Began at 1100, within the tall page: back to its bottom edge, at once.
+    expect(snapTarget(tall, SCREEN, 1400 + SCREEN / 3, 1, false, null, 1100)).toEqual(held);
+    expect(snapTarget(tall, SCREEN, 1450, 1, false, null, 1100)).toEqual(held);
+    // Up past its top edge from within: back to the top.
+    expect(snapTarget(tall, SCREEN, 800 - SCREEN / 3, 1, false, null, 1100)).toEqual({
+      page: 1,
+      top: 800,
+      held: true,
+    });
+    // Began at its bottom edge: on to the next page past the threshold.
+    expect(snapTarget(tall, SCREEN, 1400 + SCREEN / 3, 1, false, null, 1400)).toEqual({
+      page: 2,
+      top: 2200,
+    });
+    // Began at its top edge, going up: on to the previous page.
+    expect(snapTarget(tall, SCREEN, 800 - SCREEN / 3, 1, false, null, 800)).toEqual({
+      page: 0,
+      top: 0,
+    });
+    // A page that fits the screen has no within: the threshold as before.
+    expect(snapTarget(three, SCREEN, SCREEN / 3, 0, false, null, 0)).toEqual({ page: 1, top: 800 });
+  });
+
   it('snaps a jump between two other pages to the one covering more of the screen', () => {
     const four = pages(SCREEN, SCREEN, SCREEN, SCREEN);
     expect(snapTarget(four, SCREEN, 1700, 0, false)).toEqual({ page: 2, top: 1600 });
@@ -348,6 +374,79 @@ describe('PageSnapper', () => {
       vi.advanceTimersByTime(1000);
       expect(scroller.scrollTop).toBe(1600);
       expect(userScroll).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('a page taller than the screen', () => {
+    // Pages of 800, 1400 and 800: the tall page rests anywhere from 800 to 1400.
+    const tall = () => pager(pages(SCREEN, 1400, SCREEN), 1);
+
+    it('stops a fling from within it at its bottom edge, before the next page shows', () => {
+      const { scroller, changes } = tall();
+      scroller.drag(1100);
+      scroller.fling(80, 30);
+      // Never more than one frame of momentum past the edge.
+      expect(scroller.scrollTop).toBe(1400);
+      expect(scroller.style.overflowY).toBe('hidden');
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(1400);
+      expect(scroller.style.overflowY).toBe('');
+      expect(changes).toEqual([]);
+    });
+
+    it('stops a fling up from within it at its top edge', () => {
+      const { scroller, changes } = tall();
+      scroller.drag(1200);
+      vi.advanceTimersByTime(1000);
+      scroller.drag(1100);
+      scroller.fling(-80, 30);
+      expect(scroller.scrollTop).toBe(800);
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(800);
+      expect(changes).toEqual([]);
+    });
+
+    it('takes a drag from within it past its edge back to the edge', () => {
+      const { scroller, changes } = tall();
+      scroller.drag(1100);
+      vi.advanceTimersByTime(1000);
+      scroller.drag(1400 + SCREEN / 3);
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(1400);
+      expect(changes).toEqual([]);
+    });
+
+    it('stops the wheel from within it at its edge, then moves on with a new scroll', () => {
+      const { scroller, changes } = tall();
+      scroller.scrollTop = 1100;
+      scroller.dispatch('scroll');
+      vi.advanceTimersByTime(1000);
+      scroller.fling(80, 10);
+      expect(scroller.scrollTop).toBe(1400);
+      vi.advanceTimersByTime(1000);
+      expect(changes).toEqual([]);
+      scroller.fling(80, 4);
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(2200);
+      expect(changes).toEqual([2]);
+    });
+
+    it('moves on with a swipe from rest at its edge, past the threshold only', () => {
+      const { scroller, changes } = tall();
+      scroller.drag(1100);
+      scroller.fling(80, 30);
+      vi.advanceTimersByTime(1000);
+      // A short swipe from the edge snaps back.
+      scroller.drag(1400 + THRESHOLD - 20);
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(1400);
+      expect(changes).toEqual([]);
+      // A longer one, flung on, moves to the next page.
+      scroller.drag(1400 + 100);
+      scroller.fling(80, 15);
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(2200);
+      expect(changes).toEqual([2]);
     });
   });
 

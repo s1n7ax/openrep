@@ -12,8 +12,8 @@ export interface Point {
 
 /** A finger put down on the screen; `lift` takes it off. */
 export interface Finger {
-  /** Moves the finger to `to` in small steps, as a scroll does. */
-  move(to: Point): Promise<void>;
+  /** Moves the finger to `to` in small steps, as a scroll does, a step every `stepMs` ms. */
+  move(to: Point, stepMs?: number): Promise<void>;
   lift(): Promise<void>;
 }
 
@@ -30,7 +30,7 @@ export async function fingerDown(page: Page, at: Point | Locator): Promise<Finge
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
   return {
-    async move(to) {
+    async move(to, stepMs = 16) {
       const steps = 12;
       const from = point;
       for (let step = 1; step <= steps; step++) {
@@ -39,7 +39,7 @@ export async function fingerDown(page: Page, at: Point | Locator): Promise<Finge
           y: from.y + ((to.y - from.y) * step) / steps,
         };
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point] });
-        await page.waitForTimeout(16);
+        await page.waitForTimeout(stepMs);
       }
     },
     async lift() {

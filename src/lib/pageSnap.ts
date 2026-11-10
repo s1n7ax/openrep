@@ -5,8 +5,9 @@
  * them: to the next (or previous) page once the scroll went more than a fifth
  * of the screen past the edge of the page it started on, otherwise back. A
  * page taller than the screen scrolls freely and snaps only past its top or
- * bottom edge. (CSS scroll snapping snaps to the nearest page, so a third of
- * a screen would snap back.) The app can also move to a page itself (`goTo`),
+ * bottom edge, and only for a scroll that began at that edge: a scroll (or
+ * its momentum) that began within the page stops at its edge. (CSS scroll
+ * snapping snaps to the nearest page, so a third of a screen would snap back.) The app can also move to a page itself (`goTo`),
  * and hears when the user starts scrolling (`onUserScroll`).
  */
 
@@ -33,6 +34,8 @@ export interface PageBox {
 export interface Snap {
   page: number;
   top: number;
+  /** The scroll began within `page`, away from this edge, so it stops here. */
+  held?: true;
 }
 
 /** The last scroll position at which `page` still fills the screen. */
@@ -51,6 +54,9 @@ function restEnd(page: PageBox, viewport: number): number {
  * - Between the same two pages as `grabbed`, the position where a snap to
  *   `current` was grabbed and stopped: as above, but the threshold counts
  *   from there, either way; short of it the snap goes on to `current`.
+ * - Between `current` and its neighbour, the scroll having begun at `start`
+ *   within `current` (a tall page) short of the edge it crossed: back to
+ *   `current`'s edge, `held`, however far it went.
  * - Between two other pages (a jump, e.g. to a focused field): the page that
  *   covers more of the screen.
  */
@@ -61,6 +67,7 @@ export function snapTarget(
   current: number,
   settled: boolean,
   grabbed: number | null = null,
+  start: number | null = null,
 ): Snap | null {
   if (pages.length === 0) return null;
   for (const [index, page] of pages.entries()) {
@@ -75,6 +82,16 @@ export function snapTarget(
       const toBelow = { page: index, top: upper };
       const stay = current === index - 1 ? toAbove : current === index ? toBelow : null;
       if (stay === null) return position - lower < upper - position ? toAbove : toBelow;
+      // A scroll that began within `current`, short of the edge it crossed.
+      const resting = pages[current]!;
+      if (
+        start !== null &&
+        start >= resting.top - EPSILON &&
+        start <= restEnd(resting, viewport) + EPSILON &&
+        (current === index - 1 ? start < lower - EPSILON : start > upper + EPSILON)
+      ) {
+        return { ...stay, held: true };
+      }
       // Where the scroll started: the edge of `current`, or where a snap was grabbed.
       const from = grabbed !== null && grabbed > lower && grabbed < upper ? grabbed : stay.top;
       const threshold = PAGE_THRESHOLD * viewport;
@@ -116,12 +133,17 @@ export class PageSnapper {
   /** Where a snap was grabbed and stopped, until the pager snaps or rests again. */
   #grabbed: number | null = null;
   #settleTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Where the scroll going on began, until it comes to rest. */
+  #start: number | null = null;
+  /** The scroll position at the last scroll event. */
+  #lastTop = 0;
 
   constructor(scroller: HTMLElement, initial: number, options: PagerOptions) {
     this.#scroller = scroller;
     this.#options = options;
     this.#current = Math.max(0, Math.min(initial, scroller.children.length - 1));
     scroller.scrollTop = this.#boxes()[this.#current]?.top ?? 0;
+    this.#lastTop = scroller.scrollTop;
     scroller.addEventListener('scroll', this.#onScroll, { passive: true });
     scroller.addEventListener('touchstart', this.#onTouchStart, { passive: true });
     scroller.addEventListener('touchend', this.#onTouchEnd, { passive: true });
@@ -179,6 +201,7 @@ export class PageSnapper {
       this.#grabbed = this.#scroller.scrollTop;
     }
     this.#touchTop = this.#scroller.scrollTop;
+    this.#start = this.#touchTop;
   };
 
   readonly #onTouchEnd = (event: TouchEvent) => {
@@ -190,8 +213,12 @@ export class PageSnapper {
   };
 
   readonly #onScroll = () => {
+    const top = this.#scroller.scrollTop;
+    // The wheel, or a scroll from outside, begins where the last one left off.
+    if (!this.#touching && this.#frame === null) this.#start ??= this.#lastTop;
+    this.#lastTop = top;
     if (this.#touching) this.#noticeSwipe();
-    else if (this.#frame === null) this.#update(false);
+    else if (this.#frame === null) this.#update(false, true);
   };
 
   readonly #onWheel = (event: WheelEvent) => {
@@ -209,8 +236,12 @@ export class PageSnapper {
     }
   }
 
-  /** Snaps when the scroll calls for it; otherwise waits for it to settle. */
-  #update(settled: boolean): void {
+  /**
+   * Snaps when the scroll calls for it; otherwise waits for it to settle.
+   * Without a finger on the screen (`moving`: momentum or the wheel), a
+   * scroll held at a page's edge stops there at once.
+   */
+  #update(settled: boolean, moving = false): void {
     this.#clearSettle();
     const scroller = this.#scroller;
     const snap = snapTarget(
@@ -220,6 +251,7 @@ export class PageSnapper {
       this.#current,
       settled,
       this.#grabbed,
+      this.#start,
     );
     if (snap === null) {
       this.#settleTimer = setTimeout(() => this.#update(true), SETTLE_MS);
@@ -230,8 +262,9 @@ export class PageSnapper {
       this.#rest(snap.page);
       // Momentum within a tall page may still carry it past an edge.
       if (!settled) this.#settleTimer = setTimeout(() => this.#update(true), SETTLE_MS);
+      else this.#start = null;
     } else {
-      this.#animate(snap);
+      this.#animate(snap, moving && snap.held === true);
     }
   }
 
@@ -263,21 +296,21 @@ export class PageSnapper {
   }
 
   /**
-   * Scrolls to `snap` with an ease-out, or at once with reduced motion. The
-   * scroll is locked meanwhile (with reduced motion, as long as the shortest
-   * snap), which also stops momentum. Pages that change size meanwhile (a
+   * Scrolls to `snap` with an ease-out, or at once with reduced motion or
+   * when `atOnce`. The scroll is locked meanwhile (when at once, as long as
+   * the shortest snap), which also stops momentum. Pages that change size meanwhile (a
    * tap outside them, say) move the end along with its page.
    */
-  #animate(snap: Snap): void {
+  #animate(snap: Snap, atOnce = false): void {
     const scroller = this.#scroller;
     const from = scroller.scrollTop;
     const distance = snap.top - from;
     const offset = snap.top - (this.#boxes()[snap.page]?.top ?? 0);
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const duration = reduced
+    const instant = atOnce || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const duration = instant
       ? MIN_SNAP_MS
       : Math.min(MAX_SNAP_MS, Math.max(MIN_SNAP_MS, Math.abs(distance) * 0.5));
-    const ease = reduced ? () => 1 : (t: number) => 1 - (1 - t) ** 3;
+    const ease = instant ? () => 1 : (t: number) => 1 - (1 - t) ** 3;
     const start = performance.now();
     scroller.style.overflowY = 'hidden';
     this.#target = snap.page;
@@ -294,6 +327,8 @@ export class PageSnapper {
       }
       this.#stopAnimation();
       this.#rest(snap.page);
+      this.#start = null;
+      this.#lastTop = scroller.scrollTop;
     };
     step();
   }

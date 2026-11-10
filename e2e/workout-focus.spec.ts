@@ -16,6 +16,7 @@ import {
   closeHistory,
   expectOffScreen,
   expectOnPage,
+  flingWorkout,
   openHistory,
   pickOption,
   scrollWorkout,
@@ -61,6 +62,28 @@ async function trackScroll(page: Page): Promise<() => Promise<number>> {
   });
   return () =>
     pages.evaluate((element) => (element as HTMLElement & { farthest?: number }).farthest ?? 0);
+}
+
+/**
+ * Starts recording how far, in pixels, page `index` comes onto the screen;
+ * returns a reader of the most it showed.
+ */
+async function trackPageReach(page: Page, index: number): Promise<() => Promise<number>> {
+  const pages = page.getByTestId('workout-pages');
+  await pages.evaluate((element, index) => {
+    const record = element as HTMLElement & { reach?: number };
+    record.reach = 0;
+    const target = element.querySelector<HTMLElement>(`[data-page="${index}"]`)!;
+    const measure = () => {
+      const screen = element.getBoundingClientRect();
+      const box = target.getBoundingClientRect();
+      const shown = Math.min(box.bottom, screen.bottom) - Math.max(box.top, screen.top);
+      record.reach = Math.max(record.reach ?? 0, shown);
+    };
+    element.addEventListener('scroll', measure);
+  }, index);
+  return () =>
+    pages.evaluate((element) => (element as HTMLElement & { reach?: number }).reach ?? 0);
 }
 
 test(
@@ -253,6 +276,54 @@ test('a page with 20 sets scrolls to all of them before moving on', async ({ pag
   await scrollWorkout(page, 1 / 3);
   await expectOnPage(page, 1);
   await expect(page.getByTestId('workout-position')).toHaveText('2 of 2');
+});
+
+test('a fling within a tall page stops at its edges; a swipe from an edge moves on', async ({
+  page,
+}) => {
+  // Dumbbell Bicep Curl, then a superset of Goblet Squat (20 sets) and Plank:
+  // 20 rounds, several screens tall; then the finish page.
+  await openApp(page);
+  await createPlan(page, 'Fling sets');
+  await addExercise(page, 0, 'dumbbell bicep curl', CURL.id);
+  await addExercise(page, 0, 'goblet squat', GOBLET.id);
+  await addExercise(page, 0, 'plank', PLANK.id);
+  const squat = page.getByTestId('edit-exercise').nth(1);
+  for (let count = 3; count < 20; count++) await squat.getByTestId('target-sets-inc').click();
+  await expect(squat.getByTestId('target-sets')).toHaveText('20');
+  await squat.getByTestId('exercise-superset-next').click();
+  await expect(page.getByTestId('edit-superset')).toBeVisible();
+  await page.getByTestId('editor-done').click();
+  await startDay(page, 0);
+  await expectOnPage(page, 0);
+  await scrollWorkout(page, 1 / 3);
+  await expectOnPage(page, 1);
+  const rounds = workoutPage(page, 1).getByTestId('workout-round');
+  await expect(rounds).toHaveCount(20);
+
+  // Two hard flings down from within it (the first lands in its middle) stop
+  // at its bottom: the finish page never shows.
+  const below = await trackPageReach(page, 2);
+  for (let fling = 0; fling < 2; fling++) await flingWorkout(page, 0.4);
+  await expect(rounds.last()).toBeInViewport();
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
+  expect(await below()).toBe(0);
+
+  // Two up stop at its top: Dumbbell Bicep Curl never shows.
+  const above = await trackPageReach(page, 0);
+  for (let fling = 0; fling < 2; fling++) await flingWorkout(page, -0.4);
+  await expect(rounds.first()).toBeInViewport();
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
+  expect(await above()).toBe(0);
+
+  // From rest at its top, a short swipe up snaps back; a longer one moves on.
+  await scrollWorkout(page, -0.1);
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
+  await scrollWorkout(page, -1 / 3);
+  await expectOnPage(page, 0);
 });
 
 test('a superset is one page whose picture swipes between its exercises', async ({ page }) => {
