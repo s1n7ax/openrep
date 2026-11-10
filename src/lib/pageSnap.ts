@@ -327,8 +327,11 @@ export class PageSnapper {
       }
       this.#stopAnimation();
       this.#rest(snap.page);
-      this.#start = null;
       this.#lastTop = scroller.scrollTop;
+      // A held scroll ends only once its momentum (a trackpad's lasts long
+      // after the lock) has stopped: until then it is still held at the edge.
+      if (snap.held) this.#settleTimer = setTimeout(() => this.#update(true), SETTLE_MS);
+      else this.#start = null;
     };
     step();
   }

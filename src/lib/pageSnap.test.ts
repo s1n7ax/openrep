@@ -431,6 +431,24 @@ describe('PageSnapper', () => {
       expect(changes).toEqual([2]);
     });
 
+    it('holds the momentum still coming after the stop (a trackpad’s inertia)', () => {
+      const { scroller, changes } = tall();
+      scroller.scrollTop = 1100;
+      scroller.dispatch('scroll');
+      vi.advanceTimersByTime(1000);
+      scroller.fling(80, 10);
+      expect(scroller.scrollTop).toBe(1400);
+      // Inertia goes on just after the lock ends: held again each time.
+      for (let burst = 0; burst < 5; burst += 1) {
+        vi.advanceTimersByTime(200);
+        scroller.fling(80, 4);
+        expect(scroller.scrollTop).toBe(1400);
+      }
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(1400);
+      expect(changes).toEqual([]);
+    });
+
     it('moves on with a swipe from rest at its edge, past the threshold only', () => {
       const { scroller, changes } = tall();
       scroller.drag(1100);

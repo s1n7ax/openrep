@@ -272,7 +272,13 @@ test('a page with 20 sets scrolls to all of them before moving on', async ({ pag
   await expectOffScreen(page, 1);
   await expect(page.getByTestId('workout-position')).toHaveText('1 of 2');
 
-  // …and only then snaps to the next exercise.
+  // …a swipe begun short of its bottom stops there…
+  await scrollWorkout(page, 1 / 3);
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '0');
+  await expectOffScreen(page, 1);
+
+  // …and only a swipe from its bottom snaps to the next exercise.
   await scrollWorkout(page, 1 / 3);
   await expectOnPage(page, 1);
   await expect(page.getByTestId('workout-position')).toHaveText('2 of 2');
