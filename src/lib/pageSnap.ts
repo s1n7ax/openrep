@@ -215,8 +215,10 @@ export class PageSnapper {
 
   readonly #onScroll = () => {
     const top = this.#scroller.scrollTop;
-    if (this.#touching) this.#noticeSwipe();
-    else if (this.#frame === null) {
+    if (this.#touching) {
+      this.#noticeSwipe();
+      this.#holdAtEdge();
+    } else if (this.#frame === null) {
       // The wheel, or a scroll from outside, begins where the last one left off.
       this.#start ??= this.#lastTop;
       this.#update(false, true);
@@ -240,12 +242,33 @@ export class PageSnapper {
   }
 
   /**
+   * Under the finger, a scroll that began within a tall page stops at its
+   * edge at once (the browser may have flung it on before telling of the
+   * finger's lifting); any other scroll goes on as the finger moves it.
+   */
+  #holdAtEdge(): void {
+    if (this.#frame !== null) return;
+    const scroller = this.#scroller;
+    const snap = snapTarget(
+      this.#boxes(),
+      scroller.clientHeight,
+      scroller.scrollTop,
+      this.#current,
+      false,
+      this.#grabbed,
+      this.#start,
+    );
+    if (snap?.held) this.#animate(snap, true);
+  }
+
+  /**
    * Snaps when the scroll calls for it; otherwise waits for it to settle.
    * Without a finger on the screen (`moving`: momentum or the wheel), a
-   * scroll held at a page's edge stops there at once.
+   * scroll held at a page's edge stops there at once. Never under the finger.
    */
   #update(settled: boolean, moving = false): void {
     this.#clearSettle();
+    if (this.#touching) return;
     const scroller = this.#scroller;
     const snap = snapTarget(
       this.#boxes(),

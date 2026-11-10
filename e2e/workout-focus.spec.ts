@@ -316,6 +316,17 @@ test('a fling within a tall page stops at its edges; a swipe from an edge moves 
   await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
   expect(await below()).toBe(0);
 
+  // Nor does a hard fling begun just above its bottom, the finger itself
+  // going past it.
+  await scrollWorkout(page, -0.35);
+  await page.waitForTimeout(1000);
+  const nearBottom = await trackPageReach(page, 2);
+  await flingWorkout(page, 0.45);
+  await expect(rounds.last()).toBeInViewport();
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
+  expect(await nearBottom()).toBe(0);
+
   // Two up stop at its top: Dumbbell Bicep Curl never shows.
   const above = await trackPageReach(page, 0);
   for (let fling = 0; fling < 2; fling++) await flingWorkout(page, -0.4);

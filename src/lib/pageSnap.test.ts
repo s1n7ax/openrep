@@ -406,11 +406,22 @@ describe('PageSnapper', () => {
       expect(changes).toEqual([]);
     });
 
-    it('takes a drag from within it past its edge back to the edge', () => {
+    it('stops a drag from within it at its edge, the finger still down', () => {
       const { scroller, changes } = tall();
       scroller.drag(1100);
       vi.advanceTimersByTime(1000);
-      scroller.drag(1400 + SCREEN / 3);
+      scroller.dispatch('touchstart');
+      scroller.scrollTop = 1400 + SCREEN / 3;
+      scroller.dispatch('scroll');
+      // At once, before the finger is lifted: the next page does not show.
+      expect(scroller.scrollTop).toBe(1400);
+      vi.advanceTimersByTime(1000);
+      expect(scroller.scrollTop).toBe(1400);
+      // Dragged on (the browser goes on scrolling): held again.
+      scroller.scrollTop = 1400 + SCREEN / 3;
+      scroller.dispatch('scroll');
+      expect(scroller.scrollTop).toBe(1400);
+      scroller.dispatch('touchend');
       vi.advanceTimersByTime(1000);
       expect(scroller.scrollTop).toBe(1400);
       expect(changes).toEqual([]);
