@@ -5,6 +5,7 @@
  * Schema in `data/schema/plan.v1.json`.
  */
 import { slugify } from './contribute.ts';
+import type { Exercise } from './schema/exercise.ts';
 import {
   planFileSchema,
   type PlanFile,
@@ -233,6 +234,8 @@ export interface ImportPlanOptions {
   newId: () => string;
   /** ISO timestamp stored as the plan's (and new custom exercises') time. */
   now: string;
+  /** The catalog's exercises, to resolve catalog references the catalog does not have. */
+  catalog: readonly Pick<Exercise, 'id' | 'name'>[];
 }
 
 /** What an import added, for the message shown afterwards. */
@@ -241,7 +244,7 @@ export interface ImportedPlan {
   planId: string;
 }
 
-/** Key two custom exercise names are compared by: "  Zercher Squat" ↔ "zercher squat". */
+/** Key two exercise names are compared by: "  Zercher Squat" ↔ "zercher squat". */
 function nameKey(name: string): string {
   return name.trim().replace(/\s+/g, ' ').toLowerCase();
 }
@@ -298,13 +301,20 @@ function orderSupersetMembers(exercises: readonly PlanExercise[]): PlanExercise[
  *   same name (ignoring case and spacing), and added otherwise.
  * - A reference to a custom exercise the file does not define is resolved by
  *   name, and added as a custom exercise when the user has none either.
+ * - A catalog reference to an id the catalog does not have (an AI assistant
+ *   may invent one) is resolved by name: to the catalog exercise of that
+ *   name, else to a custom exercise of that name, reused or added.
  */
 export function importPlanFile(
   data: UserData,
   file: PlanFile,
   options: ImportPlanOptions,
 ): ImportedPlan {
-  const { newId, now } = options;
+  const { newId, now, catalog } = options;
+  const catalogIds = new Set(catalog.map((exercise) => exercise.id));
+  const catalogByName = new Map(
+    catalog.map((exercise) => [nameKey(exercise.name), exercise] as const),
+  );
   const customByName = new Map(
     data.customExercises.map((custom) => [nameKey(custom.name), custom] as const),
   );
@@ -325,18 +335,27 @@ export function importPlanFile(
     if (custom.id !== undefined) byFileId.set(custom.id, resolved);
   }
 
+  function customRef(custom: CustomExercise, name: string): ExerciseRef {
+    return { kind: 'custom', customExerciseId: custom.id, name: textOr(custom.name, name) };
+  }
+
   function refFor(ref: PlanFileExerciseRef): ExerciseRef {
     if (ref.kind === 'catalog') {
-      return {
-        kind: 'catalog',
-        exerciseId: ref.exerciseId,
-        name: textOr(ref.name, ref.exerciseId),
-      };
+      const exercise = catalogIds.has(ref.exerciseId)
+        ? { id: ref.exerciseId, name: ref.name }
+        : catalogByName.get(nameKey(ref.name));
+      if (exercise) {
+        return {
+          kind: 'catalog',
+          exerciseId: exercise.id,
+          name: textOr(exercise.name, exercise.id),
+        };
+      }
+      return customRef(addCustom({ name: ref.name }), ref.name);
     }
     const known =
       byFileId.get(ref.customExerciseId) ?? customByName.get(nameKey(ref.name)) ?? undefined;
-    const custom = known ?? addCustom({ id: ref.customExerciseId, name: ref.name });
-    return { kind: 'custom', customExerciseId: custom.id, name: textOr(custom.name, ref.name) };
+    return customRef(known ?? addCustom({ id: ref.customExerciseId, name: ref.name }), ref.name);
   }
 
   function planDay(day: PlanFile['plan']['days'][number], index: number): PlanDay {
