@@ -5,6 +5,7 @@
  * (`llms.txt` describes the same format with online links) and the catalog
  * exercises the user has the equipment for.
  */
+import { DEFAULT_CATALOG_URL } from './catalog/urls.ts';
 import { equipmentLabel, muscleList } from './labels.ts';
 import { EQUIPMENT, MUSCLES, type Equipment } from './schema/common.ts';
 import type { Exercise } from './schema/exercise.ts';
@@ -141,6 +142,23 @@ Reply with the plan file only: one JSON document in one code block.
 - A superset is two or more exercises done alternately, with the rest after each round. Its exercises are next to each other, each with the superset's \`id\` as \`supersetId\`; put \`restSec\` on the superset, not on its exercises.
 - For an exercise that is not listed, add \`"customExercises": [{ "id": "sled-push", "name": "Sled Push", "primaryMuscles": ["quadriceps"], "instructions": ["Push it 20 m."] }]\` next to \`plan\`, and refer to it with \`{ "kind": "custom", "customExerciseId": "sled-push", "name": "Sled Push" }\`. Muscles are ${MUSCLES.join(', ')}.
 - Text must not be empty. Use only the fields shown here, with no comments and no trailing commas: anything else gets the file rejected.`;
+
+/**
+ * A short prompt to copy into an AI assistant before asking for a plan in its
+ * own words: the plan file format, and where the catalog's exercise ids are.
+ * An assistant that cannot open the link still writes a plan the app imports,
+ * matching its exercises by name.
+ */
+export const QUICK_PLAN_PROMPT = `${[
+  'Write the workout plan I ask for below as a plan file for OpenRep, my gym app.',
+  [
+    '## Exercises',
+    '',
+    `The list of exercises, with their ids, is the \`exercises\` array of ${DEFAULT_CATALOG_URL}. Use the exercise's \`id\` as \`exerciseId\` and its \`name\` as \`name\`. If you cannot open the list, give each exercise its usual English name: the app finds exercises by name.`,
+  ].join('\n'),
+  FORMAT,
+  '## The plan I want',
+].join('\n\n')}\n\n`;
 
 export interface SchedulePromptInput {
   answers: ScheduleAnswers;
