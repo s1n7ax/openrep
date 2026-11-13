@@ -6,9 +6,18 @@
  * exercises the user has the equipment for.
  */
 import { equipmentLabel, muscleList } from './labels.ts';
+import { createPlanFile } from './planFile.ts';
+import { injuryLabel } from './scheduleChoices.ts';
 import { EQUIPMENT, MUSCLES, type Equipment } from './schema/common.ts';
 import type { Exercise } from './schema/exercise.ts';
-import type { ScheduleAnswers, Session, Unit } from './schema/userData.ts';
+import type {
+  CustomExercise,
+  PickedExercise,
+  Plan,
+  ScheduleAnswers,
+  Session,
+  Unit,
+} from './schema/userData.ts';
 import { formatWeightWithUnit } from './units.ts';
 import { recentBestSets } from './userData/selectors.ts';
 import { formatLoggedSet } from './userData/workoutText.ts';
@@ -18,22 +27,6 @@ const BODYWEIGHT: Equipment = 'body only';
 
 /** The equipment to choose from: bodyweight is always allowed, so it is no choice. */
 export const EQUIPMENT_CHOICES = EQUIPMENT.filter((item) => item !== BODYWEIGHT);
-
-/** The answers of the creator's menus: what is picked is what the prompt says. */
-export const GOALS = [
-  'Build muscle',
-  'Get stronger',
-  'Lose fat',
-  'General fitness',
-  'Sport performance',
-] as const;
-export const DAYS_PER_WEEK = ['1', '2', '3', '4', '5', '6', '7'] as const;
-export const SESSION_MINUTES = ['30', '45', '60', '75', '90', '120'] as const;
-export const SPLITS = ['Full body', 'Upper/lower', 'Push/pull/legs', 'Body-part split'] as const;
-export const SUPERSETS = ['Yes', 'No'] as const;
-export const EXPERIENCE = ['New to lifting', 'Under 1 year', '1–3 years', '3+ years'] as const;
-export const STRENGTH_LEVELS = ['Novice', 'Intermediate', 'Advanced'] as const;
-export const SEXES = ['Female', 'Male'] as const;
 
 /** The answers a plan cannot be designed without. */
 export const REQUIRED_ANSWERS = ['goal', 'daysPerWeek', 'sessionMinutes', 'experience'] as const;
@@ -56,11 +49,23 @@ function supersetsAnswer(answer: string): string {
   return answer === 'No' ? 'do not use them' : '';
 }
 
+/** Picked items and typed text as one answer: "Left knee, Tennis elbow, sore after runs". */
+function joined(...parts: readonly string[]): string {
+  return parts
+    .map(oneLine)
+    .filter((part) => part !== '')
+    .join(', ');
+}
+
+function exerciseNames(list: readonly PickedExercise[], typed: string): string {
+  return joined(...list.map((item) => item.name), typed);
+}
+
 /** The answered questions, as "- Label: value" lines. */
 function aboutMe(answers: ScheduleAnswers, equipment: readonly Equipment[], unit: Unit): string[] {
   const weight = (kg: number | null) => (kg === null ? '' : formatWeightWithUnit(kg, unit));
   const facts: [string, string][] = [
-    ['Equipment', equipment.map(equipmentLabel).join(', ')],
+    ['Equipment', joined(...equipment.map(equipmentLabel), ...answers.extraEquipment)],
     ['Main goal', answers.goal],
     ['Training days per week', answers.daysPerWeek],
     ['Time per session', answers.sessionMinutes && `${answers.sessionMinutes} minutes`],
@@ -74,11 +79,11 @@ function aboutMe(answers: ScheduleAnswers, equipment: readonly Equipment[], unit
     ['Age', answers.age],
     ['Sex', answers.sex],
     ['Height', answers.height],
-    ['Injuries', answers.injuries],
-    ['Exercises to avoid', answers.avoidExercises],
-    ['Exercises to include', answers.includeExercises],
+    ['Injuries', joined(...answers.injuryPicks.map(injuryLabel), answers.injuries)],
+    ['Exercises to avoid', exerciseNames(answers.avoidList, answers.avoidExercises)],
+    ['Exercises to include', exerciseNames(answers.includeList, answers.includeExercises)],
     ['Muscles to prioritise', muscleList(answers.priorityMuscles)],
-    ['Other sports', answers.otherSports],
+    ['Other sports', joined(...answers.sports, answers.otherSports)],
     ['Anything else', answers.notes],
   ];
   return facts.flatMap(([label, value]) =>
@@ -142,9 +147,40 @@ Reply with the plan file only: one JSON document in one code block.
 - For an exercise that is not listed, add \`"customExercises": [{ "id": "sled-push", "name": "Sled Push", "primaryMuscles": ["quadriceps"], "instructions": ["Push it 20 m."] }]\` next to \`plan\`, and refer to it with \`{ "kind": "custom", "customExerciseId": "sled-push", "name": "Sled Push" }\`. Muscles are ${MUSCLES.join(', ')}.
 - Text must not be empty. Use only the fields shown here, with no comments and no trailing commas: anything else gets the file rejected.`;
 
+/**
+ * The plan to build on, as the plan file's \`plan\` (and the custom exercises
+ * it uses) without the file's header, ids and timestamps: the assistant sees
+ * the format it replies in, yet the prompt pasted back by mistake holds no
+ * plan file to import.
+ */
+function currentPlanJson(plan: Plan, customExercises: readonly CustomExercise[]): string {
+  const file = createPlanFile(plan, customExercises);
+  const current = {
+    plan: {
+      name: file.plan.name,
+      days: file.plan.days.map((day) => ({
+        name: day.name,
+        exercises: day.exercises.map(({ id: _id, ...entry }) => entry),
+        ...(day.supersets === undefined ? {} : { supersets: day.supersets }),
+      })),
+    },
+    ...(file.customExercises === undefined
+      ? {}
+      : {
+          customExercises: file.customExercises.map(
+            ({ createdAt: _created, updatedAt: _updated, ...custom }) => custom,
+          ),
+        }),
+  };
+  return JSON.stringify(current, null, 2);
+}
+
 export interface SchedulePromptInput {
   answers: ScheduleAnswers;
   unit: Unit;
+  /** The user's plans: the one to build on is found among them. */
+  plans?: readonly Plan[];
+  customExercises?: readonly CustomExercise[];
   /** The catalog's exercises. */
   exercises: readonly Exercise[];
   /** The user's logged workouts. */
@@ -154,7 +190,9 @@ export interface SchedulePromptInput {
 
 /** The prompt to give an AI assistant. */
 export function buildSchedulePrompt(input: SchedulePromptInput): string {
-  const { answers, unit, exercises, sessions, now } = input;
+  const { answers, unit, exercises, sessions, now, plans = [], customExercises = [] } = input;
+  const basePlan = plans.find((plan) => plan.id === answers.basePlanId);
+  const changes = joined(...answers.planChanges);
   // In catalog order; bodyweight last.
   const equipment = [
     ...EQUIPMENT_CHOICES.filter((item) => answers.equipment.includes(item)),
@@ -166,6 +204,20 @@ export function buildSchedulePrompt(input: SchedulePromptInput): string {
   const sections = [
     'You are an experienced strength coach. Write a workout plan for me as a plan file for OpenRep, my gym app.',
     ['## About me', '', ...aboutMe(answers, equipment, unit)].join('\n'),
+    ...(basePlan === undefined
+      ? []
+      : [
+          [
+            '## My current plan',
+            '',
+            'This is the plan I train with now. Build the new plan on it: keep what works for me, and change what my answers ask for.',
+            ...(changes === '' ? [] : ['', `What I want changed: ${changes}.`]),
+            '',
+            '```json',
+            currentPlanJson(basePlan, customExercises),
+            '```',
+          ].join('\n'),
+        ]),
     ...(lifts.length === 0
       ? []
       : [
@@ -194,6 +246,9 @@ export function buildSchedulePrompt(input: SchedulePromptInput): string {
       '## How to build the plan',
       '',
       '- Follow everything under "About me": it comes first when it conflicts with anything else here.',
+      ...(basePlan === undefined
+        ? []
+        : ['- Start from my current plan, and reply with the whole new plan, under a new name.']),
       '- Give the plan as many days as I train in a week, each short enough to fit my session, warm-up included.',
       '- Put compound lifts first, and balance the work across the week.',
       '- Choose a sensible number of sets, reps and rest for my goal and experience.',

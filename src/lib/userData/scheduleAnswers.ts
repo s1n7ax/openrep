@@ -1,13 +1,17 @@
 /**
  * The schedule creator's saved answers (see `plans.ts` for the conventions).
  */
-import type { ScheduleAnswers, UserData } from '../schema/userData.ts';
+import type { PickedExercise, ScheduleAnswers, UserData } from '../schema/userData.ts';
 
 /** The answers of a form nobody has filled in. */
 export function emptyScheduleAnswers(): ScheduleAnswers {
   return {
     equipment: [],
+    extraEquipment: [],
+    basePlanId: null,
+    planChanges: [],
     goal: '',
+    injuryPicks: [],
     injuries: '',
     daysPerWeek: '',
     sessionMinutes: '',
@@ -23,9 +27,31 @@ export function emptyScheduleAnswers(): ScheduleAnswers {
     height: '',
     avoidExercises: '',
     includeExercises: '',
+    avoidList: [],
+    includeList: [],
     priorityMuscles: [],
+    sports: [],
     otherSports: '',
     notes: '',
+  };
+}
+
+/**
+ * The saved answers, ready for the form: exercises typed into the first
+ * version's text boxes become typed entries of the lists, and a plan to build
+ * on that no longer exists is dropped.
+ */
+export function readScheduleAnswers(data: UserData): ScheduleAnswers {
+  const saved = data.scheduleAnswers ?? emptyScheduleAnswers();
+  const typed = (text: string): PickedExercise[] =>
+    text.trim() === '' ? [] : [{ name: text.trim() }];
+  return {
+    ...saved,
+    includeExercises: '',
+    avoidExercises: '',
+    includeList: [...saved.includeList, ...typed(saved.includeExercises)],
+    avoidList: [...saved.avoidList, ...typed(saved.avoidExercises)],
+    basePlanId: data.plans.some((plan) => plan.id === saved.basePlanId) ? saved.basePlanId : null,
   };
 }
 

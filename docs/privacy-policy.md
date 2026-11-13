@@ -26,8 +26,9 @@ Uninstalling the app deletes this data.
 
 The schedule creator asks for details such as your equipment, goal, injuries,
 body weight, age, sex and height, and turns them into a prompt for an AI
-assistant of your choice. The prompt also lists your recent best sets. Your
-answers are stored on your device like the rest of your data.
+assistant of your choice. The prompt also lists your recent best sets and, when
+you choose to build on one of your plans, that plan. Your answers are stored on
+your device like the rest of your data.
 
 The app never sends the prompt anywhere. It leaves your device only if you copy
 it and give it to an assistant yourself, so read it first. What happens to it

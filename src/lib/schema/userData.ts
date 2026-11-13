@@ -165,13 +165,32 @@ export const catalogMetaSchema = z.object({
 export type CatalogMeta = z.infer<typeof catalogMetaSchema>;
 
 /**
+ * An exercise the schedule creator was told to include or avoid: one picked
+ * from the catalog (with its id) or a name the user typed.
+ */
+export const pickedExerciseSchema = z.object({
+  exerciseId: idSchema.optional(),
+  name: z.string(),
+});
+export type PickedExercise = z.infer<typeof pickedExerciseSchema>;
+
+/**
  * What the user told the schedule creator, kept so its form reopens filled in.
  * Text is what they typed or picked, `''` when left blank; weights are in
- * kilograms, `null` when left blank.
+ * kilograms, `null` when left blank. Lists added after the first version
+ * default to empty, so answers saved before them still load.
  */
 export const scheduleAnswersSchema = z.object({
   equipment: z.array(equipmentSchema),
+  /** Equipment the user typed that the catalog has no picture for ("Pull-up bar"). */
+  extraEquipment: z.array(z.string()).default([]),
+  /** The plan the assistant should build on, or `null` to start fresh. */
+  basePlanId: localIdSchema.nullable().default(null),
+  /** What to change in that plan: popular picks and typed text. */
+  planChanges: z.array(z.string()).default([]),
   goal: z.string(),
+  /** Injuries tapped on the body or picked (`INJURY_PICKS` keys); `injuries` holds typed text. */
+  injuryPicks: z.array(z.string()).default([]),
   injuries: z.string(),
   daysPerWeek: z.string(),
   sessionMinutes: z.string(),
@@ -185,9 +204,14 @@ export const scheduleAnswersSchema = z.object({
   age: z.string(),
   sex: z.string(),
   height: z.string(),
+  /** Typed by the first version of the form; moved into the lists below when read. */
   avoidExercises: z.string(),
   includeExercises: z.string(),
+  avoidList: z.array(pickedExerciseSchema).default([]),
+  includeList: z.array(pickedExerciseSchema).default([]),
   priorityMuscles: z.array(muscleSchema),
+  /** Sports picked or typed; `otherSports` holds typed details ("straight after the gym"). */
+  sports: z.array(z.string()).default([]),
   otherSports: z.string(),
   notes: z.string(),
 });

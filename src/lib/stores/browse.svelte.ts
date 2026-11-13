@@ -53,3 +53,5 @@ export class BrowseState {
 export const exercisesBrowse = new BrowseState();
 /** The exercise picker of the plan editor. */
 export const pickerBrowse = new BrowseState();
+/** The schedule creator's exercise picker. */
+export const creatorBrowse = new BrowseState();
