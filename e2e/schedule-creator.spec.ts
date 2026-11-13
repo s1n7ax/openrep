@@ -1,12 +1,14 @@
 /**
  * Verifications "Schedule creator" and "Paste a plan": the answers become a
- * prompt that can be copied and survive a restart, and an AI assistant's reply
- * pasted back becomes a plan; a reply that holds no plan changes nothing.
+ * prompt that can be sent whole to an AI assistant app through the share
+ * sheet, or copied, and survive a restart, and an AI assistant's reply pasted
+ * back becomes a plan; a reply that holds no plan changes nothing.
  */
 import type { Page } from '@playwright/test';
 import type { PlanFile } from '../src/lib/schema/planFile.ts';
 import { openApp, readStoredUserData, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
+import { endSharesAs, recordShares, sharedTexts } from './support/external.ts';
 import { copySchedule, startDay } from './support/plans.ts';
 import { changeAmounts, tickSet, typeWeight } from './support/workout.ts';
 
@@ -87,6 +89,77 @@ test(
     expect(stored?.plans.map((plan) => plan.name)).toEqual(['Dumbbell Upper/Lower']);
   },
 );
+
+test('without a share sheet, the prompt is copied as before', async ({ page }) => {
+  await openApp(page);
+  expect(await page.evaluate(() => 'share' in navigator)).toBe(false);
+  await openCreator(page);
+  await answerRequired(page);
+  await page.getByTestId('creator-create').click();
+
+  await expect(page.getByTestId('creator-prompt')).toBeVisible();
+  await expect(page.getByTestId('creator-share')).toHaveCount(0);
+  await expect(page.locator('.steps li').first()).toHaveText(
+    'Copy the prompt and paste it into your AI assistant.',
+  );
+  await expect(page.getByTestId('creator-copy')).toHaveClass(/btn-primary/);
+});
+
+test('the whole prompt goes to the AI app picked in the share sheet', async ({ page }) => {
+  await recordShares(page);
+  await openApp(page);
+  await openCreator(page);
+  // Every piece of equipment: the longest prompt, a full gym's exercise list.
+  const equipment = page.getByRole('group', { name: 'Equipment you have' }).getByRole('button');
+  await expect(equipment.first()).toBeVisible();
+  for (const chip of await equipment.all()) await chip.click();
+  await answerRequired(page);
+  await page.getByTestId('creator-create').click();
+
+  const text = await page.getByTestId('creator-prompt').inputValue();
+  expect(text.length).toBeGreaterThan(30_000);
+  await expect(page.locator('.steps li').first()).toHaveText(
+    'Send the prompt to your AI assistant app, or copy it and paste it there.',
+  );
+  await expect(page.getByTestId('creator-share')).toHaveText('Send to AI app');
+  await expect(page.getByTestId('creator-share')).toHaveClass(/btn-primary/);
+  await expect(page.getByTestId('creator-copy')).toHaveClass(/btn-outline/);
+  await expect(page.getByTestId('creator-paste-open')).toBeVisible();
+
+  await page.getByTestId('creator-share').click();
+  await expect.poll(() => sharedTexts(page)).toEqual([text]);
+  await expect(page.locator('.message')).toHaveCount(0);
+
+  // Copying still works next to it.
+  await page.getByTestId('creator-copy').click();
+  await expect(page.getByTestId('creator-copied')).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(text);
+});
+
+test('a dismissed share sheet changes nothing; one that fails points to Copy', async ({ page }) => {
+  await recordShares(page, 'cancelled');
+  // The failure is handled and shown; the console line is not the test's subject.
+  await page.addInitScript(() => (console.error = () => {}));
+  await openApp(page);
+  await openCreator(page);
+  await answerRequired(page);
+  await page.getByTestId('creator-create').click();
+
+  await page.getByTestId('creator-share').click();
+  await expect.poll(async () => (await sharedTexts(page)).length).toBe(1);
+  await expect(page.locator('.message')).toHaveCount(0);
+  await expect(page.getByTestId('page-title')).toHaveText('Your prompt');
+
+  await endSharesAs(page, 'failed');
+  await page.getByTestId('creator-share').click();
+  await expect(page.getByTestId('creator-share-error')).toHaveText(
+    'The prompt could not be sent. Copy it instead and paste it into your AI assistant.',
+  );
+
+  await endSharesAs(page, 'shared');
+  await page.getByTestId('creator-share').click();
+  await expect(page.getByTestId('creator-share-error')).toHaveCount(0);
+});
 
 test('a required answer left blank keeps the prompt from being made', async ({ page }) => {
   await openApp(page);

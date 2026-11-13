@@ -1,12 +1,12 @@
 <!--
   The schedule creator's result (`#/schedule-creator/prompt`): the prompt built
-  from the saved answers, to read and copy, and the way on to pasting the
-  assistant's reply.
+  from the saved answers, to read, send to an AI assistant app through the
+  share sheet or copy, and the way on to pasting the assistant's reply.
 -->
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
-  import { copyText } from '../lib/external.ts';
+  import { canShareText, copyText, shareText } from '../lib/external.ts';
   import { href, paths } from '../lib/router.ts';
   import { buildSchedulePrompt } from '../lib/schedulePrompt.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
@@ -23,11 +23,23 @@
     }),
   );
 
-  /** Whether the last Copy worked; `null` before the first. */
-  let copied = $state<boolean | null>(null);
+  const canShare = canShareText();
+
+  /** What the last Send or Copy showed; `null` before the first, or after a send. */
+  let notice = $state<'copied' | 'copy-failed' | 'share-failed' | null>(null);
 
   async function copy() {
-    copied = await copyText(prompt);
+    notice = (await copyText(prompt)) ? 'copied' : 'copy-failed';
+  }
+
+  async function share() {
+    try {
+      // A dismissed share sheet leaves the screen as it was.
+      if ((await shareText(prompt, 'Send the prompt to')) === 'shared') notice = null;
+    } catch (error) {
+      console.error('Sharing the prompt failed:', error);
+      notice = 'share-failed';
+    }
   }
 </script>
 
@@ -36,7 +48,11 @@
 <div class="page">
   <div class="content">
     <ol class="steps">
-      <li>Copy the prompt and paste it into your AI assistant.</li>
+      {#if canShare}
+        <li>Send the prompt to your AI assistant app, or copy it and paste it there.</li>
+      {:else}
+        <li>Copy the prompt and paste it into your AI assistant.</li>
+      {/if}
       <li>Copy the assistant's whole reply.</li>
       <li>Paste it here to add the plan.</li>
     </ol>
@@ -50,21 +66,36 @@
       data-testid="creator-prompt"
       value={prompt}></textarea>
 
-    {#if copied === true}
+    {#if notice === 'copied'}
       <p class="message ok" role="status" data-testid="creator-copied">
         <Icon name="check" size={18} />
         Copied. Paste it into your AI assistant.
       </p>
-    {:else if copied === false}
+    {:else if notice === 'copy-failed'}
       <p class="message error" role="alert" data-testid="creator-copy-error">
         <Icon name="alert" size={18} />
         The prompt could not be copied. Select the text above and copy it yourself.
       </p>
+    {:else if notice === 'share-failed'}
+      <p class="message error" role="alert" data-testid="creator-share-error">
+        <Icon name="alert" size={18} />
+        The prompt could not be sent. Copy it instead and paste it into your AI assistant.
+      </p>
     {/if}
 
+    {#if canShare}
+      <button
+        type="button"
+        class="btn btn-primary btn-lg btn-block"
+        data-testid="creator-share"
+        onclick={share}
+      >
+        <Icon name="send" size={20} /> Send to AI app
+      </button>
+    {/if}
     <button
       type="button"
-      class="btn btn-primary btn-lg btn-block"
+      class="btn btn-lg btn-block {canShare ? 'btn-outline' : 'btn-primary'}"
       data-testid="creator-copy"
       onclick={copy}
     >
