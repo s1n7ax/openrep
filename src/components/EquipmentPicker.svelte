@@ -1,7 +1,8 @@
 <!--
   Equipment by picture: one-tap setups ("Full gym"), a tile with a drawing for
-  each catalog equipment type, and the extras the catalog has no type for
-  (bench, pull-up bar, …), popular or typed. Bodyweight is always included.
+  each catalog equipment type and for the popular extras the catalog has no
+  type for (bench, pull-up bar, …), and typed extras. Bodyweight is always
+  included.
 -->
 <script lang="ts">
   import { equipmentLabel } from '../lib/labels.ts';
@@ -9,6 +10,7 @@
     EQUIPMENT_PRESETS,
     POPULAR_EXTRA_EQUIPMENT,
     type EquipmentPreset,
+    type PopularExtraEquipment,
   } from '../lib/scheduleChoices.ts';
   import { EQUIPMENT_CHOICES } from '../lib/schedulePrompt.ts';
   import type { Equipment } from '../lib/schema/common.ts';
@@ -24,11 +26,37 @@
 
   let { equipment, extra, onchange }: Props = $props();
 
+  const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  const popular = (value: string) => POPULAR_EXTRA_EQUIPMENT.find((item) => same(item, value));
+
+  /** Extras typed in, not among the pictures. */
+  const typed = $derived(extra.filter((value) => popular(value) === undefined));
+
   function toggle(item: Equipment) {
     onchange(
       equipment.includes(item) ? equipment.filter((e) => e !== item) : [...equipment, item],
       [...extra],
     );
+  }
+
+  function hasExtra(item: PopularExtraEquipment): boolean {
+    return extra.some((value) => same(value, item));
+  }
+
+  function toggleExtra(item: PopularExtraEquipment) {
+    onchange(
+      [...equipment],
+      hasExtra(item) ? extra.filter((value) => !same(value, item)) : [...extra, item],
+    );
+  }
+
+  /** Typed extras changed; one typed as a pictured extra picks that. */
+  function setTyped(next: string[]) {
+    const picked = extra.filter((value) => popular(value) !== undefined);
+    for (const value of next.map((item) => popular(item) ?? item)) {
+      if (!picked.some((item) => same(item, value))) picked.push(value);
+    }
+    onchange([...equipment], picked);
   }
 
   function presetOn(preset: EquipmentPreset): boolean {
@@ -38,7 +66,25 @@
       preset.extra.every((item) => extra.includes(item))
     );
   }
+
+  const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 </script>
+
+{#snippet tile(
+  picture: Equipment | PopularExtraEquipment,
+  name: string,
+  picked: boolean,
+  testid: string,
+  onclick: () => void,
+)}
+  <button type="button" class="tile" aria-pressed={picked} data-testid={testid} {onclick}>
+    <EquipmentPicture equipment={picture} size={40} />
+    <span class="tile-name">{name}</span>
+    {#if picked}
+      <span class="tick"><Icon name="check" size={12} /></span>
+    {/if}
+  </button>
+{/snippet}
 
 <div class="picker">
   <div class="presets" role="group" aria-label="Usual setups">
@@ -60,27 +106,32 @@
       <span class="tile-note">Always</span>
     </div>
     {#each EQUIPMENT_CHOICES as item (item)}
-      <button
-        type="button"
-        class="tile"
-        aria-pressed={equipment.includes(item)}
-        data-testid={`creator-equipment-${item.replace(/\s+/g, '-')}`}
-        onclick={() => toggle(item)}
-      >
-        <EquipmentPicture equipment={item} size={40} />
-        <span class="tile-name">{equipmentLabel(item)}</span>
-        {#if equipment.includes(item)}
-          <span class="tick"><Icon name="check" size={12} /></span>
-        {/if}
-      </button>
+      {@render tile(
+        item,
+        equipmentLabel(item),
+        equipment.includes(item),
+        `creator-equipment-${item.replace(/\s+/g, '-')}`,
+        () => toggle(item),
+      )}
     {/each}
   </div>
 
+  <fieldset class="extras">
+    <legend class="field-label">Also have</legend>
+    <div class="tiles">
+      {#each POPULAR_EXTRA_EQUIPMENT as item (item)}
+        {@render tile(item, item, hasExtra(item), `creator-extra-${slug(item)}`, () =>
+          toggleExtra(item),
+        )}
+      {/each}
+    </div>
+  </fieldset>
+
   <ChoiceChips
-    label="Also have"
-    options={POPULAR_EXTRA_EQUIPMENT}
-    selected={extra}
-    onchange={(next) => onchange([...equipment], next)}
+    label="Something else"
+    options={[]}
+    selected={typed}
+    onchange={setTyped}
     placeholder="Landmine, sandbag…"
     testidPrefix="creator-extra"
   />
@@ -100,6 +151,17 @@
     padding: 0 var(--page-gutter) 2px;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+
+  .extras {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  .extras .tiles {
+    margin-top: var(--space-2);
   }
 
   .tiles {

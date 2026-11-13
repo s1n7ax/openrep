@@ -69,6 +69,7 @@ export const POPULAR_EXTRA_EQUIPMENT = [
   'Jump rope',
   'Sled',
 ] as const;
+export type PopularExtraEquipment = (typeof POPULAR_EXTRA_EQUIPMENT)[number];
 
 /** One tap for a usual setup: the equipment and the extras it brings. */
 export interface EquipmentPreset {

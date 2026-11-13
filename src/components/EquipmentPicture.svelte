@@ -4,9 +4,11 @@
   knowing its name. Decorative: the control showing it carries the name.
 -->
 <script lang="ts">
+  import type { PopularExtraEquipment } from '../lib/scheduleChoices.ts';
   import type { Equipment } from '../lib/schema/common.ts';
 
-  let { equipment, size = 48 }: { equipment: Equipment; size?: number } = $props();
+  let { equipment, size = 48 }: { equipment: Equipment | PopularExtraEquipment; size?: number } =
+    $props();
 </script>
 
 <svg
@@ -79,6 +81,54 @@
   {:else if equipment === 'body only'}
     <circle cx="24" cy="8" r="4" />
     <path d="M24 13v14M12 18l12 3 12-3M24 27l-7 15M24 27l7 15" />
+  {:else if equipment === 'Bench'}
+    <rect x="4" y="17" width="40" height="6" rx="2" />
+    <path d="M11 23v15M37 23v15M6 38h10M32 38h10" />
+    <path d="M24 23v8" stroke-width="1.75" />
+  {:else if equipment === 'Pull-up bar'}
+    <path d="M5 45V4h38v41" stroke-width="1.5" />
+    <path d="M5 11h38" />
+    <circle cx="24" cy="19" r="3.5" />
+    <path d="M17 11l2.5 13M31 11l-2.5 13M19.5 24h9M24 23v11M24 34l-3 9M24 34l3 9" />
+  {:else if equipment === 'Dip station'}
+    <circle cx="24" cy="8" r="3.5" />
+    <path d="M18 14h12M18 14l-3 9M30 14l3 9M24 12v15M24 27l-2 11M24 27l2 11" />
+    <path d="M8 23h14M26 23h14M12 23v21M36 23v21M7 44h10M31 44h10" />
+  {:else if equipment === 'Squat rack'}
+    <path d="M10 4v40M38 4v40M5 44h10M33 44h10" />
+    <path d="M10 15h4M38 15h-4M10 32h6M38 32h-6" />
+    <path d="M2 13h44" />
+    <rect x="3" y="6" width="4" height="14" rx="1.2" />
+    <rect x="41" y="6" width="4" height="14" rx="1.2" />
+  {:else if equipment === 'Rowing machine'}
+    <circle cx="37" cy="29" r="7" />
+    <path d="M4 38h28M6 38v5M36 36v7M33 43h7" />
+    <rect x="11" y="33" width="9" height="4" rx="1.5" />
+    <path d="M27 38l2-7M26 31h6" stroke-width="1.75" />
+    <path d="M31 25 18 22M16 20v4" />
+  {:else if equipment === 'Treadmill'}
+    <rect x="3" y="33" width="36" height="6" rx="3" />
+    <path d="M35 33 39 13M8 39v4M34 39v4" />
+    <rect x="34" y="7" width="11" height="6" rx="1.5" />
+    <path d="M38 19H28" />
+  {:else if equipment === 'Exercise bike'}
+    <circle cx="35" cy="31" r="7" />
+    <path d="M6 43h34M12 43l6-17M9 13h10M14 13l4 13h11M31 43l-2-33M25 9h8" />
+    <circle cx="20" cy="32" r="3" stroke-width="1.75" />
+  {:else if equipment === 'Rings or TRX'}
+    <path d="M8 3h32" />
+    <path d="M16 3v19M32 3v19" />
+    <circle cx="16" cy="30" r="7.5" />
+    <circle cx="32" cy="30" r="7.5" />
+  {:else if equipment === 'Jump rope'}
+    <rect x="6" y="5" width="6" height="15" rx="3" />
+    <rect x="36" y="5" width="6" height="15" rx="3" />
+    <path d="M9 20c0 30 30 30 30 0" />
+  {:else if equipment === 'Sled'}
+    <path d="M3 41h33c5 0 8-3 8-7" />
+    <path d="M9 41 14 8M19 41 23 12M12 20h9" />
+    <rect x="28" y="23" width="6" height="18" rx="1.5" />
+    <path d="M26 32h10" stroke-width="1.75" />
   {:else}
     <path d="M8 18h32v22H8z" />
     <path d="M18 18v-5a6 6 0 0 1 12 0v5" />

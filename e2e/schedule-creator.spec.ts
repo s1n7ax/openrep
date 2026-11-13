@@ -115,6 +115,19 @@ test(
     await page.getByTestId('creator-equipment-dumbbell').click();
     await page.getByTestId('creator-extra-bench').click();
     await expect(page.getByTestId('creator-next')).toHaveText('Next');
+    // Every popular extra is a picture with its name, like the equipment.
+    await expect(page.locator('[data-testid^="creator-extra-"] svg.equipment-picture')).toHaveCount(
+      10,
+    );
+    // Typing a pictured extra picks its picture instead of adding it twice.
+    await page.getByTestId('creator-extra-own').click();
+    await page.getByTestId('creator-extra-input').fill('pull-up BAR');
+    await page.getByTestId('creator-extra-input').press('Enter');
+    await expect(page.getByTestId('creator-extra-pull-up-bar')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await expect(page.getByTestId('creator-extra-typed')).toHaveCount(0);
     await page.getByTestId('creator-next').click();
 
     await tapBody(page, 'creator-priority-chest-front');
