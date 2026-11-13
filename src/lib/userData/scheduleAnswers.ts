@@ -1,8 +1,8 @@
 /**
  * The schedule creator's saved answers (see `plans.ts` for the conventions).
  */
-import { planToBuildOn } from './selectors.ts';
 import type { PickedExercise, ScheduleAnswers, UserData } from '../schema/userData.ts';
+import { planToBuildOn } from './selectors.ts';
 
 /** The answers of a form nobody has filled in. */
 export function emptyScheduleAnswers(): ScheduleAnswers {

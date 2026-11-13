@@ -43,7 +43,6 @@
 
 <svg
   class="body-map"
-  class:injuries={mode === 'injuries'}
   viewBox={`-2 0 ${2 * BODY_WIDTH + GAP + 4} ${BODY_HEIGHT + 22}`}
   role="group"
   aria-label={mode === 'muscles' ? 'Muscles, front and back' : 'Where it hurts, front and back'}
@@ -77,6 +76,9 @@
           </g>
         {/if}
       {/each}
+      <text class="caption" x={BODY_WIDTH / 2} y={BODY_HEIGHT + 16}>
+        {side === 'front' ? 'Front' : 'Back'}
+      </text>
       {#if mode === 'injuries'}
         {#each INJURY_SPOTS[side] as spot (spot.area)}
           <g
@@ -96,11 +98,6 @@
             <title>{injuryLabel(spot.area)}</title>
           </g>
         {/each}
-      {/if}
-      <text class="caption" x={BODY_WIDTH / 2} y={BODY_HEIGHT + 16}>
-        {side === 'front' ? 'Front' : 'Back'}
-      </text>
-      {#if mode === 'injuries'}
         <!-- Which hand is which: on the front view the person's right is on the left. -->
         <text class="side" x="11" y="176">{side === 'front' ? 'R' : 'L'}</text>
         <text class="side" x={BODY_WIDTH - 11} y="176">{side === 'front' ? 'L' : 'R'}</text>

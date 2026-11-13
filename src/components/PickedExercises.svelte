@@ -78,7 +78,7 @@
     align-items: center;
     gap: var(--space-3);
     min-height: 56px;
-    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-1);
+    padding: var(--space-1);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--surface);

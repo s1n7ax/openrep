@@ -5,7 +5,11 @@
 -->
 <script lang="ts">
   import { equipmentLabel } from '../lib/labels.ts';
-  import { EQUIPMENT_PRESETS, POPULAR_EXTRA_EQUIPMENT } from '../lib/scheduleChoices.ts';
+  import {
+    EQUIPMENT_PRESETS,
+    POPULAR_EXTRA_EQUIPMENT,
+    type EquipmentPreset,
+  } from '../lib/scheduleChoices.ts';
   import { EQUIPMENT_CHOICES } from '../lib/schedulePrompt.ts';
   import type { Equipment } from '../lib/schema/common.ts';
   import ChoiceChips from './ChoiceChips.svelte';
@@ -16,11 +20,9 @@
     equipment: readonly Equipment[];
     extra: readonly string[];
     onchange: (equipment: Equipment[], extra: string[]) => void;
-    /** Hide the one-tap setups. */
-    presets?: boolean;
   }
 
-  let { equipment, extra, onchange, presets = true }: Props = $props();
+  let { equipment, extra, onchange }: Props = $props();
 
   function toggle(item: Equipment) {
     onchange(
@@ -29,8 +31,7 @@
     );
   }
 
-  function presetOn(index: number): boolean {
-    const preset = EQUIPMENT_PRESETS[index]!;
+  function presetOn(preset: EquipmentPreset): boolean {
     return (
       preset.equipment.length === equipment.length &&
       preset.equipment.every((item) => equipment.includes(item)) &&
@@ -40,19 +41,17 @@
 </script>
 
 <div class="picker">
-  {#if presets}
-    <div class="presets" role="group" aria-label="Usual setups">
-      {#each EQUIPMENT_PRESETS as preset, index (preset.name)}
-        <button
-          type="button"
-          class="chip"
-          aria-pressed={presetOn(index)}
-          data-testid={`equipment-preset-${index}`}
-          onclick={() => onchange([...preset.equipment], [...preset.extra])}>{preset.name}</button
-        >
-      {/each}
-    </div>
-  {/if}
+  <div class="presets" role="group" aria-label="Usual setups">
+    {#each EQUIPMENT_PRESETS as preset, index (preset.name)}
+      <button
+        type="button"
+        class="chip"
+        aria-pressed={presetOn(preset)}
+        data-testid={`equipment-preset-${index}`}
+        onclick={() => onchange([...preset.equipment], [...preset.extra])}>{preset.name}</button
+      >
+    {/each}
+  </div>
 
   <div class="tiles" role="group" aria-label="Equipment you have">
     <div class="tile always" aria-disabled="true">

@@ -6,6 +6,15 @@
   every answer and "Create prompt". Answers are saved as they change, so the
   creator reopens filled in, at the review once nothing required is missing.
 -->
+<script module lang="ts">
+  /**
+   * The step the creator shows, and the steps it went forward from in this
+   * visit, newest last: Android's back button returns to them. Kept while the
+   * exercise picker is open on top of the creator.
+   */
+  const creatorSteps = $state<{ step: number; visited: number[] }>({ step: 0, visited: [] });
+</script>
+
 <script lang="ts">
   import { onMount, tick, untrack } from 'svelte';
   import BodyMap from '../components/BodyMap.svelte';
@@ -15,7 +24,6 @@
   import PageHeader from '../components/PageHeader.svelte';
   import PickedExercises from '../components/PickedExercises.svelte';
   import PlanPicker from '../components/PlanPicker.svelte';
-  import { CreatorForm, creatorSteps, type WeightKey } from '../lib/creatorForm.svelte.ts';
   import { equipmentLabel, muscleLabel } from '../lib/labels.ts';
   import { paths, router } from '../lib/router.ts';
   import {
@@ -34,10 +42,11 @@
     SUPERSETS,
   } from '../lib/scheduleChoices.ts';
   import type { Muscle } from '../lib/schema/common.ts';
+  import type { ScheduleAnswers } from '../lib/schema/userData.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { setScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
+  import { readScheduleAnswers, setScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
   import { planToBuildOn } from '../lib/userData/selectors.ts';
-  import { formatWeightWithUnit } from '../lib/units.ts';
+  import { formatWeight, formatWeightWithUnit, parseWeight } from '../lib/units.ts';
 
   const STEPS = [
     { key: 'start', title: 'Start from' },
@@ -57,10 +66,17 @@
   type SingleAnswer =
     'sessionMinutes' | 'split' | 'weekLayout' | 'experience' | 'strengthLevel' | 'sex';
   type TextAnswer = 'injuries' | 'otherSports' | 'age' | 'height';
+  type WeightKey = 'bodyWeightKg' | 'targetWeightKg';
 
   const unit = $derived(userData.data.settings.unit);
-  const form = new CreatorForm(userData.data, () => userData.data.settings.unit);
-  const answers = $derived(form.answers);
+  // The form edits a copy; the saved answers are read once when the screen opens.
+  const saved = readScheduleAnswers(userData.data);
+  let answers = $state<ScheduleAnswers>(saved);
+  /** The weight fields as typed, in the unit of the settings. */
+  let weights = $state<Record<WeightKey, string>>({
+    bodyWeightKg: weightText(saved.bodyWeightKg),
+    targetWeightKg: weightText(saved.targetWeightKg),
+  });
   const step = $derived(STEPS[creatorSteps.step] ?? STEPS[0]);
 
   /** Next was tapped on this step with a required answer missing. */
@@ -81,7 +97,7 @@
   });
 
   $effect(() => {
-    const next = $state.snapshot(form.answers);
+    const next = $state.snapshot(answers);
     untrack(() => userData.update((data) => setScheduleAnswers(data, next)));
   });
 
@@ -96,6 +112,20 @@
     });
   });
 
+  function weightText(kg: number | null): string {
+    return kg === null ? '' : formatWeight(kg, unit);
+  }
+
+  function weightInvalid(key: WeightKey): boolean {
+    return !parseWeight(weights[key], unit).ok;
+  }
+
+  function setWeight(key: WeightKey, text: string) {
+    weights[key] = text;
+    const parsed = parseWeight(text, unit);
+    if (parsed.ok) answers[key] = parsed.kg;
+  }
+
   /** Whether a step still lacks an answer it needs. */
   function incomplete(key: StepKey): boolean {
     switch (key) {
@@ -106,8 +136,8 @@
       case 'you':
         return (
           answers.experience === '' ||
-          form.weightInvalid('bodyWeightKg') ||
-          form.weightInvalid('targetWeightKg')
+          weightInvalid('bodyWeightKg') ||
+          weightInvalid('targetWeightKg')
         );
       default:
         return false;
@@ -183,11 +213,11 @@
   }
 
   function pickPlan(planId: string | null) {
-    form.answers.basePlanId = planId;
-    const plan = userData.data.plans.find((candidate) => candidate.id === planId);
+    answers.basePlanId = planId;
+    const plan = planToBuildOn(userData.data.plans, planId);
     // The plan's day count is a good first answer to how many days a week.
-    if (plan && answers.daysPerWeek === '' && plan.days.length >= 1 && plan.days.length <= 7) {
-      form.answers.daysPerWeek = String(plan.days.length);
+    if (plan && answers.daysPerWeek === '' && plan.days.length <= 7) {
+      answers.daysPerWeek = String(plan.days.length);
     }
   }
 
@@ -196,14 +226,14 @@
   );
 
   function setCommonInjuries(labels: string[]) {
-    form.answers.injuryPicks = [
+    answers.injuryPicks = [
       ...answers.injuryPicks.filter((key) => !(key in COMMON_INJURIES)),
       ...labels.flatMap((label) => commonInjuryKeys[commonInjuryLabels.indexOf(label)] ?? []),
     ];
   }
 
   function removeExercise(key: 'includeList' | 'avoidList', index: number) {
-    form.answers[key] = answers[key].filter((_, i) => i !== index);
+    answers[key] = answers[key].filter((_, i) => i !== index);
   }
 
   const basePlan = $derived(planToBuildOn(userData.data.plans, answers.basePlanId));
@@ -310,7 +340,7 @@
     {label}
     {options}
     selected={single(answers[key])}
-    onchange={(next) => (form.answers[key] = next[0] ?? '')}
+    onchange={(next) => (answers[key] = next[0] ?? '')}
     single
     {own}
     invalid={required && tried && answers[key] === ''}
@@ -328,12 +358,12 @@
       inputmode="decimal"
       autocomplete="off"
       enterkeyhint="done"
-      aria-invalid={form.weightInvalid(key)}
+      aria-invalid={weightInvalid(key)}
       data-testid={`creator-${key}`}
-      value={form.weights[key]}
-      oninput={(event) => form.setWeight(key, event.currentTarget.value)}
+      value={weights[key]}
+      oninput={(event) => setWeight(key, event.currentTarget.value)}
     />
-    {#if form.weightInvalid(key)}
+    {#if weightInvalid(key)}
       <p class="field-error" data-testid={`creator-${key}-error`}>Enter a number, like 62.5.</p>
     {/if}
   </div>
@@ -358,7 +388,7 @@
       {maxlength}
       {placeholder}
       data-testid={`creator-${key}`}
-      bind:value={form.answers[key]}
+      bind:value={answers[key]}
     />
   </div>
 {/snippet}
@@ -390,7 +420,7 @@
           label="What should change?"
           options={POPULAR_PLAN_CHANGES}
           selected={answers.planChanges}
-          onchange={(next) => (form.answers.planChanges = next)}
+          onchange={(next) => (answers.planChanges = next)}
           placeholder="Harder leg days…"
           testidPrefix="creator-change"
         />
@@ -404,7 +434,7 @@
             role="radio"
             aria-checked={answers.goal === goal}
             data-testid={`creator-goal-${goal.toLowerCase().replace(/\s+/g, '-')}`}
-            onclick={() => (form.answers.goal = answers.goal === goal ? '' : goal)}
+            onclick={() => (answers.goal = answers.goal === goal ? '' : goal)}
           >
             {goal}
           </button>
@@ -416,7 +446,7 @@
         selected={(POPULAR_GOALS as readonly string[]).includes(answers.goal)
           ? []
           : single(answers.goal)}
-        onchange={(next) => (form.answers.goal = next[0] ?? '')}
+        onchange={(next) => (answers.goal = next[0] ?? '')}
         single
         placeholder="Run a marathon…"
         testidPrefix="creator-goal"
@@ -437,7 +467,7 @@
               role="radio"
               aria-checked={answers.daysPerWeek === days}
               data-testid={`creator-days-${days}`}
-              onclick={() => (form.answers.daysPerWeek = days)}>{days}</button
+              onclick={() => (answers.daysPerWeek = days)}>{days}</button
             >
           {/each}
         </div>
@@ -468,7 +498,7 @@
         options={supersetLabels}
         selected={single(supersetsLabel(answers.supersets))}
         onchange={(next) =>
-          (form.answers.supersets =
+          (answers.supersets =
             next[0] === SUPERSETS.Yes ? 'Yes' : next[0] === SUPERSETS.No ? 'No' : '')}
         single
         own={false}
@@ -480,8 +510,8 @@
         equipment={answers.equipment}
         extra={answers.extraEquipment}
         onchange={(equipment, extra) => {
-          form.answers.equipment = equipment;
-          form.answers.extraEquipment = extra;
+          answers.equipment = equipment;
+          answers.extraEquipment = extra;
         }}
       />
     {:else if step.key === 'muscles'}
@@ -490,7 +520,7 @@
         mode="muscles"
         selected={answers.priorityMuscles}
         ontoggle={(muscle) =>
-          (form.answers.priorityMuscles = toggle(answers.priorityMuscles, muscle as Muscle))}
+          (answers.priorityMuscles = toggle(answers.priorityMuscles, muscle as Muscle))}
         testidPrefix="creator-priority"
       />
       <p class="picked" aria-live="polite" data-testid="creator-priority-picked">
@@ -501,7 +531,7 @@
       <BodyMap
         mode="injuries"
         selected={answers.injuryPicks}
-        ontoggle={(area) => (form.answers.injuryPicks = toggle(answers.injuryPicks, area))}
+        ontoggle={(area) => (answers.injuryPicks = toggle(answers.injuryPicks, area))}
         testidPrefix="creator-injury"
       />
       <p class="picked" aria-live="polite" data-testid="creator-injury-picked">
@@ -539,7 +569,7 @@
         label="You also do"
         options={POPULAR_SPORTS}
         selected={answers.sports}
-        onchange={(next) => (form.answers.sports = next)}
+        onchange={(next) => (answers.sports = next)}
         placeholder="Padel, kayaking…"
         testidPrefix="creator-sport"
       />
@@ -605,7 +635,7 @@
           rows="2"
           placeholder="Anything your assistant should know…"
           data-testid="creator-notes"
-          bind:value={form.answers.notes}></textarea>
+          bind:value={answers.notes}></textarea>
       </div>
     {/if}
   </div>

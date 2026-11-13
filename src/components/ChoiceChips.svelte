@@ -19,8 +19,6 @@
     invalid?: boolean;
     /** Offer "Your own" to type an answer. */
     own?: boolean;
-    /** Shown under the chips. */
-    hint?: string;
   }
 
   let {
@@ -33,7 +31,6 @@
     testidPrefix,
     invalid = false,
     own = true,
-    hint,
   }: Props = $props();
 
   let adding = $state(false);
@@ -140,9 +137,6 @@
       </button>
     {/if}
   </div>
-  {#if hint}
-    <p class="field-hint hint">{hint}</p>
-  {/if}
 </fieldset>
 
 <style>
@@ -162,10 +156,6 @@
 
   .choice[data-invalid='true'] .chip:not([aria-pressed='true']) {
     border-color: var(--danger);
-  }
-
-  .hint {
-    margin-top: var(--space-2);
   }
 
   .own {

@@ -189,7 +189,10 @@ export const scheduleAnswersSchema = z.object({
   /** What to change in that plan: popular picks and typed text. */
   planChanges: z.array(z.string()).default([]),
   goal: z.string(),
-  /** Injuries tapped on the body or picked (`INJURY_PICKS` keys); `injuries` holds typed text. */
+  /**
+   * Injuries tapped on the body or picked (`INJURY_AREAS` and `COMMON_INJURIES`
+   * keys); `injuries` holds typed text.
+   */
   injuryPicks: z.array(z.string()).default([]),
   injuries: z.string(),
   daysPerWeek: z.string(),
