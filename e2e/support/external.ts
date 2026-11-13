@@ -32,8 +32,11 @@ export async function openedUrl(page: Page): Promise<URL> {
   return new URL(url!);
 }
 
-/** How the stand-in share sheet ends: an app is picked, it is dismissed, or it cannot open. */
-export type ShareOutcome = 'shared' | 'cancelled' | 'failed';
+/**
+ * How the stand-in share sheet ends: an app is picked, it is dismissed, or it
+ * cannot open; or it stays open until {@link closeShareSheet}.
+ */
+export type ShareOutcome = 'shared' | 'cancelled' | 'failed' | 'open';
 
 /**
  * Gives the page a share sheet before the app loads (as phones and some
@@ -51,6 +54,11 @@ export async function recordShares(page: Page, outcome: ShareOutcome = 'shared')
       // As a browser reports a dismissed sheet, and one it refuses to show.
       if (shareOutcome === 'cancelled') throw new DOMException('Share canceled', 'AbortError');
       if (shareOutcome === 'failed') throw new DOMException('Permission denied', 'NotAllowedError');
+      if (shareOutcome === 'open') {
+        // Closed later by dismissing it, as a user would.
+        await new Promise((resolve) => Object.assign(window, { closeShareSheet: resolve }));
+        throw new DOMException('Share canceled', 'AbortError');
+      }
     };
   }, outcome);
 }
@@ -58,6 +66,13 @@ export async function recordShares(page: Page, outcome: ShareOutcome = 'shared')
 /** Makes the stand-in share sheet end as `outcome` from now on. */
 export async function endSharesAs(page: Page, outcome: ShareOutcome): Promise<void> {
   await page.evaluate((next) => Object.assign(window, { shareOutcome: next }), outcome);
+}
+
+/** Dismisses the stand-in share sheet left open by the `'open'` outcome. */
+export async function closeShareSheet(page: Page): Promise<void> {
+  await page.evaluate(() =>
+    (window as unknown as { closeShareSheet: () => void }).closeShareSheet(),
+  );
 }
 
 /** The texts the stand-in share sheet was handed, in order. */

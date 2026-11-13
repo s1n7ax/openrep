@@ -8,7 +8,7 @@ import type { Page } from '@playwright/test';
 import type { PlanFile } from '../src/lib/schema/planFile.ts';
 import { openApp, readStoredUserData, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
-import { endSharesAs, recordShares, sharedTexts } from './support/external.ts';
+import { closeShareSheet, endSharesAs, recordShares, sharedTexts } from './support/external.ts';
 import { copySchedule, startDay } from './support/plans.ts';
 import { changeAmounts, tickSet, typeWeight } from './support/workout.ts';
 
@@ -159,6 +159,15 @@ test('a dismissed share sheet changes nothing; one that fails points to Copy', a
   await endSharesAs(page, 'shared');
   await page.getByTestId('creator-share').click();
   await expect(page.getByTestId('creator-share-error')).toHaveCount(0);
+
+  // While the sheet is open the button waits, so a second tap is no failure.
+  await endSharesAs(page, 'open');
+  await page.getByTestId('creator-share').click();
+  await expect(page.getByTestId('creator-share')).toBeDisabled();
+  await closeShareSheet(page);
+  await expect(page.getByTestId('creator-share')).toBeEnabled();
+  await expect(page.locator('.message')).toHaveCount(0);
+  expect(await sharedTexts(page)).toHaveLength(4);
 });
 
 test('a required answer left blank keeps the prompt from being made', async ({ page }) => {

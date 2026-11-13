@@ -32,13 +32,20 @@
     notice = (await copyText(prompt)) ? 'copied' : 'copy-failed';
   }
 
+  /** Whether the share sheet is open: a second one cannot be, so the button waits. */
+  let sharing = $state(false);
+
   async function share() {
+    if (sharing) return;
+    sharing = true;
     try {
       // A dismissed share sheet leaves the screen as it was.
       if ((await shareText(prompt, 'Send the prompt to')) === 'shared') notice = null;
     } catch (error) {
       console.error('Sharing the prompt failed:', error);
       notice = 'share-failed';
+    } finally {
+      sharing = false;
     }
   }
 </script>
@@ -88,6 +95,7 @@
         type="button"
         class="btn btn-primary btn-lg btn-block"
         data-testid="creator-share"
+        disabled={sharing}
         onclick={share}
       >
         <Icon name="send" size={20} /> Send to AI app
