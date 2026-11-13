@@ -330,9 +330,12 @@ describe('buildSchedulePrompt', () => {
         { plans: [plan], customExercises: [custom] },
       );
 
-    it('is left out when starting fresh, or when the plan is gone', () => {
+    it('is left out when starting fresh, or when the plan is gone or has no days', () => {
       expect(prompt(FILLED, { plans: [plan] })).not.toContain('My current plan');
       expect(prompt({ basePlanId: 'deleted' }, { plans: [plan] })).not.toContain('My current plan');
+      expect(prompt({ basePlanId: 'p1' }, { plans: [{ ...plan, days: [] }] })).not.toContain(
+        'My current plan',
+      );
     });
 
     it('carries the plan in the reply format, without ids or timestamps', () => {

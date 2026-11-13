@@ -42,6 +42,7 @@
       class="plan"
       role="radio"
       aria-checked={selected === plan.id}
+      disabled={plan.days.length === 0}
       data-testid="creator-plan"
       data-plan-id={plan.id}
       onclick={() => onchange(plan.id)}
@@ -49,7 +50,9 @@
       <span class="mark"><Icon name="plans" size={20} /></span>
       <span class="text">
         <span class="name">Build on {plan.name.trim() || 'Untitled plan'}</span>
-        <span class="meta">{summary(plan)}</span>
+        <span class="meta"
+          >{plan.days.length === 0 ? 'No days yet, so nothing to build on' : summary(plan)}</span
+        >
         {#if plan.days.length > 0}
           <span class="days">
             {#each plan.days as day, index (day.id)}
@@ -86,6 +89,11 @@
     color: inherit;
     text-align: left;
     cursor: pointer;
+  }
+
+  .plan:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 
   .plan[aria-checked='true'] {

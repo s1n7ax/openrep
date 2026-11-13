@@ -15,6 +15,14 @@ export function findPlan(data: UserData, planId: string): Plan | undefined {
   return data.plans.find((plan) => plan.id === planId);
 }
 
+/**
+ * The plan `planId` when a prompt can build on it: it exists and has a day
+ * (a plan file needs one).
+ */
+export function planToBuildOn(plans: readonly Plan[], planId: string | null): Plan | undefined {
+  return plans.find((plan) => plan.id === planId && plan.days.length > 0);
+}
+
 export function findDay(plan: Plan | undefined, dayId: string): PlanDay | undefined {
   return plan?.days.find((day) => day.id === dayId);
 }

@@ -199,6 +199,10 @@ test('a required answer left blank keeps the creator on its step', async ({ page
   await page.getByTestId('creator-days-3').click();
   await page.getByTestId('creator-next').click();
   await expect(page.getByTestId('creator-week-error')).toBeVisible();
+  // Only the missing answer is marked, not the optional ones next to it.
+  const marked = page.locator('[data-invalid="true"]');
+  await expect(marked).toHaveCount(1);
+  await expect(marked.getByTestId('creator-minutes-45')).toBeVisible();
   await page.getByTestId('creator-minutes-45').click();
   await page.getByTestId('creator-next').click();
 
@@ -311,7 +315,13 @@ test('the answers survive a restart, and weights follow the unit', async ({ page
   await tapBody(page, 'creator-priority-lats-back');
   await toStep(page, 'you');
   await page.getByTestId('creator-bodyWeightKg').fill('80');
+  await page.getByTestId('creator-targetWeightKg').fill('76');
+  await page.getByTestId('creator-height').fill('180 cm');
+  await page.getByTestId('creator-sex-male').click();
   await toStep(page, 'review');
+  await expect(page.getByTestId('creator-review-you')).toContainText(
+    '3+ years · 80 kg · target 76 kg · 180 cm · Male',
+  );
   await page.getByTestId('creator-notes').fill('Restarted last week');
 
   await reopen(page);
@@ -409,6 +419,29 @@ test("Android's back button goes back a step", async ({ page }) => {
   await expectStep(page, 'goal');
   await androidBack(page);
   await expectStep(page, 'start');
+  await androidBack(page);
+  await expect(page.getByTestId('schedule-creator-open')).toBeVisible();
+
+  // Opened again once complete, it starts at the review, which back leaves
+  // at once; a step opened from the review goes back to the review.
+  await page.getByTestId('schedule-creator-open').click();
+  await toStep(page, 'week');
+  await page.getByTestId('creator-days-3').click();
+  await page.getByTestId('creator-minutes-30').click();
+  await toStep(page, 'you');
+  await page.getByTestId('creator-experience-under-1-year').click();
+  await toStep(page, 'review');
+  await page.getByTestId('tab-schedules').click();
+  await page.getByTestId('schedule-creator-open').click();
+  await expectStep(page, 'review');
+  await androidBack(page);
+  await expect(page.getByTestId('schedule-creator-open')).toBeVisible();
+  await page.getByTestId('schedule-creator-open').click();
+  await expectStep(page, 'review');
+  await page.getByTestId('creator-review-sports').click();
+  await expectStep(page, 'sports');
+  await androidBack(page);
+  await expectStep(page, 'review');
   await androidBack(page);
   await expect(page.getByTestId('schedule-creator-open')).toBeVisible();
 });

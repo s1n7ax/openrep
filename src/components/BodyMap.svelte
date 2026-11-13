@@ -101,10 +101,9 @@
         {side === 'front' ? 'Front' : 'Back'}
       </text>
       {#if mode === 'injuries'}
-        <text class="side" x="6" y={BODY_HEIGHT + 16}>{side === 'front' ? 'R' : 'L'}</text>
-        <text class="side" x={BODY_WIDTH - 6} y={BODY_HEIGHT + 16}
-          >{side === 'front' ? 'L' : 'R'}</text
-        >
+        <!-- Which hand is which: on the front view the person's right is on the left. -->
+        <text class="side" x="11" y="176">{side === 'front' ? 'R' : 'L'}</text>
+        <text class="side" x={BODY_WIDTH - 11} y="176">{side === 'front' ? 'L' : 'R'}</text>
       {/if}
     </g>
   {/each}

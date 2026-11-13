@@ -1,6 +1,7 @@
 /**
  * The schedule creator's saved answers (see `plans.ts` for the conventions).
  */
+import { planToBuildOn } from './selectors.ts';
 import type { PickedExercise, ScheduleAnswers, UserData } from '../schema/userData.ts';
 
 /** The answers of a form nobody has filled in. */
@@ -39,7 +40,7 @@ export function emptyScheduleAnswers(): ScheduleAnswers {
 /**
  * The saved answers, ready for the form: exercises typed into the first
  * version's text boxes become typed entries of the lists, and a plan to build
- * on that no longer exists is dropped.
+ * on that no longer exists, or has no day left, is dropped.
  */
 export function readScheduleAnswers(data: UserData): ScheduleAnswers {
   const saved = data.scheduleAnswers ?? emptyScheduleAnswers();
@@ -51,7 +52,7 @@ export function readScheduleAnswers(data: UserData): ScheduleAnswers {
     avoidExercises: '',
     includeList: [...saved.includeList, ...typed(saved.includeExercises)],
     avoidList: [...saved.avoidList, ...typed(saved.avoidExercises)],
-    basePlanId: data.plans.some((plan) => plan.id === saved.basePlanId) ? saved.basePlanId : null,
+    basePlanId: planToBuildOn(data.plans, saved.basePlanId)?.id ?? null,
   };
 }
 

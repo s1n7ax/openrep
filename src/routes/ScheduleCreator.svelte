@@ -36,6 +36,7 @@
   import type { Muscle } from '../lib/schema/common.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { setScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
+  import { planToBuildOn } from '../lib/userData/selectors.ts';
   import { formatWeightWithUnit } from '../lib/units.ts';
 
   const STEPS = [
@@ -75,6 +76,7 @@
     // opening the creator starts over, or at the review when it is complete.
     if (router.state.direction !== 'pop') {
       creatorSteps.step = STEPS.some(({ key }) => incomplete(key)) ? 0 : REVIEW;
+      creatorSteps.visited = [];
     }
   });
 
@@ -83,10 +85,15 @@
     untrack(() => userData.update((data) => setScheduleAnswers(data, next)));
   });
 
-  // Android's back button goes back a step before it leaves the creator.
+  // Android's back button returns to the steps this visit came through
+  // before it leaves the creator.
   $effect(() => {
-    if (creatorSteps.step === 0) return;
-    return router.pushBackHandler(() => go(creatorSteps.step - 1));
+    if (creatorSteps.visited.length === 0) return;
+    return router.pushBackHandler(() => {
+      const previous = creatorSteps.visited.at(-1) ?? 0;
+      creatorSteps.visited = creatorSteps.visited.slice(0, -1);
+      void show(previous);
+    });
   });
 
   /** Whether a step still lacks an answer it needs. */
@@ -125,7 +132,22 @@
     }
   }
 
+  /** Goes to step `index`, remembering this one for Android's back button. */
   async function go(index: number) {
+    creatorSteps.visited = [...creatorSteps.visited, creatorSteps.step];
+    await show(index);
+  }
+
+  /** The question before this one; undoes the last step forward when it came from there. */
+  async function previous() {
+    const target = creatorSteps.step - 1;
+    if (creatorSteps.visited.at(-1) === target) {
+      creatorSteps.visited = creatorSteps.visited.slice(0, -1);
+    }
+    await show(target);
+  }
+
+  async function show(index: number) {
     tried = false;
     creatorSteps.step = Math.max(0, Math.min(REVIEW, index));
     window.scrollTo({ top: 0 });
@@ -143,8 +165,12 @@
       return;
     }
     const firstIncomplete = STEPS.findIndex(({ key }) => incomplete(key));
-    if (firstIncomplete === -1) router.navigate(paths.scheduleCreatorPrompt());
-    else await go(firstIncomplete);
+    if (firstIncomplete === -1) {
+      router.navigate(paths.scheduleCreatorPrompt());
+      return;
+    }
+    await go(firstIncomplete);
+    tried = true;
   }
 
   function toggle<T>(list: readonly T[], item: T): T[] {
@@ -180,7 +206,7 @@
     form.answers[key] = answers[key].filter((_, i) => i !== index);
   }
 
-  const basePlan = $derived(userData.data.plans.find((plan) => plan.id === answers.basePlanId));
+  const basePlan = $derived(planToBuildOn(userData.data.plans, answers.basePlanId));
 
   function supersetsLabel(value: string): string {
     return value === 'Yes' || value === 'No' ? SUPERSETS[value] : '';
@@ -255,7 +281,12 @@
         answers.experience,
         answers.strengthLevel,
         answers.bodyWeightKg === null ? '' : formatWeightWithUnit(answers.bodyWeightKg, unit),
+        answers.targetWeightKg === null
+          ? ''
+          : `target ${formatWeightWithUnit(answers.targetWeightKg, unit)}`,
         answers.age.trim() && `${answers.age.trim()} years`,
+        answers.height.trim(),
+        answers.sex,
       ]
         .filter(Boolean)
         .join(' · '),
@@ -273,6 +304,7 @@
   options: readonly string[],
   testidPrefix: string,
   own: boolean,
+  required = false,
 )}
   <ChoiceChips
     {label}
@@ -281,7 +313,7 @@
     onchange={(next) => (form.answers[key] = next[0] ?? '')}
     single
     {own}
-    invalid={tried && answers[key] === ''}
+    invalid={required && tried && answers[key] === ''}
     {testidPrefix}
   />
 {/snippet}
@@ -410,7 +442,14 @@
           {/each}
         </div>
       </div>
-      {@render chips('sessionMinutes', 'Minutes each', SESSION_MINUTES, 'creator-minutes', false)}
+      {@render chips(
+        'sessionMinutes',
+        'Minutes each',
+        SESSION_MINUTES,
+        'creator-minutes',
+        false,
+        true,
+      )}
       {#if tried && incomplete('week')}
         <p class="field-error" role="alert" data-testid="creator-week-error">
           Pick the days and the minutes.
@@ -481,7 +520,7 @@
       />
       {@render text('injuries', 'In your own words', 'Hurts when I press overhead…')}
     {:else if step.key === 'exercises'}
-      <p class="lead">Find them by photo, or type a name. Hold one in the list to see it move.</p>
+      <p class="lead">Find them by photo, or type a name.</p>
       <PickedExercises
         label="Want in the plan"
         list="include"
@@ -508,7 +547,14 @@
         {@render text('otherSports', 'When and how much?', 'Volleyball straight after the gym…')}
       {/if}
     {:else if step.key === 'you'}
-      {@render chips('experience', 'Training experience', EXPERIENCE, 'creator-experience', false)}
+      {@render chips(
+        'experience',
+        'Training experience',
+        EXPERIENCE,
+        'creator-experience',
+        false,
+        true,
+      )}
       {#if tried && answers.experience === ''}
         <p class="field-error" role="alert" data-testid="creator-experience-error">
           Pick how long you have been training.
@@ -571,7 +617,7 @@
         class="btn btn-outline btn-lg previous"
         aria-label="Previous question"
         data-testid="creator-previous"
-        onclick={() => go(creatorSteps.step - 1)}
+        onclick={previous}
       >
         <Icon name="back" size={22} />
       </button>

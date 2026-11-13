@@ -26,7 +26,13 @@ describe('setScheduleAnswers', () => {
 });
 
 describe('readScheduleAnswers', () => {
-  const plan = { id: 'p1', name: 'PPL', days: [], createdAt: T0, updatedAt: T0 };
+  const plan = {
+    id: 'p1',
+    name: 'PPL',
+    days: [{ id: 'd1', name: 'Push', exercises: [] }],
+    createdAt: T0,
+    updatedAt: T0,
+  };
 
   it('gives empty answers before the creator is first used', () => {
     expect(readScheduleAnswers(emptyUserData())).toEqual(emptyScheduleAnswers());
@@ -56,6 +62,8 @@ describe('readScheduleAnswers', () => {
     };
     expect(readScheduleAnswers(data).basePlanId).toBe('p1');
     expect(readScheduleAnswers({ ...data, plans: [] }).basePlanId).toBeNull();
+    // A plan file needs a day, so a plan without one is nothing to build on.
+    expect(readScheduleAnswers({ ...data, plans: [{ ...plan, days: [] }] }).basePlanId).toBeNull();
   });
 
   it('reads answers saved by the first version of the form', () => {

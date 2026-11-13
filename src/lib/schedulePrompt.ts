@@ -19,7 +19,7 @@ import type {
   Unit,
 } from './schema/userData.ts';
 import { formatWeightWithUnit } from './units.ts';
-import { recentBestSets } from './userData/selectors.ts';
+import { planToBuildOn, recentBestSets } from './userData/selectors.ts';
 import { formatLoggedSet } from './userData/workoutText.ts';
 
 /** Always available; exercises the catalog gives no equipment count as bodyweight. */
@@ -27,9 +27,6 @@ const BODYWEIGHT: Equipment = 'body only';
 
 /** The equipment to choose from: bodyweight is always allowed, so it is no choice. */
 export const EQUIPMENT_CHOICES = EQUIPMENT.filter((item) => item !== BODYWEIGHT);
-
-/** The answers a plan cannot be designed without. */
-export const REQUIRED_ANSWERS = ['goal', 'daysPerWeek', 'sessionMinutes', 'experience'] as const;
 
 /** How far back the logged lifts in the prompt go, in days. */
 const LOGGED_LIFTS_DAYS = 90;
@@ -191,7 +188,7 @@ export interface SchedulePromptInput {
 /** The prompt to give an AI assistant. */
 export function buildSchedulePrompt(input: SchedulePromptInput): string {
   const { answers, unit, exercises, sessions, now, plans = [], customExercises = [] } = input;
-  const basePlan = plans.find((plan) => plan.id === answers.basePlanId);
+  const basePlan = planToBuildOn(plans, answers.basePlanId);
   const changes = joined(...answers.planChanges);
   // In catalog order; bodyweight last.
   const equipment = [

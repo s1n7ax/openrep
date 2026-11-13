@@ -1,16 +1,14 @@
 /**
  * The schedule creator's form state: a copy of the saved answers that the
- * form edits (the screen saves it back as it changes), the weight fields as
- * typed, and which required answers are missing. Also the step the creator
- * shows, kept while the exercise picker is open on top of it.
+ * form edits (the screen saves it back as it changes) and the weight fields
+ * as typed. Also the step the creator shows and the steps it came through,
+ * kept while the exercise picker is open on top of it.
  */
-import { REQUIRED_ANSWERS } from './schedulePrompt.ts';
 import type { ScheduleAnswers, Unit, UserData } from './schema/userData.ts';
 import { readScheduleAnswers } from './userData/scheduleAnswers.ts';
 import { formatWeight, parseWeight } from './units.ts';
 
 export type WeightKey = 'bodyWeightKg' | 'targetWeightKg';
-export type RequiredAnswer = (typeof REQUIRED_ANSWERS)[number];
 
 export class CreatorForm {
   answers: ScheduleAnswers = $state() as ScheduleAnswers;
@@ -29,11 +27,6 @@ export class CreatorForm {
     };
   }
 
-  /** Required answers left blank, in form order. */
-  get missing(): readonly RequiredAnswer[] {
-    return REQUIRED_ANSWERS.filter((key) => this.answers[key].trim() === '');
-  }
-
   weightInvalid(key: WeightKey): boolean {
     return !parseWeight(this.weights[key], this.#unit()).ok;
   }
@@ -45,5 +38,8 @@ export class CreatorForm {
   }
 }
 
-/** The step the creator shows. */
-export const creatorSteps = $state({ step: 0 });
+/**
+ * The step the creator shows, and the steps it went forward from in this
+ * visit, newest last: Android's back button returns to them.
+ */
+export const creatorSteps = $state<{ step: number; visited: number[] }>({ step: 0, visited: [] });
