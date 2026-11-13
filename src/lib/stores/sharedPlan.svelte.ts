@@ -3,14 +3,10 @@
  * to show it as a plan to preview and add.
  */
 import { paths, router } from '../router.ts';
-
-/** A share waiting for the import screen: its text, or null when it could not be read. */
-export interface PendingShare {
-  text: string | null;
-}
+import type { Share } from '../shareTarget.ts';
 
 class SharedPlan {
-  #pending = $state<PendingShare | null>(null);
+  #pending = $state<Share | null>(null);
 
   /** Keeps a share (null: unreadable) for the import screen and opens it. */
   receive(text: string | null): void {
@@ -19,7 +15,7 @@ class SharedPlan {
   }
 
   /** The share waiting to be shown, once; null when there is none. */
-  take(): PendingShare | null {
+  take(): Share | null {
     const pending = this.#pending;
     this.#pending = null;
     return pending;

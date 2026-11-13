@@ -312,15 +312,15 @@ export function importPlanFile(
 ): ImportedPlan {
   const { newId, now, catalog } = options;
   const catalogIds = new Set(catalog.map((exercise) => exercise.id));
-  // Names first, so a name wins over another exercise's alias.
   const catalogByName = new Map<string, Pick<Exercise, 'id' | 'name'>>();
-  for (const key of ['name', 'aliases'] as const) {
-    for (const exercise of catalog) {
-      const names = key === 'name' ? [exercise.name] : exercise.aliases;
-      for (const name of names) {
-        if (!catalogByName.has(nameKey(name))) catalogByName.set(nameKey(name), exercise);
-      }
-    }
+  function addCatalogName(name: string, exercise: Pick<Exercise, 'id' | 'name'>): void {
+    const key = nameKey(name);
+    if (!catalogByName.has(key)) catalogByName.set(key, exercise);
+  }
+  // Names first, so a name wins over another exercise's alias.
+  for (const exercise of catalog) addCatalogName(exercise.name, exercise);
+  for (const exercise of catalog) {
+    for (const alias of exercise.aliases) addCatalogName(alias, exercise);
   }
   const customByName = new Map(
     data.customExercises.map((custom) => [nameKey(custom.name), custom] as const),

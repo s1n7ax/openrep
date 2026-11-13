@@ -8,6 +8,7 @@
 <script lang="ts">
   import Icon from '../components/Icon.svelte';
   import PageHeader from '../components/PageHeader.svelte';
+  import { resolveExerciseRef } from '../lib/exerciseRef.ts';
   import { copyText } from '../lib/external.ts';
   import { newId, nowIso } from '../lib/ids.ts';
   import {
@@ -66,36 +67,23 @@
     }
   });
 
-  const plan = $derived(
-    preview.kind === 'plan'
-      ? preview.imported.data.plans.find((entry) => entry.id === preview.imported.planId)
-      : undefined,
-  );
+  const imported = $derived(preview.kind === 'plan' ? preview.imported : undefined);
+  const plan = $derived(imported?.data.plans.find((entry) => entry.id === imported.planId));
+  /** The custom exercises the user would have after the import. */
+  const customExercises = $derived(imported?.data.customExercises ?? []);
   /** Ids of the custom exercises the import would add. */
   const added = $derived.by(() => {
-    if (preview.kind !== 'plan') return new Set<string>();
     const existing = new Set(userData.data.customExercises.map((custom) => custom.id));
-    return new Set(
-      preview.imported.data.customExercises
-        .map((custom) => custom.id)
-        .filter((id) => !existing.has(id)),
-    );
+    return new Set(customExercises.map((custom) => custom.id).filter((id) => !existing.has(id)));
   });
   const unit = $derived(userData.data.settings.unit);
-
-  function exerciseName(ref: { kind: string; name: string; exerciseId?: string }): string {
-    if (ref.kind === 'catalog' && ref.exerciseId !== undefined) {
-      return catalog.exercise(ref.exerciseId)?.name ?? ref.name;
-    }
-    return ref.name;
-  }
 
   function addPlan(event: SubmitEvent) {
     event.preventDefault();
     if (preview.kind !== 'plan') return;
-    const imported = importText();
-    userData.update(() => imported.data);
-    router.navigate(paths.plan(imported.planId));
+    const result = importText();
+    userData.update(() => result.data);
+    router.navigate(paths.plan(result.planId));
   }
 
   async function copyPrompt() {
@@ -146,7 +134,11 @@
                 {#each day.exercises as entry (entry.id)}
                   <li class="exercise">
                     <span class="name" data-testid="plan-preview-exercise">
-                      {exerciseName(entry.exercise)}
+                      {resolveExerciseRef(
+                        entry.exercise,
+                        (id) => catalog.exercise(id),
+                        customExercises,
+                      ).name}
                     </span>
                     <span class="target">{formatTarget(entry, unit)}</span>
                     {#if entry.exercise.kind === 'custom' && added.has(entry.exercise.customExerciseId)}
