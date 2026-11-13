@@ -19,12 +19,16 @@ const now = '2026-01-02T03:04:05.000Z';
 
 /** The catalog exercises the tests and the examples of `llms.txt` refer to. */
 const catalog = [
-  { id: 'barbell-bench-press-medium-grip', name: 'Barbell Bench Press - Medium Grip' },
-  { id: 'barbell-squat', name: 'Barbell Squat' },
-  { id: 'bent-over-barbell-row', name: 'Bent Over Barbell Row' },
-  { id: 'dumbbell-flyes', name: 'Dumbbell Flyes' },
-  { id: 'plank', name: 'Plank' },
-  { id: 'triceps-pushdown', name: 'Triceps Pushdown' },
+  {
+    id: 'barbell-bench-press-medium-grip',
+    name: 'Barbell Bench Press - Medium Grip',
+    aliases: ['bench press', 'barbell squat'],
+  },
+  { id: 'barbell-squat', name: 'Barbell Squat', aliases: [] },
+  { id: 'bent-over-barbell-row', name: 'Bent Over Barbell Row', aliases: [] },
+  { id: 'dumbbell-flyes', name: 'Dumbbell Flyes', aliases: [] },
+  { id: 'plank', name: 'Plank', aliases: [] },
+  { id: 'triceps-pushdown', name: 'Triceps Pushdown', aliases: [] },
 ];
 
 function idsFrom(start = 0): () => string {
@@ -304,6 +308,18 @@ describe('importPlanFile', () => {
         name: 'Barbell Squat',
       });
       expect(data.customExercises).toEqual([]);
+    });
+
+    it("becomes the catalog exercise with that alias, a name winning over another's alias", () => {
+      const data = importInto(emptyUserData(), withExercise('bench-press', 'Bench Press'));
+      expect(data.plans[0]!.days[0]!.exercises[0]!.exercise).toMatchObject({
+        exerciseId: 'barbell-bench-press-medium-grip',
+      });
+      // "barbell squat" is also an alias of the bench press above, but the name of Barbell Squat.
+      const squat = importInto(emptyUserData(), withExercise('squat', 'Barbell Squat'));
+      expect(squat.plans[0]!.days[0]!.exercises[0]!.exercise).toMatchObject({
+        exerciseId: 'barbell-squat',
+      });
     });
 
     it('becomes a custom exercise of its name when no catalog exercise has it', () => {

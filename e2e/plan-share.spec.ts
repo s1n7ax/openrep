@@ -158,6 +158,17 @@ test('a shared reply with invalid or partial JSON says so and changes nothing', 
   expect((await readStoredUserData(page))?.plans ?? []).toEqual([]);
 });
 
+test('a share that could not be read says so', async ({ page }) => {
+  await asAndroid(page);
+  await openApp(page);
+
+  await shareToApp(page, null);
+
+  await expect(page.getByTestId('page-title')).toHaveText('Shared plan');
+  await expect(page.getByTestId('creator-share-error')).toBeVisible();
+  await expect(page.getByTestId('creator-import')).toBeDisabled();
+});
+
 test('a pasted reply is previewed before it is added', async ({ page }) => {
   await openApp(page);
   await page.getByTestId('tab-schedules').click();

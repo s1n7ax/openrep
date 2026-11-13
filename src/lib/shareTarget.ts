@@ -7,9 +7,9 @@
  */
 import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 
-/** One share: the shared text, or the content of the shared text or JSON file. */
+/** One share: the shared text, or the content of the shared text or JSON file; null when it could not be read. */
 export interface Share {
-  text: string;
+  text: string | null;
 }
 
 interface ShareTargetPlugin {
@@ -19,10 +19,11 @@ interface ShareTargetPlugin {
 const ShareTarget = registerPlugin<ShareTargetPlugin>('ShareTarget');
 
 /**
- * Calls `onShare` for every share, including the one that launched the app.
+ * Calls `onShare` for every share, including the one that launched the app,
+ * with null for a share that could not be read.
  * Returns a function that stops listening.
  */
-export function listenForShares(onShare: (text: string) => void): () => void {
+export function listenForShares(onShare: (text: string | null) => void): () => void {
   if (Capacitor.getPlatform() !== 'android') return () => {};
   const handle = ShareTarget.addListener('shared', (share) => onShare(share.text));
   return () => {

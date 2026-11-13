@@ -80,8 +80,11 @@ export async function androidBack(page: Page): Promise<void> {
   expect(listeners, 'back button listeners').toBe(1);
 }
 
-/** Shares `text` to the running app from another app (the app must run as on Android: `asAndroid`). */
-export async function shareToApp(page: Page, text: string): Promise<void> {
+/**
+ * Shares `text` to the running app from another app, or a share that could not
+ * be read when null (the app must run as on Android: `asAndroid`).
+ */
+export async function shareToApp(page: Page, text: string | null): Promise<void> {
   const listeners = await page.evaluate(
     (shared) => (window as unknown as AndroidWindow).appEvent?.('shared', { text: shared }) ?? 0,
     text,

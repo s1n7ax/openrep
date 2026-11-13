@@ -30,11 +30,15 @@
   /** Whether the last Copy prompt worked; `null` before the first. */
   let copied = $state<boolean | null>(null);
 
-  // Shared text replaces what is in the box, also when it arrives while the screen is open.
+  /** Whether the last share could not be read. */
+  let unreadable = $state(false);
+
+  // A share replaces what is in the box, also when it arrives while the screen is open.
   $effect(() => {
     const incoming = sharedPlan.take();
     if (incoming === null) return;
-    text = incoming;
+    text = incoming.text ?? '';
+    unreadable = incoming.text === null;
     shared = true;
   });
 
@@ -117,7 +121,12 @@
       <p class="field-hint">The plan is added to your plans. Nothing you have is replaced.</p>
     </div>
 
-    {#if preview.kind === 'invalid'}
+    {#if unreadable && preview.kind === 'empty'}
+      <p class="message error" role="alert" data-testid="creator-share-error">
+        <Icon name="alert" size={18} />
+        What was shared could not be read. Copy your AI assistant's reply and paste it here instead.
+      </p>
+    {:else if preview.kind === 'invalid'}
       <p class="message error" role="alert" data-testid="creator-paste-error">
         <Icon name="alert" size={18} />
         {preview.message}

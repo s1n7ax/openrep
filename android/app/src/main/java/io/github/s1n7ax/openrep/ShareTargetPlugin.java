@@ -11,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Receives text shared to OpenRep with Android's share sheet (ACTION_SEND of
@@ -29,17 +31,24 @@ public class ShareTargetPlugin extends Plugin {
      */
     private static final int MAX_BYTES = 5 * 1024 * 1024 + 1;
 
+    private final Executor reader = Executors.newSingleThreadExecutor();
+
     @Override
     protected void handleOnNewIntent(Intent intent) {
         super.handleOnNewIntent(intent);
         if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
-        String text = sharedText(intent);
-        if (text == null) return;
-        JSObject share = new JSObject();
-        share.put("text", text);
-        notifyListeners("shared", share, true);
         // A recreated activity gets its launch intent again: show the share once.
         getActivity().setIntent(new Intent(Intent.ACTION_MAIN));
+        // Reopened from Recents, Android hands over the share that once launched the task.
+        if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) return;
+        // A shared file may come from a slow provider: never read it on the main thread.
+        reader.execute(() -> {
+            JSObject share = new JSObject();
+            String text = sharedText(intent);
+            // null tells the web app the share could not be read.
+            share.put("text", text == null ? JSObject.NULL : text);
+            notifyListeners("shared", share, true);
+        });
     }
 
     /** The shared text, else the content of the shared file; null when neither can be read. */
@@ -57,9 +66,10 @@ public class ShareTargetPlugin extends Plugin {
         }
     }
 
+    /** The typed getter is used from API 34 only: API 33's has a platform bug (as in IntentCompat). */
     @SuppressWarnings("deprecation")
     private static Uri streamOf(Intent intent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             return intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
         }
         return intent.getParcelableExtra(Intent.EXTRA_STREAM);

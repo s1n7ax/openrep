@@ -4,20 +4,25 @@
  */
 import { paths, router } from '../router.ts';
 
-class SharedPlan {
-  #text = $state<string | null>(null);
+/** A share waiting for the import screen: its text, or null when it could not be read. */
+export interface PendingShare {
+  text: string | null;
+}
 
-  /** Keeps `text` for the import screen and opens it. */
-  receive(text: string): void {
-    this.#text = text;
+class SharedPlan {
+  #pending = $state<PendingShare | null>(null);
+
+  /** Keeps a share (null: unreadable) for the import screen and opens it. */
+  receive(text: string | null): void {
+    this.#pending = { text };
     router.navigate(paths.scheduleCreatorPaste());
   }
 
-  /** The text waiting to be shown, once; null when there is none. */
-  take(): string | null {
-    const text = this.#text;
-    this.#text = null;
-    return text;
+  /** The share waiting to be shown, once; null when there is none. */
+  take(): PendingShare | null {
+    const pending = this.#pending;
+    this.#pending = null;
+    return pending;
   }
 }
 

@@ -235,7 +235,7 @@ export interface ImportPlanOptions {
   /** ISO timestamp stored as the plan's (and new custom exercises') time. */
   now: string;
   /** The catalog's exercises, to resolve catalog references the catalog does not have. */
-  catalog: readonly Pick<Exercise, 'id' | 'name'>[];
+  catalog: readonly Pick<Exercise, 'id' | 'name' | 'aliases'>[];
 }
 
 /** What an import added, for the message shown afterwards. */
@@ -303,7 +303,7 @@ function orderSupersetMembers(exercises: readonly PlanExercise[]): PlanExercise[
  *   name, and added as a custom exercise when the user has none either.
  * - A catalog reference to an id the catalog does not have (an AI assistant
  *   may invent one) is resolved by name: to the catalog exercise of that
- *   name, else to a custom exercise of that name, reused or added.
+ *   name or alias, else to a custom exercise of that name, reused or added.
  */
 export function importPlanFile(
   data: UserData,
@@ -312,9 +312,16 @@ export function importPlanFile(
 ): ImportedPlan {
   const { newId, now, catalog } = options;
   const catalogIds = new Set(catalog.map((exercise) => exercise.id));
-  const catalogByName = new Map(
-    catalog.map((exercise) => [nameKey(exercise.name), exercise] as const),
-  );
+  // Names first, so a name wins over another exercise's alias.
+  const catalogByName = new Map<string, Pick<Exercise, 'id' | 'name'>>();
+  for (const key of ['name', 'aliases'] as const) {
+    for (const exercise of catalog) {
+      const names = key === 'name' ? [exercise.name] : exercise.aliases;
+      for (const name of names) {
+        if (!catalogByName.has(nameKey(name))) catalogByName.set(nameKey(name), exercise);
+      }
+    }
+  }
   const customByName = new Map(
     data.customExercises.map((custom) => [nameKey(custom.name), custom] as const),
   );
