@@ -33,6 +33,8 @@
     /** "Create custom exercise '<query>'" was chosen. */
     oncreate: (name: string) => void;
     autofocus?: boolean;
+    /** The words of the row that offers the typed name, when it is not a new custom exercise. */
+    createWords?: { title: (name: string) => string; text: string };
   }
 
   let {
@@ -42,6 +44,10 @@
     onpickcustom,
     oncreate,
     autofocus = false,
+    createWords = {
+      title: (name: string) => `Create custom exercise “${name}”`,
+      text: 'Not in the list? Add it as your own exercise.',
+    },
   }: Props = $props();
 
   function passes(item: { primaryMuscles: readonly Muscle[]; equipment: Equipment | null }) {
@@ -293,8 +299,8 @@
   >
     <span class="thumb create-thumb"><Icon name="plus" /></span>
     <span class="text">
-      <span class="name">Create custom exercise “{trimmedQuery}”</span>
-      <span class="meta">Not in the list? Add it as your own exercise.</span>
+      <span class="name">{createWords.title(trimmedQuery)}</span>
+      <span class="meta">{createWords.text}</span>
     </span>
   </button>
 {/snippet}

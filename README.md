@@ -47,10 +47,13 @@ works offline.
   days, supersets, weights, rest, notes and the custom exercises it uses — and
   is described for AI assistants in [`llms.txt`](llms.txt), so an assistant can
   write a personalized plan that imports in a few taps.
-- **Schedule creator**: on the Schedules tab, choose your equipment and answer
-  a few questions about your goal, injuries, week and body. The app writes a
-  prompt for any AI assistant; paste the reply back, or on Android share it to
-  OpenRep, and it becomes a plan after a preview.
+- **Schedule creator**: on the Schedules tab, a few questions, one per screen,
+  answered by tapping rather than by remembering names: pictures of
+  equipment, a body to tap the muscles to grow and where it hurts, popular
+  goals, sports and injuries (or type your own), exercises found by photo.
+  Start fresh or build on one of your plans. The app writes a prompt for any
+  AI assistant; paste the reply back, or on Android share it to OpenRep, and it
+  becomes a new plan after a preview.
 - **Catalog updates**: when online, the app downloads the latest catalog from
   this repository; the copy built into the app works offline from the first
   launch.
@@ -78,10 +81,13 @@ source with Xcode (see [Building](#building)).
 ## Build a plan with an AI assistant
 
 The quickest way is in the app: open **Schedules** → **Create a schedule**,
-answer the questions and copy the prompt into any assistant, even one without
-web access. Then choose **Paste a plan** and paste the whole reply. On Android
-you can instead share the reply to OpenRep (in Gemini: **Share** → **OpenRep**):
-the app opens with a preview of the plan, and **Add plan** adds it.
+tap through the questions and copy the prompt into any assistant, even one
+without web access. Then choose **Paste a plan** and paste the whole reply. On
+Android you can instead share the reply to OpenRep (in Gemini: **Share** →
+**OpenRep**): the app opens with a preview of the plan, and **Add plan** adds
+it. To improve a plan you already train with, choose it on the first question,
+**Start from**: the prompt carries the plan, and the reply is added as a new
+plan next to it.
 
 Asking in your own words works too: **Paste a plan** → **Copy prompt** gives a
 short prompt with the plan file format. Paste it into the assistant, write the
