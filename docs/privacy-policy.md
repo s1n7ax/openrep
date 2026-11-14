@@ -1,6 +1,6 @@
 # OpenRep privacy policy
 
-_Effective 1 November 2026._
+_Effective 13 November 2026._
 
 OpenRep is a free, open-source gym companion app for Android and iOS, made by
 the OpenRep project (https://github.com/s1n7ax/openrep). This policy covers
@@ -30,9 +30,10 @@ assistant of your choice. The prompt also lists your recent best sets and, when
 you choose to build on one of your plans, that plan. Your answers are stored on
 your device like the rest of your data.
 
-The app never sends the prompt anywhere. It leaves your device only if you copy
-it and give it to an assistant yourself, so read it first. What happens to it
-then is covered by that assistant's privacy policy, not by this one.
+The app never sends the prompt anywhere by itself. It leaves the app only when
+you give it to an assistant yourself: with **Send to AI app**, to the app you
+pick in your phone's share sheet, or by copying it. Read it first. What happens
+to it then is covered by that assistant's privacy policy, not by this one.
 
 ## Network connections
 

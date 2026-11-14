@@ -6,6 +6,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { isShareCancel } from './external.ts';
 
 /** How saving a file ended: shared (native), downloaded (web) or cancelled from the share sheet. */
 export type ExportOutcome = 'shared' | 'downloaded' | 'cancelled';
@@ -21,11 +22,6 @@ function download(name: string, text: string): void {
   link.remove();
   // Revoking right away can cancel the download in some browsers.
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-
-/** Whether the share sheet was dismissed (the plugins reject with "Share canceled"). */
-function isShareCancel(error: unknown): boolean {
-  return error instanceof Error && /cancel/i.test(error.message);
 }
 
 /**

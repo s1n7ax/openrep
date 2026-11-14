@@ -1,13 +1,14 @@
 /**
- * Leaving the app: opening web pages in the browser, YouTube in its own app
- * and copying text. They work the same on the web (a new tab, the Clipboard
- * API) and on iOS and Android (the system browser or app, the system
- * clipboard).
+ * Leaving the app: opening web pages in the browser, YouTube in its own app,
+ * sending text to another app and copying text. They work the same on the
+ * web (a new tab, the Web Share and Clipboard APIs) and on iOS and Android
+ * (the system browser or app, the share sheet, the system clipboard).
  */
 import { AppLauncher } from '@capacitor/app-launcher';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { Clipboard } from '@capacitor/clipboard';
+import { Share } from '@capacitor/share';
 
 /**
  * Opens `url` in the browser. Rejects when no browser can be opened.
@@ -61,6 +62,46 @@ export async function openYouTubeSearch(query: string): Promise<void> {
   }
   const { completed } = await AppLauncher.openUrl({ url });
   if (!completed) throw new Error('YouTube could not be opened.');
+}
+
+/**
+ * Whether the share sheet was dismissed: the plugins reject with "Share
+ * canceled", browsers with an `AbortError`.
+ */
+export function isShareCancel(error: unknown): boolean {
+  return error instanceof Error && (error.name === 'AbortError' || /cancel/i.test(error.message));
+}
+
+/** Whether {@link shareText} can open a share sheet here. */
+export function canShareText(): boolean {
+  return Capacitor.isNativePlatform() || typeof navigator.share === 'function';
+}
+
+/**
+ * Hands `text`, whole, to the share sheet, where the user picks the app that
+ * gets it (an AI assistant, a notes app, …). Resolves to `'cancelled'` when
+ * the sheet is dismissed; rejects when it cannot be shown.
+ *
+ * In a browser this calls the Web Share API directly: the plugin's web
+ * implementation is a dynamically imported chunk, which an offline tap could
+ * not fetch. No title is passed: the plugins send it as a subject, which some
+ * apps put in front of the text.
+ */
+export async function shareText(
+  text: string,
+  dialogTitle: string,
+): Promise<'shared' | 'cancelled'> {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      await Share.share({ text, dialogTitle });
+    } else {
+      await navigator.share({ text });
+    }
+    return 'shared';
+  } catch (error) {
+    if (isShareCancel(error)) return 'cancelled';
+    throw error;
+  }
 }
 
 /** Copies text to the clipboard; resolves to whether it worked. */
