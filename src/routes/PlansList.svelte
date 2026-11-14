@@ -17,6 +17,7 @@
   import { readPlanFile } from '../lib/planFileIO.ts';
   import { href, paths, router } from '../lib/router.ts';
   import type { Plan } from '../lib/schema/userData.ts';
+  import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { createPlan, deletePlan, movePlan } from '../lib/userData/plans.ts';
   import { activeSession, planStats } from '../lib/userData/selectors.ts';
@@ -69,6 +70,7 @@
       const imported = importPlanFile(userData.data, await readPlanFile(file), {
         newId,
         now: nowIso(),
+        catalog: catalog.exercises,
       });
       userData.update(() => imported.data);
       router.navigate(paths.plan(imported.planId));

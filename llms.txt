@@ -18,8 +18,9 @@ ready to edit and start.
 ## How to write a plan
 
 1. Pick exercises from the catalog: use each `exercises[].id` as `exerciseId`.
-   Never invent a catalog id — an id that does not exist still imports, but the
-   app shows "No longer in catalog" and no photo or 3D view.
+   Never invent a catalog id: the app imports an exercise whose id is not in
+   the catalog by its `name` — as the catalog exercise of that name if there is
+   one, otherwise as a custom exercise without photos or a 3D view.
 2. Lay the days out in the order they are trained. Put the work in a sensible
    order (compound lifts first), and give each exercise sets and either reps or
    a duration.
@@ -27,8 +28,8 @@ ready to edit and start.
    starting weight; otherwise leave `weightKg` out and the app fills it from
    their history.
 4. Optionally add form cues in `notes`.
-5. Save the document as `openrep-plan-<name>.json` and tell the user to import
-   it (step 3 below).
+5. Reply with the document in one code block, or save it as
+   `openrep-plan-<name>.json`, and tell the user to import it (step 3 below).
 
 For an exercise that is not in the catalog, add it to `customExercises` and
 refer to it with `kind: "custom"` (see the example). The app reuses an existing
@@ -254,4 +255,7 @@ exercise. It is a complete, valid file.
 3. Import: **Plans** tab → **Import** → choose the file. The app validates it,
    adds it at the end of the plans and opens it. If the file is rejected, the
    app says the plan is damaged or incomplete; check it against the JSON Schema
-   above.
+   above. Without a file, the user can share your reply to OpenRep from
+   Android's share sheet, or copy it and use **Schedules** → **Paste a plan**:
+   the app finds the plan in the reply, shows a preview and adds it on
+   **Add plan**.

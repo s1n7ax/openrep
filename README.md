@@ -50,7 +50,8 @@ works offline.
 - **Schedule creator**: on the Schedules tab, choose your equipment and answer
   a few questions about your goal, injuries, week and body. The app writes a
   prompt for any AI assistant; send it to the assistant's app from the share
-  sheet, or copy it, then paste the reply back and it becomes a plan.
+  sheet, or copy it, then paste the reply back, or on Android share it to
+  OpenRep, and it becomes a plan after a preview.
 - **Catalog updates**: when online, the app downloads the latest catalog from
   this repository; the copy built into the app works offline from the first
   launch.
@@ -81,7 +82,14 @@ The quickest way is in the app: open **Schedules** → **Create a schedule** and
 answer the questions. Tap **Send to AI app** and pick your assistant's app
 (ChatGPT, Claude, Gemini, …) in the share sheet, or copy the prompt into any
 assistant, even one without web access. Then copy the assistant's whole reply,
-choose **Paste the reply** and paste it.
+choose **Paste the reply** and paste it. On Android you can instead share the
+reply to OpenRep (in Gemini: **Share** → **OpenRep**): the app opens with a
+preview of the plan, and **Add plan** adds it.
+
+Asking in your own words works too: **Paste a plan** → **Copy prompt** gives a
+short prompt with the plan file format. Paste it into the assistant, write the
+plan you want after it (for example "3-day beginner full body, 45 minutes"),
+and share or paste the reply back.
 
 You can also start from a prompt of your own, if the assistant has web access.
 [`llms.txt`](llms.txt) describes the plan file format, links the JSON Schema and

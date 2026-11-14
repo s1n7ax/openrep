@@ -4,12 +4,14 @@ import { InvalidPlanFileError, parsePastedPlan, parsePlanFile } from './planFile
 import {
   buildSchedulePrompt,
   LOGGED_LIFTS_LIMIT,
+  QUICK_PLAN_PROMPT,
   type SchedulePromptInput,
 } from './schedulePrompt.ts';
 import type { Equipment } from './schema/common.ts';
 import type { Exercise } from './schema/exercise.ts';
 import type { ScheduleAnswers, Session } from './schema/userData.ts';
 import { emptyScheduleAnswers } from './userData/scheduleAnswers.ts';
+import { DEFAULT_CATALOG_URL } from './catalog/urls.ts';
 
 const NOW = new Date('2026-06-01T10:00:00.000Z');
 
@@ -335,5 +337,22 @@ describe('buildSchedulePrompt', () => {
       const lifts = section(prompt({}, { sessions }), 'My logged lifts');
       expect(lifts.match(/^- /gm)).toHaveLength(LOGGED_LIFTS_LIMIT);
     });
+  });
+});
+
+describe('QUICK_PLAN_PROMPT', () => {
+  it('points at the catalog and ends where the user writes their request', () => {
+    expect(QUICK_PLAN_PROMPT).toContain(DEFAULT_CATALOG_URL);
+    expect(QUICK_PLAN_PROMPT).toMatch(/## The plan I want\n\n$/);
+  });
+
+  it('carries a format example the app accepts once its placeholder is filled in', () => {
+    const example = /```json\n([\s\S]*?)```/.exec(QUICK_PLAN_PROMPT)?.[1];
+    expect(example).toBeDefined();
+    expect(() => parsePlanFile(example!.replaceAll('<id from the list>', 'pushups'))).not.toThrow();
+  });
+
+  it('does not import as a plan when pasted back by mistake', () => {
+    expect(() => parsePastedPlan(QUICK_PLAN_PROMPT)).toThrow(InvalidPlanFileError);
   });
 });
