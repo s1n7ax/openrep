@@ -5,6 +5,7 @@
  * (`llms.txt` describes the same format with online links) and the catalog
  * exercises the user has the equipment for.
  */
+import { DEFAULT_CATALOG_URL } from './catalog/urls.ts';
 import { equipmentLabel, muscleList } from './labels.ts';
 import { createPlanFile } from './planFile.ts';
 import { injuryLabel } from './scheduleChoices.ts';
@@ -171,6 +172,23 @@ function currentPlanJson(plan: Plan, customExercises: readonly CustomExercise[])
   };
   return JSON.stringify(current, null, 2);
 }
+
+/**
+ * A short prompt to copy into an AI assistant before asking for a plan in its
+ * own words: the plan file format, and where the catalog's exercise ids are.
+ * An assistant that cannot open the link still writes a plan the app imports,
+ * matching its exercises by name.
+ */
+export const QUICK_PLAN_PROMPT = `${[
+  'Write the workout plan I ask for below as a plan file for OpenRep, my gym app.',
+  [
+    '## Exercises',
+    '',
+    `The list of exercises, with their ids, is the \`exercises\` array of ${DEFAULT_CATALOG_URL}. Use the exercise's \`id\` as \`exerciseId\` and its \`name\` as \`name\`. If you cannot open the list, give each exercise its usual English name: the app finds exercises by name.`,
+  ].join('\n'),
+  FORMAT,
+  '## The plan I want',
+].join('\n\n')}\n\n`;
 
 export interface SchedulePromptInput {
   answers: ScheduleAnswers;

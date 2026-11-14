@@ -58,14 +58,61 @@ export async function swipe(page: Page, from: Point, to: Point): Promise<void> {
  * previous one.
  */
 export async function scrollWorkout(page: Page, fraction: number): Promise<void> {
+  const [from, to] = workoutStroke(page, fraction, 0.9, 0.15);
+  await swipe(page, from, to);
+}
+
+/**
+ * Flicks the workout by `fraction` of the screen height with a quick swipe
+ * along its left edge, let go while still moving, so its momentum scrolls on
+ * (a fling): positive towards the next page, negative towards the previous
+ * one. Every touch event carries its own time, 4 ms apart, and all are sent
+ * at once, so a page slow to render cannot stretch the flick into a drag.
+ */
+export async function flingWorkout(page: Page, fraction: number): Promise<void> {
+  const [from, to] = workoutStroke(page, fraction, 0.6, 0.3);
+  const cdp = await page.context().newCDPSession(page);
+  const start = Date.now() / 1000;
+  const steps = 12;
+  const at = (step: number) => ({
+    x: from.x + ((to.x - from.x) * step) / steps,
+    y: from.y + ((to.y - from.y) * step) / steps,
+  });
+  const touch = (
+    type: 'touchStart' | 'touchMove' | 'touchEnd',
+    step: number,
+    touchPoints: Point[],
+  ) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints, timestamp: start + step * 0.004 });
+  await Promise.all([
+    touch('touchStart', 0, [from]),
+    ...Array.from({ length: steps }, (_, step) => touch('touchMove', step + 1, [at(step + 1)])),
+    touch('touchEnd', steps + 1, []),
+  ]);
+  await cdp.detach();
+}
+
+/**
+ * Where a finger goes down and stops to scroll the workout by `fraction` of
+ * the screen height along its left edge: from `downFrom` of the way down the
+ * screen scrolling towards the next page, from `upFrom` towards the previous.
+ */
+function workoutStroke(
+  page: Page,
+  fraction: number,
+  downFrom: number,
+  upFrom: number,
+): [Point, Point] {
   const { width, height } = page.viewportSize()!;
   const distance = Math.abs(fraction) * height + TOUCH_SLOP;
   const x = Math.round(width * 0.06);
   const [from, to] =
     fraction > 0
-      ? [height * 0.9, height * 0.9 - distance]
-      : [height * 0.15, height * 0.15 + distance];
-  await swipe(page, { x, y: from }, { x, y: to });
+      ? [height * downFrom, height * downFrom - distance]
+      : [height * upFrom, height * upFrom + distance];
+  return [
+    { x, y: from },
+    { x, y: to },
+  ];
 }
 
 /**

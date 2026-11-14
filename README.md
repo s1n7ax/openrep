@@ -52,7 +52,8 @@ works offline.
   equipment, a body to tap the muscles to grow and where it hurts, popular
   goals, sports and injuries (or type your own), exercises found by photo.
   Start fresh or build on one of your plans. The app writes a prompt for any
-  AI assistant; paste the reply back and it becomes a new plan.
+  AI assistant; paste the reply back, or on Android share it to OpenRep, and it
+  becomes a new plan after a preview.
 - **Catalog updates**: when online, the app downloads the latest catalog from
   this repository; the copy built into the app works offline from the first
   launch.
@@ -81,10 +82,17 @@ source with Xcode (see [Building](#building)).
 
 The quickest way is in the app: open **Schedules** → **Create a schedule**,
 tap through the questions and copy the prompt into any assistant, even one
-without web access. Then choose **Paste a plan** and paste the whole reply. To
-improve a plan you already train with, choose it on the first question, **Start
-from**: the prompt carries the plan, and the reply is added as a new plan next
-to it.
+without web access. Then choose **Paste a plan** and paste the whole reply. On
+Android you can instead share the reply to OpenRep (in Gemini: **Share** →
+**OpenRep**): the app opens with a preview of the plan, and **Add plan** adds
+it. To improve a plan you already train with, choose it on the first question,
+**Start from**: the prompt carries the plan, and the reply is added as a new
+plan next to it.
+
+Asking in your own words works too: **Paste a plan** → **Copy prompt** gives a
+short prompt with the plan file format. Paste it into the assistant, write the
+plan you want after it (for example "3-day beginner full body, 45 minutes"),
+and share or paste the reply back.
 
 You can also start from a prompt of your own, if the assistant has web access.
 [`llms.txt`](llms.txt) describes the plan file format, links the JSON Schema and

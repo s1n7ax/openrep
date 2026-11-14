@@ -9,8 +9,10 @@
   import Icon from './components/Icon.svelte';
   import TabBar from './components/TabBar.svelte';
   import { setupLifecycle } from './lib/native.ts';
+  import { listenForShares } from './lib/shareTarget.ts';
   import { href, paths, router, tabOf, type Route } from './lib/router.ts';
   import { catalog } from './lib/stores/catalog.svelte.ts';
+  import { sharedPlan } from './lib/stores/sharedPlan.svelte.ts';
   import { userData } from './lib/stores/userData.svelte.ts';
   import CustomExerciseDetail from './routes/CustomExerciseDetail.svelte';
   import CustomExerciseForm from './routes/CustomExerciseForm.svelte';
@@ -43,13 +45,17 @@
 
   onMount(() => {
     const stopLifecycle = setupLifecycle({ onPause: () => void userData.flush() });
+    const stopShares = listenForShares((text) => sharedPlan.receive(text));
     // The dev server serves the catalog built from `data/`: never replace it
     // with the published one, nor on the dev pose route used by tooling.
     const checkForUpdates = !import.meta.env.DEV && route.name !== 'dev-pose';
     Promise.all([userData.load(), catalog.load()])
       .then(() => (checkForUpdates ? catalog.checkOnLaunch() : null))
       .catch((error: unknown) => console.error('Start-up failed:', error));
-    return stopLifecycle;
+    return () => {
+      stopLifecycle();
+      stopShares();
+    };
   });
 
   // Back restores the previous scroll position; new screens start at the top.
