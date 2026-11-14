@@ -321,6 +321,7 @@ test('a prompt can build on a plan, whose reply is added as a new plan', async (
   expect(text).toContain('- Start from my current plan');
   expect(text).toContain('- Equipment: Barbell, Cable, Dumbbell, Machine, Bodyweight');
   expect(text).toContain('- Keep the `weightKg` my current plan gives an exercise');
+  expect(text).toContain('use only the ids listed above, or ones my current plan already uses.');
 
   // The prompt pasted back by mistake adds nothing.
   await page.getByTestId('creator-paste-open').click();
@@ -334,6 +335,52 @@ test('a prompt can build on a plan, whose reply is added as a new plan', async (
   const stored = await readStoredUserData(page);
   expect(stored?.plans.map((plan) => plan.name)).toEqual([original.name, 'Dumbbell Upper/Lower']);
   expect(stored?.plans[0]).toEqual(original);
+});
+
+test('switching the plan to build on switches what it filled in', async ({ page }) => {
+  await openApp(page);
+  const ppl = await copySchedule(page, 'push-pull-legs');
+  const upperLower = await copySchedule(page, 'upper-lower');
+  const plan = (id: string) => page.locator(`[data-testid="creator-plan"][data-plan-id="${id}"]`);
+  const saved = async () => (await readStoredUserData(page))?.scheduleAnswers;
+
+  await openCreator(page);
+  await plan(ppl).click();
+  await plan(upperLower).click();
+  await page.getByTestId('creator-next').click();
+  await page.getByTestId('creator-goal-get-stronger').click();
+  await page.getByTestId('creator-next').click();
+  // Upper/Lower's four days and its equipment, not Push/Pull/Legs'.
+  await expect(page.getByTestId('creator-days-4')).toHaveAttribute('aria-checked', 'true');
+  await page.getByTestId('creator-minutes-60').click();
+  await page.getByTestId('creator-next').click();
+  await expect(page.getByTestId('creator-equipment-e-z-curl-bar')).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
+  // Starting fresh clears what the plan filled in, and keeps what was picked.
+  for (const step of ['week', 'goal', 'start']) {
+    await page.getByTestId('creator-previous').click();
+    await expectStep(page, step);
+  }
+  await page.getByTestId('creator-plan-none').click();
+  await expect
+    .poll(saved)
+    .toMatchObject({ basePlanId: null, daysPerWeek: '', equipment: [], sessionMinutes: '60' });
+
+  // Days chosen by hand stay when a plan is picked.
+  await page.getByTestId('creator-next').click();
+  await page.getByTestId('creator-next').click();
+  await page.getByTestId('creator-days-5').click();
+  await page.getByTestId('creator-previous').click();
+  await page.getByTestId('creator-previous').click();
+  await plan(ppl).click();
+  await expect.poll(saved).toMatchObject({
+    basePlanId: ppl,
+    daysPerWeek: '5',
+    equipment: ['barbell', 'cable', 'dumbbell', 'machine'],
+  });
 });
 
 test('the answers survive a restart, and weights follow the unit', async ({ page }) => {

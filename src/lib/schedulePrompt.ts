@@ -28,21 +28,6 @@ const BODYWEIGHT: Equipment = 'body only';
 /** The equipment to choose from: bodyweight is always allowed, so it is no choice. */
 export const EQUIPMENT_CHOICES = EQUIPMENT.filter((item) => item !== BODYWEIGHT);
 
-/** The equipment choices a plan's catalog exercises use, in catalog order. */
-export function planEquipment(
-  plan: Plan,
-  exercise: (id: string) => Exercise | undefined,
-): Equipment[] {
-  const used = new Set(
-    plan.days.flatMap((day) =>
-      day.exercises.flatMap(({ exercise: ref }) =>
-        ref.kind === 'catalog' ? (exercise(ref.exerciseId)?.equipment ?? []) : [],
-      ),
-    ),
-  );
-  return EQUIPMENT_CHOICES.filter((item) => used.has(item));
-}
-
 /** How far back the logged lifts in the prompt go, in days. */
 const LOGGED_LIFTS_DAYS = 90;
 /** Most exercises the logged lifts in the prompt cover. */
@@ -275,7 +260,9 @@ export function buildSchedulePrompt(input: SchedulePromptInput): string {
       '- Put compound lifts first, and balance the work across the week.',
       '- Choose a sensible number of sets, reps and rest for my goal and experience.',
       weightRule(basePlan !== undefined, lifts.length > 0),
-      '- Never invent an `exerciseId`: use only the ids listed above.',
+      basePlan === undefined
+        ? '- Never invent an `exerciseId`: use only the ids listed above.'
+        : '- Never invent an `exerciseId`: use only the ids listed above, or ones my current plan already uses.',
     ].join('\n'),
     FORMAT,
   ];

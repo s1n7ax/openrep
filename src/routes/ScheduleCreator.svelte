@@ -41,12 +41,15 @@
     STRENGTH_LEVELS,
     SUPERSETS,
   } from '../lib/scheduleChoices.ts';
-  import { planEquipment } from '../lib/schedulePrompt.ts';
   import type { Muscle } from '../lib/schema/common.ts';
   import type { ScheduleAnswers } from '../lib/schema/userData.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { readScheduleAnswers, setScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
+  import {
+    readScheduleAnswers,
+    setScheduleAnswers,
+    withBasePlan,
+  } from '../lib/userData/scheduleAnswers.ts';
   import { planToBuildOn } from '../lib/userData/selectors.ts';
   import { formatWeight, formatWeightWithUnit, parseWeight } from '../lib/units.ts';
 
@@ -215,16 +218,10 @@
   }
 
   function pickPlan(planId: string | null) {
-    answers.basePlanId = planId;
-    const plan = planToBuildOn(userData.data.plans, planId);
-    if (plan === undefined) return;
-    // The plan's day count and equipment are good first answers.
-    if (answers.daysPerWeek === '' && plan.days.length <= 7) {
-      answers.daysPerWeek = String(plan.days.length);
-    }
-    if (answers.equipment.length === 0) {
-      answers.equipment = planEquipment(plan, (id) => catalog.exercise(id));
-    }
+    Object.assign(
+      answers,
+      withBasePlan(answers, userData.data.plans, planId, (id) => catalog.exercise(id)),
+    );
   }
 
   const commonInjuriesPicked = $derived(

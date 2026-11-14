@@ -4,7 +4,6 @@ import { InvalidPlanFileError, parsePastedPlan, parsePlanFile } from './planFile
 import {
   buildSchedulePrompt,
   LOGGED_LIFTS_LIMIT,
-  planEquipment,
   type SchedulePromptInput,
 } from './schedulePrompt.ts';
 import type { Equipment } from './schema/common.ts';
@@ -432,28 +431,13 @@ describe('buildSchedulePrompt', () => {
       );
     });
 
-    it('gives the equipment its catalog exercises use, in catalog order', () => {
-      const legs = (exerciseId: string) => ({
-        id: `e-${exerciseId}`,
-        exercise: { kind: 'catalog' as const, exerciseId, name: exerciseId },
-        sets: 3,
-        reps: '5',
-      });
-      const bigger: Plan = {
-        ...plan,
-        days: [
-          ...plan.days,
-          {
-            id: 'd2',
-            name: 'Legs',
-            exercises: ['barbell-press', 'pushups', 'calf-stretch', 'not-in-catalog'].map(legs),
-          },
-        ],
-      };
-      const byId = (id: string) => catalog.find((item) => item.id === id);
-      // The custom exercise's barbell does not count: it is not a catalog exercise.
-      expect(planEquipment(plan, byId)).toEqual(['dumbbell']);
-      expect(planEquipment(bigger, byId)).toEqual(['barbell', 'dumbbell']);
+    it('lets the assistant keep the plan’s own exercises', () => {
+      expect(section(withPlan(), 'How to build the plan')).toContain(
+        '- Never invent an `exerciseId`: use only the ids listed above, or ones my current plan already uses.',
+      );
+      expect(section(prompt(FILLED), 'How to build the plan')).toContain(
+        '- Never invent an `exerciseId`: use only the ids listed above.\n',
+      );
     });
   });
 
