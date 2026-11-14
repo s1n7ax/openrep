@@ -46,6 +46,7 @@
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import {
+    answeredByUser,
     readScheduleAnswers,
     setScheduleAnswers,
     withBasePlan,
@@ -470,7 +471,10 @@
               role="radio"
               aria-checked={answers.daysPerWeek === days}
               data-testid={`creator-days-${days}`}
-              onclick={() => (answers.daysPerWeek = days)}>{days}</button
+              onclick={() => {
+                answers.daysPerWeek = days;
+                answers.filledByPlan = answeredByUser(answers, 'daysPerWeek');
+              }}>{days}</button
             >
           {/each}
         </div>
@@ -517,7 +521,10 @@
         equipment={answers.equipment}
         extra={answers.extraEquipment}
         onchange={(equipment, extra) => {
-          answers.equipment = equipment;
+          if (equipment.join() !== answers.equipment.join()) {
+            answers.equipment = equipment;
+            answers.filledByPlan = answeredByUser(answers, 'equipment');
+          }
           answers.extraEquipment = extra;
         }}
       />

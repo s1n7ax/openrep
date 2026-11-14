@@ -9,6 +9,7 @@ import {
   type ScheduleAnswers,
 } from '../schema/userData.ts';
 import {
+  answeredByUser,
   emptyScheduleAnswers,
   planEquipment,
   readScheduleAnswers,
@@ -165,6 +166,7 @@ describe('withBasePlan', () => {
       basePlanId: 'ppl',
       daysPerWeek: '3',
       equipment: ['barbell', 'dumbbell'],
+      filledByPlan: ['daysPerWeek', 'equipment'],
     });
   });
 
@@ -179,16 +181,44 @@ describe('withBasePlan', () => {
       basePlanId: null,
       daysPerWeek: '',
       equipment: [],
+      filledByPlan: [],
+    });
+  });
+
+  it('switches them even when the plan that filled them in is gone', () => {
+    const first = pick({}, 'ppl');
+    expect(withBasePlan(first, [upper], 'upper', byId)).toMatchObject({
+      daysPerWeek: '4',
+      equipment: ['cable', 'dumbbell'],
     });
   });
 
   it('keeps the answers the user chose', () => {
     const chosen = { daysPerWeek: '5', equipment: ['kettlebells'] as Equipment[] };
-    expect(pick(chosen, 'ppl')).toMatchObject({ basePlanId: 'ppl', ...chosen });
-    const changed = { ...pick({}, 'ppl'), daysPerWeek: '2' };
+    expect(pick(chosen, 'ppl')).toMatchObject({ basePlanId: 'ppl', ...chosen, filledByPlan: [] });
+    const first = pick({}, 'ppl');
+    const changed = {
+      ...first,
+      daysPerWeek: '2',
+      filledByPlan: answeredByUser(first, 'daysPerWeek'),
+    };
     expect(withBasePlan(changed, plans, 'upper', byId)).toMatchObject({
       daysPerWeek: '2',
       equipment: ['cable', 'dumbbell'],
+      filledByPlan: ['equipment'],
+    });
+  });
+
+  it('keeps the answers the user chose when they equal the plan’s', () => {
+    const own = pick({ daysPerWeek: '3', equipment: ['barbell', 'dumbbell'] }, 'ppl');
+    expect(own.filledByPlan).toEqual([]);
+    expect(withBasePlan(own, plans, null, byId)).toMatchObject({
+      daysPerWeek: '3',
+      equipment: ['barbell', 'dumbbell'],
+    });
+    expect(withBasePlan(own, plans, 'upper', byId)).toMatchObject({
+      daysPerWeek: '3',
+      equipment: ['barbell', 'dumbbell'],
     });
   });
 

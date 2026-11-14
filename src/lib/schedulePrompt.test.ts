@@ -99,6 +99,7 @@ const FILLED: ScheduleAnswers = {
   equipment: ['dumbbell', 'bands'],
   extraEquipment: ['Bench', 'Pull-up bar'],
   basePlanId: null,
+  filledByPlan: [],
   planChanges: [],
   goal: 'Build muscle',
   injuryPicks: ['left-knee', 'tennis-elbow'],

@@ -13,6 +13,7 @@ export function emptyScheduleAnswers(): ScheduleAnswers {
     equipment: [],
     extraEquipment: [],
     basePlanId: null,
+    filledByPlan: [],
     planChanges: [],
     goal: '',
     injuryPicks: [],
@@ -77,8 +78,8 @@ export function planEquipment(
 /**
  * The answers building on the plan `planId` (null: starting fresh). A plan
  * answers days per week (its day count) and equipment (what its exercises
- * use); each of those follows the pick while it still holds what the last
- * pick gave, nothing included. An answer the user changed is kept.
+ * use). Such an answer follows each pick while it is unanswered or the last
+ * pick filled it in; one the user gave or changed is kept.
  */
 export function withBasePlan(
   answers: ScheduleAnswers,
@@ -86,21 +87,30 @@ export function withBasePlan(
   planId: string | null,
   exercise: (id: string) => Exercise | undefined,
 ): ScheduleAnswers {
-  const given = (plan: Plan | undefined) => ({
-    days: plan !== undefined && plan.days.length <= 7 ? String(plan.days.length) : '',
-    equipment: plan === undefined ? [] : planEquipment(plan, exercise),
-  });
-  const before = given(planToBuildOn(plans, answers.basePlanId));
-  const after = given(planToBuildOn(plans, planId));
-  const untouched =
-    answers.equipment.length === before.equipment.length &&
-    answers.equipment.every((item) => before.equipment.includes(item));
+  const plan = planToBuildOn(plans, planId);
+  const days = plan !== undefined && plan.days.length <= 7 ? String(plan.days.length) : '';
+  const equipment = plan === undefined ? [] : planEquipment(plan, exercise);
+  const followsDays = answers.daysPerWeek === '' || answers.filledByPlan.includes('daysPerWeek');
+  const followsEquipment =
+    answers.equipment.length === 0 || answers.filledByPlan.includes('equipment');
   return {
     ...answers,
     basePlanId: planId,
-    daysPerWeek: answers.daysPerWeek === before.days ? after.days : answers.daysPerWeek,
-    equipment: untouched ? after.equipment : answers.equipment,
+    daysPerWeek: followsDays ? days : answers.daysPerWeek,
+    equipment: followsEquipment ? equipment : answers.equipment,
+    filledByPlan: [
+      ...(followsDays && days !== '' ? (['daysPerWeek'] as const) : []),
+      ...(followsEquipment && equipment.length > 0 ? (['equipment'] as const) : []),
+    ],
   };
+}
+
+/** The answers with `key` given by the user, so no longer the plan's. */
+export function answeredByUser(
+  answers: ScheduleAnswers,
+  key: ScheduleAnswers['filledByPlan'][number],
+): ScheduleAnswers['filledByPlan'] {
+  return answers.filledByPlan.filter((item) => item !== key);
 }
 
 export function setScheduleAnswers(data: UserData, answers: ScheduleAnswers): UserData {

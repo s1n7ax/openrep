@@ -186,6 +186,8 @@ export const scheduleAnswersSchema = z.object({
   extraEquipment: z.array(z.string()).default([]),
   /** The plan the assistant should build on, or `null` to start fresh. */
   basePlanId: localIdSchema.nullable().default(null),
+  /** The answers that plan filled in, while the user has not changed them. */
+  filledByPlan: z.array(z.enum(['daysPerWeek', 'equipment'])).default([]),
   /** What to change in that plan: popular picks and typed text. */
   planChanges: z.array(z.string()).default([]),
   goal: z.string(),

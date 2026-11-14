@@ -381,6 +381,16 @@ test('switching the plan to build on switches what it filled in', async ({ page 
     daysPerWeek: '5',
     equipment: ['barbell', 'cable', 'dumbbell', 'machine'],
   });
+
+  // Days chosen by hand stay even when they equal the plan's; the plan's
+  // equipment goes with it.
+  await page.getByTestId('creator-next').click();
+  await page.getByTestId('creator-next').click();
+  await page.getByTestId('creator-days-3').click();
+  await page.getByTestId('creator-previous').click();
+  await page.getByTestId('creator-previous').click();
+  await page.getByTestId('creator-plan-none').click();
+  await expect.poll(saved).toMatchObject({ basePlanId: null, daysPerWeek: '3', equipment: [] });
 });
 
 test('the answers survive a restart, and weights follow the unit', async ({ page }) => {
