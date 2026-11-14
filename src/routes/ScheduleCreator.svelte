@@ -520,8 +520,9 @@
       <EquipmentPicker
         equipment={answers.equipment}
         extra={answers.extraEquipment}
-        onchange={(equipment, extra) => {
-          if (equipment.join() !== answers.equipment.join()) {
+        onchange={(equipment, extra, choseEquipment) => {
+          // Equipment the user chose is theirs, even where it matches the plan's.
+          if (choseEquipment) {
             answers.equipment = equipment;
             answers.filledByPlan = answeredByUser(answers, 'equipment');
           }

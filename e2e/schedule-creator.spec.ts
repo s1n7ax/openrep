@@ -393,6 +393,39 @@ test('switching the plan to build on switches what it filled in', async ({ page 
   await expect.poll(saved).toMatchObject({ basePlanId: null, daysPerWeek: '3', equipment: [] });
 });
 
+test('a usual setup tapped is the user’s equipment, even when it matches the plan’s', async ({
+  page,
+}) => {
+  await openApp(page);
+  await openCreator(page);
+  await answerRequired(page);
+  await page.getByTestId('creator-create').click();
+  // A plan with only dumbbell exercises, the "Home dumbbells" setup's equipment.
+  await page.getByTestId('creator-paste-open').click();
+  await page.getByTestId('creator-paste').fill(JSON.stringify(reply));
+  await page.getByTestId('creator-import').click();
+  await expect(page.getByTestId('page-title')).toHaveText('Dumbbell Upper/Lower');
+  const planId = (await readStoredUserData(page))!.plans[0]!.id;
+  const saved = async () => (await readStoredUserData(page))?.scheduleAnswers;
+
+  await openCreator(page);
+  await page.getByTestId('creator-review-start').click();
+  await page.locator(`[data-testid="creator-plan"][data-plan-id="${planId}"]`).click();
+  await expect.poll(saved).toMatchObject({ equipment: ['dumbbell'], filledByPlan: ['equipment'] });
+  await toStep(page, 'equipment');
+  await page.getByTestId('equipment-preset-1').click();
+  await expect.poll(saved).toMatchObject({ filledByPlan: [] });
+
+  for (const step of ['week', 'goal', 'start']) {
+    await page.getByTestId('creator-previous').click();
+    await expectStep(page, step);
+  }
+  await page.getByTestId('creator-plan-none').click();
+  await expect
+    .poll(saved)
+    .toMatchObject({ basePlanId: null, equipment: ['dumbbell'], extraEquipment: ['Bench'] });
+});
+
 test('the answers survive a restart, and weights follow the unit', async ({ page }) => {
   await openApp(page);
   await openCreator(page);

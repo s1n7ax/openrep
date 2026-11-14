@@ -21,7 +21,11 @@
   interface Props {
     equipment: readonly Equipment[];
     extra: readonly string[];
-    onchange: (equipment: Equipment[], extra: string[]) => void;
+    /**
+     * `choseEquipment`: the user chose the equipment (a tile or a usual
+     * setup), even if it stayed the same; false when only extras changed.
+     */
+    onchange: (equipment: Equipment[], extra: string[], choseEquipment: boolean) => void;
   }
 
   let { equipment, extra, onchange }: Props = $props();
@@ -36,6 +40,7 @@
     onchange(
       equipment.includes(item) ? equipment.filter((e) => e !== item) : [...equipment, item],
       [...extra],
+      true,
     );
   }
 
@@ -47,6 +52,7 @@
     onchange(
       [...equipment],
       hasExtra(item) ? extra.filter((value) => !same(value, item)) : [...extra, item],
+      false,
     );
   }
 
@@ -56,7 +62,7 @@
     for (const value of next.map((item) => popular(item) ?? item)) {
       if (!picked.some((item) => same(item, value))) picked.push(value);
     }
-    onchange([...equipment], picked);
+    onchange([...equipment], picked, false);
   }
 
   function presetOn(preset: EquipmentPreset): boolean {
@@ -95,7 +101,8 @@
         class="chip"
         aria-pressed={presetOn(preset)}
         data-testid={`equipment-preset-${index}`}
-        onclick={() => onchange([...preset.equipment], [...preset.extra])}>{preset.name}</button
+        onclick={() => onchange([...preset.equipment], [...preset.extra], true)}
+        >{preset.name}</button
       >
     {/each}
   </div>
