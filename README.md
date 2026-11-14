@@ -49,7 +49,8 @@ works offline.
   write a personalized plan that imports in a few taps.
 - **Schedule creator**: on the Schedules tab, choose your equipment and answer
   a few questions about your goal, injuries, week and body. The app writes a
-  prompt for any AI assistant; paste the reply back and it becomes a plan.
+  prompt for any AI assistant; paste the reply back, or on Android share it to
+  OpenRep, and it becomes a plan after a preview.
 - **Catalog updates**: when online, the app downloads the latest catalog from
   this repository; the copy built into the app works offline from the first
   launch.
@@ -78,7 +79,14 @@ source with Xcode (see [Building](#building)).
 
 The quickest way is in the app: open **Schedules** → **Create a schedule**,
 answer the questions and copy the prompt into any assistant, even one without
-web access. Then choose **Paste a plan** and paste the whole reply.
+web access. Then choose **Paste a plan** and paste the whole reply. On Android
+you can instead share the reply to OpenRep (in Gemini: **Share** → **OpenRep**):
+the app opens with a preview of the plan, and **Add plan** adds it.
+
+Asking in your own words works too: **Paste a plan** → **Copy prompt** gives a
+short prompt with the plan file format. Paste it into the assistant, write the
+plan you want after it (for example "3-day beginner full body, 45 minutes"),
+and share or paste the reply back.
 
 You can also start from a prompt of your own, if the assistant has web access.
 [`llms.txt`](llms.txt) describes the plan file format, links the JSON Schema and

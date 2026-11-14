@@ -17,6 +17,20 @@ import { emptyUserData, type CustomExercise, type Plan, type UserData } from './
 
 const now = '2026-01-02T03:04:05.000Z';
 
+/** The catalog exercises the tests and the examples of `llms.txt` refer to. */
+const catalog = [
+  {
+    id: 'barbell-bench-press-medium-grip',
+    name: 'Barbell Bench Press - Medium Grip',
+    aliases: ['bench press', 'barbell squat'],
+  },
+  { id: 'barbell-squat', name: 'Barbell Squat', aliases: [] },
+  { id: 'bent-over-barbell-row', name: 'Bent Over Barbell Row', aliases: [] },
+  { id: 'dumbbell-flyes', name: 'Dumbbell Flyes', aliases: [] },
+  { id: 'plank', name: 'Plank', aliases: [] },
+  { id: 'triceps-pushdown', name: 'Triceps Pushdown', aliases: [] },
+];
+
 function idsFrom(start = 0): () => string {
   let next = start;
   return () => `new-${(next += 1)}`;
@@ -230,11 +244,11 @@ describe('planFileName', () => {
 
 describe('importPlanFile', () => {
   function importInto(data: UserData, file: PlanFile): UserData {
-    return importPlanFile(data, file, { newId: idsFrom(), now }).data;
+    return importPlanFile(data, file, { newId: idsFrom(), now, catalog }).data;
   }
 
   it('adds the plan at the end and returns its id', () => {
-    const imported = importPlanFile(emptyUserData(), validFile, { newId: idsFrom(), now });
+    const imported = importPlanFile(emptyUserData(), validFile, { newId: idsFrom(), now, catalog });
     expect(imported.data.plans).toHaveLength(1);
     expect(imported.data.plans[0]!.id).toBe(imported.planId);
     expect(imported.data.plans[0]!.name).toBe('Upper/Lower');
@@ -258,12 +272,75 @@ describe('importPlanFile', () => {
   });
 
   it('replaces every id of the file, so importing twice is safe', () => {
-    const once = importPlanFile(emptyUserData(), validFile, { newId: idsFrom(0), now }).data;
-    const twice = importPlanFile(once, validFile, { newId: idsFrom(100), now }).data;
+    const once = importPlanFile(emptyUserData(), validFile, {
+      newId: idsFrom(0),
+      now,
+      catalog,
+    }).data;
+    const twice = importPlanFile(once, validFile, { newId: idsFrom(100), now, catalog }).data;
     const [first, second] = twice.plans;
     expect(first!.id).not.toBe(second!.id);
     expect(first!.days[0]!.id).not.toBe(second!.days[0]!.id);
     expect(first!.days[0]!.exercises[0]!.id).not.toBe(second!.days[0]!.exercises[0]!.id);
+  });
+
+  describe('a catalog id the catalog does not have', () => {
+    function withExercise(exerciseId: string, name: string): PlanFile {
+      return {
+        ...validFile,
+        plan: {
+          ...validFile.plan,
+          days: [
+            {
+              name: 'Day',
+              exercises: [{ exercise: { kind: 'catalog', exerciseId, name }, sets: 3, reps: '10' }],
+            },
+          ],
+        },
+      };
+    }
+
+    it('becomes the catalog exercise of the same name', () => {
+      const data = importInto(emptyUserData(), withExercise('squat-barbell', '  barbell  SQUAT'));
+      expect(data.plans[0]!.days[0]!.exercises[0]!.exercise).toEqual({
+        kind: 'catalog',
+        exerciseId: 'barbell-squat',
+        name: 'Barbell Squat',
+      });
+      expect(data.customExercises).toEqual([]);
+    });
+
+    it("becomes the catalog exercise with that alias, a name winning over another's alias", () => {
+      const data = importInto(emptyUserData(), withExercise('bench-press', 'Bench Press'));
+      expect(data.plans[0]!.days[0]!.exercises[0]!.exercise).toMatchObject({
+        exerciseId: 'barbell-bench-press-medium-grip',
+      });
+      // "barbell squat" is also an alias of the bench press above, but the name of Barbell Squat.
+      const squat = importInto(emptyUserData(), withExercise('squat', 'Barbell Squat'));
+      expect(squat.plans[0]!.days[0]!.exercises[0]!.exercise).toMatchObject({
+        exerciseId: 'barbell-squat',
+      });
+    });
+
+    it('becomes a custom exercise of its name when no catalog exercise has it', () => {
+      const data = importInto(emptyUserData(), withExercise('sled-push', 'Sled Push'));
+      expect(data.customExercises).toMatchObject([{ name: 'Sled Push' }]);
+      expect(data.plans[0]!.days[0]!.exercises[0]!.exercise).toEqual({
+        kind: 'custom',
+        customExerciseId: data.customExercises[0]!.id,
+        name: 'Sled Push',
+      });
+    });
+
+    it('reuses the custom exercise of the same name the user has', () => {
+      const data = { ...emptyUserData(), customExercises: [custom('mine', 'Sled push')] };
+      const imported = importInto(data, withExercise('sled-push', 'Sled Push'));
+      expect(imported.customExercises).toEqual(data.customExercises);
+      expect(imported.plans[0]!.days[0]!.exercises[0]!.exercise).toMatchObject({
+        kind: 'custom',
+        customExerciseId: 'mine',
+      });
+    });
   });
 
   it('does not mutate the user data it is given', () => {
@@ -480,7 +557,7 @@ describe('the example in llms.txt', () => {
     (_index, json) => {
       const file = parse(json);
       // And it imports without touching the app's own data.
-      const data = importPlanFile(emptyUserData(), file, { newId: idsFrom(), now }).data;
+      const data = importPlanFile(emptyUserData(), file, { newId: idsFrom(), now, catalog }).data;
       expect(data.plans).toHaveLength(1);
     },
   );
