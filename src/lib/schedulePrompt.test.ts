@@ -4,6 +4,7 @@ import { InvalidPlanFileError, parsePastedPlan, parsePlanFile } from './planFile
 import {
   buildSchedulePrompt,
   LOGGED_LIFTS_LIMIT,
+  planEquipment,
   type SchedulePromptInput,
 } from './schedulePrompt.ts';
 import type { Equipment } from './schema/common.ts';
@@ -407,11 +408,61 @@ describe('buildSchedulePrompt', () => {
     it('does not import as a plan when the prompt is pasted back by mistake', () => {
       expect(() => parsePastedPlan(withPlan())).toThrow(InvalidPlanFileError);
     });
+
+    it('keeps the plan’s weights, and leaves the weights of new exercises to me', () => {
+      const rules = section(withPlan(), 'How to build the plan');
+      expect(rules).toContain(
+        '- Keep the `weightKg` my current plan gives an exercise, and change it only where my answers ask for it. For an exercise new to the plan, leave `weightKg` out: I will choose the weights in the app.',
+      );
+      expect(rules).not.toContain('- Leave `weightKg` out');
+    });
+
+    it('starts the weights of new exercises from logged lifts when there are some', () => {
+      const text = prompt(
+        { ...FILLED, basePlanId: 'p1' },
+        {
+          plans: [plan],
+          sessions: [
+            session('s1', '2026-05-20T10:00:00.000Z', 'Bench', [{ weightKg: 60, reps: 8 }]),
+          ],
+        },
+      );
+      expect(section(text, 'How to build the plan')).toContain(
+        '- Keep the `weightKg` my current plan gives an exercise, and change it only where my answers ask for it. For an exercise new to the plan, set `weightKg` only where my logged lifts give a sound starting weight. Otherwise leave it out, and I will choose the weight in the app.',
+      );
+    });
+
+    it('gives the equipment its catalog exercises use, in catalog order', () => {
+      const legs = (exerciseId: string) => ({
+        id: `e-${exerciseId}`,
+        exercise: { kind: 'catalog' as const, exerciseId, name: exerciseId },
+        sets: 3,
+        reps: '5',
+      });
+      const bigger: Plan = {
+        ...plan,
+        days: [
+          ...plan.days,
+          {
+            id: 'd2',
+            name: 'Legs',
+            exercises: ['barbell-press', 'pushups', 'calf-stretch', 'not-in-catalog'].map(legs),
+          },
+        ],
+      };
+      const byId = (id: string) => catalog.find((item) => item.id === id);
+      // The custom exercise's barbell does not count: it is not a catalog exercise.
+      expect(planEquipment(plan, byId)).toEqual(['dumbbell']);
+      expect(planEquipment(bigger, byId)).toEqual(['barbell', 'dumbbell']);
+    });
   });
 
   describe('logged lifts', () => {
     it('leaves the section out without history', () => {
       expect(prompt()).not.toContain('logged lifts');
+      expect(section(prompt(), 'How to build the plan')).toContain(
+        '- Leave `weightKg` out: I will choose the weights in the app.',
+      );
     });
 
     it('gives the best recent set of each exercise, newest first, in the user unit', () => {

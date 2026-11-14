@@ -41,8 +41,10 @@
     STRENGTH_LEVELS,
     SUPERSETS,
   } from '../lib/scheduleChoices.ts';
+  import { planEquipment } from '../lib/schedulePrompt.ts';
   import type { Muscle } from '../lib/schema/common.ts';
   import type { ScheduleAnswers } from '../lib/schema/userData.ts';
+  import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { readScheduleAnswers, setScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
   import { planToBuildOn } from '../lib/userData/selectors.ts';
@@ -215,9 +217,13 @@
   function pickPlan(planId: string | null) {
     answers.basePlanId = planId;
     const plan = planToBuildOn(userData.data.plans, planId);
-    // The plan's day count is a good first answer to how many days a week.
-    if (plan && answers.daysPerWeek === '' && plan.days.length <= 7) {
+    if (plan === undefined) return;
+    // The plan's day count and equipment are good first answers.
+    if (answers.daysPerWeek === '' && plan.days.length <= 7) {
       answers.daysPerWeek = String(plan.days.length);
+    }
+    if (answers.equipment.length === 0) {
+      answers.equipment = planEquipment(plan, (id) => catalog.exercise(id));
     }
   }
 
@@ -482,7 +488,11 @@
       )}
       {#if tried && incomplete('week')}
         <p class="field-error" role="alert" data-testid="creator-week-error">
-          Pick the days and the minutes.
+          {answers.daysPerWeek !== ''
+            ? 'Pick how long a session is.'
+            : answers.sessionMinutes !== ''
+              ? 'Pick how many days a week.'
+              : 'Pick the days and the minutes.'}
         </p>
       {/if}
       {@render chips(

@@ -28,6 +28,21 @@ const BODYWEIGHT: Equipment = 'body only';
 /** The equipment to choose from: bodyweight is always allowed, so it is no choice. */
 export const EQUIPMENT_CHOICES = EQUIPMENT.filter((item) => item !== BODYWEIGHT);
 
+/** The equipment choices a plan's catalog exercises use, in catalog order. */
+export function planEquipment(
+  plan: Plan,
+  exercise: (id: string) => Exercise | undefined,
+): Equipment[] {
+  const used = new Set(
+    plan.days.flatMap((day) =>
+      day.exercises.flatMap(({ exercise: ref }) =>
+        ref.kind === 'catalog' ? (exercise(ref.exerciseId)?.equipment ?? []) : [],
+      ),
+    ),
+  );
+  return EQUIPMENT_CHOICES.filter((item) => used.has(item));
+}
+
 /** How far back the logged lifts in the prompt go, in days. */
 const LOGGED_LIFTS_DAYS = 90;
 /** Most exercises the logged lifts in the prompt cover. */
@@ -185,6 +200,16 @@ export interface SchedulePromptInput {
   now: Date;
 }
 
+/** What to do with `weightKg`: keep a current plan's weights, start from logged lifts. */
+function weightRule(buildsOnPlan: boolean, hasLifts: boolean): string {
+  const fresh = hasLifts
+    ? 'set `weightKg` only where my logged lifts give a sound starting weight. Otherwise leave it out, and I will choose the weight in the app.'
+    : 'leave `weightKg` out: I will choose the weights in the app.';
+  return buildsOnPlan
+    ? `- Keep the \`weightKg\` my current plan gives an exercise, and change it only where my answers ask for it. For an exercise new to the plan, ${fresh}`
+    : `- ${fresh.charAt(0).toUpperCase()}${fresh.slice(1)}`;
+}
+
 /** The prompt to give an AI assistant. */
 export function buildSchedulePrompt(input: SchedulePromptInput): string {
   const { answers, unit, exercises, sessions, now, plans = [], customExercises = [] } = input;
@@ -249,9 +274,7 @@ export function buildSchedulePrompt(input: SchedulePromptInput): string {
       '- Give the plan as many days as I train in a week, each short enough to fit my session, warm-up included.',
       '- Put compound lifts first, and balance the work across the week.',
       '- Choose a sensible number of sets, reps and rest for my goal and experience.',
-      lifts.length === 0
-        ? '- Leave `weightKg` out: I will choose the weights in the app.'
-        : '- Set `weightKg` only where my logged lifts give a sound starting weight. Otherwise leave it out, and I will choose the weight in the app.',
+      weightRule(basePlan !== undefined, lifts.length > 0),
       '- Never invent an `exerciseId`: use only the ids listed above.',
     ].join('\n'),
     FORMAT,

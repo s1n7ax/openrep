@@ -63,7 +63,8 @@
     return (
       preset.equipment.length === equipment.length &&
       preset.equipment.every((item) => equipment.includes(item)) &&
-      preset.extra.every((item) => extra.includes(item))
+      preset.extra.length === extra.length &&
+      preset.extra.every((item) => extra.some((value) => same(value, item)))
     );
   }
 

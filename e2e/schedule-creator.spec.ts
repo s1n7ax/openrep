@@ -119,6 +119,8 @@ test(
     await expect(page.locator('[data-testid^="creator-extra-"] svg.equipment-picture')).toHaveCount(
       10,
     );
+    // Dumbbells and a bench are the "Home dumbbells" setup, until more is added.
+    await expect(page.getByTestId('equipment-preset-1')).toHaveAttribute('aria-pressed', 'true');
     // Typing a pictured extra picks its picture instead of adding it twice.
     await page.getByTestId('creator-extra-own').click();
     await page.getByTestId('creator-extra-input').fill('pull-up BAR');
@@ -128,6 +130,7 @@ test(
       'true',
     );
     await expect(page.getByTestId('creator-extra-typed')).toHaveCount(0);
+    await expect(page.getByTestId('equipment-preset-1')).toHaveAttribute('aria-pressed', 'false');
     await page.getByTestId('creator-next').click();
 
     await tapBody(page, 'creator-priority-chest-front');
@@ -211,7 +214,7 @@ test('a required answer left blank keeps the creator on its step', async ({ page
   await expectStep(page, 'week');
   await page.getByTestId('creator-days-3').click();
   await page.getByTestId('creator-next').click();
-  await expect(page.getByTestId('creator-week-error')).toBeVisible();
+  await expect(page.getByTestId('creator-week-error')).toHaveText('Pick how long a session is.');
   // Only the missing answer is marked, not the optional ones next to it.
   const marked = page.locator('[data-invalid="true"]');
   await expect(marked).toHaveCount(1);
@@ -286,6 +289,19 @@ test('a prompt can build on a plan, whose reply is added as a new plan', async (
   // The plan's three days are the first answer to days per week.
   await expect(page.getByTestId('creator-days-3')).toHaveAttribute('aria-checked', 'true');
   await page.getByTestId('creator-minutes-75').click();
+  await page.getByTestId('creator-next').click();
+  // So is the equipment its exercises use.
+  await expectStep(page, 'equipment');
+  for (const item of ['barbell', 'cable', 'dumbbell', 'machine']) {
+    await expect(page.getByTestId(`creator-equipment-${item}`)).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  }
+  await expect(page.getByTestId('creator-equipment-bands')).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
   await toStep(page, 'you');
   await page.getByTestId('creator-experience-1-3-years').click();
   await toStep(page, 'review');
@@ -303,6 +319,8 @@ test('a prompt can build on a plan, whose reply is added as a new plan', async (
     true,
   );
   expect(text).toContain('- Start from my current plan');
+  expect(text).toContain('- Equipment: Barbell, Cable, Dumbbell, Machine, Bodyweight');
+  expect(text).toContain('- Keep the `weightKg` my current plan gives an exercise');
 
   // The prompt pasted back by mistake adds nothing.
   await page.getByTestId('creator-paste-open').click();
