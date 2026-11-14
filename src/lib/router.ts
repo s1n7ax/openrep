@@ -43,6 +43,8 @@ export type Route =
   | { name: 'schedules' }
   | { name: 'schedule'; scheduleId: string }
   | { name: 'schedule-creator' }
+  /** The exercise picker of the schedule creator, adding to its include or avoid list. */
+  | { name: 'schedule-creator-exercises'; list: 'include' | 'avoid' }
   | { name: 'schedule-creator-prompt' }
   | { name: 'schedule-creator-paste' }
   | { name: 'workout'; sessionId: string }
@@ -83,6 +85,7 @@ export const paths = {
   schedules: () => '/schedules',
   schedule: (scheduleId: string) => `/schedules/${enc(scheduleId)}`,
   scheduleCreator: () => '/schedule-creator',
+  scheduleCreatorExercises: (list: 'include' | 'avoid') => `/schedule-creator/exercises/${list}`,
   scheduleCreatorPrompt: () => '/schedule-creator/prompt',
   scheduleCreatorPaste: () => '/schedule-creator/paste',
   workout: (sessionId: string) => `/workout/${enc(sessionId)}`,
@@ -173,6 +176,13 @@ const PATTERNS: {
     build: (p) => ({ name: 'schedule', scheduleId: p.scheduleId! }),
   },
   { pattern: 'schedule-creator', build: () => ({ name: 'schedule-creator' }) },
+  {
+    pattern: 'schedule-creator/exercises/:list',
+    build: (p) =>
+      p.list === 'include' || p.list === 'avoid'
+        ? { name: 'schedule-creator-exercises', list: p.list }
+        : null,
+  },
   { pattern: 'schedule-creator/prompt', build: () => ({ name: 'schedule-creator-prompt' }) },
   { pattern: 'schedule-creator/paste', build: () => ({ name: 'schedule-creator-paste' }) },
   { pattern: 'workout/:sessionId', build: (p) => ({ name: 'workout', sessionId: p.sessionId! }) },
@@ -242,6 +252,7 @@ export function tabOf(route: Route): Tab | null {
     case 'schedules':
     case 'schedule':
     case 'schedule-creator':
+    case 'schedule-creator-exercises':
     case 'schedule-creator-prompt':
     case 'schedule-creator-paste':
       return 'schedules';
@@ -304,6 +315,7 @@ export function parentPath(route: Route): string {
     case 'schedule-creator':
     case 'schedule-creator-paste':
       return paths.schedules();
+    case 'schedule-creator-exercises':
     case 'schedule-creator-prompt':
       return paths.scheduleCreator();
     case 'history-session':

@@ -11,12 +11,14 @@
   import { buildSchedulePrompt } from '../lib/schedulePrompt.ts';
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
-  import { emptyScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
+  import { readScheduleAnswers } from '../lib/userData/scheduleAnswers.ts';
 
   const prompt = $derived(
     buildSchedulePrompt({
-      answers: userData.data.scheduleAnswers ?? emptyScheduleAnswers(),
+      answers: readScheduleAnswers(userData.data),
       unit: userData.data.settings.unit,
+      plans: userData.data.plans,
+      customExercises: userData.data.customExercises,
       exercises: catalog.exercises,
       sessions: userData.data.sessions,
       now: new Date(),

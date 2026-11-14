@@ -9,7 +9,7 @@ import {
 } from './schedulePrompt.ts';
 import type { Equipment } from './schema/common.ts';
 import type { Exercise } from './schema/exercise.ts';
-import type { ScheduleAnswers, Session } from './schema/userData.ts';
+import type { CustomExercise, Plan, ScheduleAnswers, Session } from './schema/userData.ts';
 import { emptyScheduleAnswers } from './userData/scheduleAnswers.ts';
 import { DEFAULT_CATALOG_URL } from './catalog/urls.ts';
 
@@ -99,7 +99,12 @@ function section(text: string, title: string): string {
 
 const FILLED: ScheduleAnswers = {
   equipment: ['dumbbell', 'bands'],
+  extraEquipment: ['Bench', 'Pull-up bar'],
+  basePlanId: null,
+  filledByPlan: [],
+  planChanges: [],
   goal: 'Build muscle',
+  injuryPicks: ['left-knee', 'tennis-elbow'],
   injuries: 'Sore right shoulder',
   daysPerWeek: '4',
   sessionMinutes: '75',
@@ -113,9 +118,12 @@ const FILLED: ScheduleAnswers = {
   age: '31',
   sex: 'Male',
   height: '178 cm',
-  avoidExercises: 'Barbell curls',
-  includeExercises: 'Pull-ups',
+  avoidExercises: '',
+  includeExercises: '',
+  avoidList: [{ exerciseId: 'barbell-curl', name: 'Barbell Curl' }, { name: 'Burpees' }],
+  includeList: [{ exerciseId: 'pullups', name: 'Pullups' }],
   priorityMuscles: ['lats', 'lower back'],
+  sports: ['Volleyball', 'Padel'],
   otherSports: 'Volleyball after the gym',
   notes: 'I restarted last week',
 };
@@ -124,7 +132,7 @@ describe('buildSchedulePrompt', () => {
   it('states every answer', () => {
     const about = section(prompt(FILLED), 'About me');
     expect(about.split('\n').slice(2)).toEqual([
-      '- Equipment: Bands, Dumbbell, Bodyweight',
+      '- Equipment: Bands, Dumbbell, Bodyweight, Bench, Pull-up bar',
       '- Main goal: Build muscle',
       '- Training days per week: 4',
       '- Time per session: 75 minutes',
@@ -138,11 +146,11 @@ describe('buildSchedulePrompt', () => {
       '- Age: 31',
       '- Sex: Male',
       '- Height: 178 cm',
-      '- Injuries: Sore right shoulder',
-      '- Exercises to avoid: Barbell curls',
-      '- Exercises to include: Pull-ups',
+      '- Injuries: Left knee, Tennis elbow, Sore right shoulder',
+      '- Exercises to avoid: Barbell Curl, Burpees',
+      '- Exercises to include: Pullups',
       '- Muscles to prioritise: Lats, Lower back',
-      '- Other sports: Volleyball after the gym',
+      '- Other sports: Volleyball, Padel, Volleyball after the gym',
       '- Anything else: I restarted last week',
       '',
     ]);
@@ -157,6 +165,14 @@ describe('buildSchedulePrompt', () => {
     ]);
     expect(blank).not.toContain('Injuries');
     expect(blank).not.toContain('Target weight');
+  });
+
+  it('still states exercises typed into the first version of the form', () => {
+    const about = section(
+      prompt({ includeExercises: 'Deadlifts', includeList: [{ name: 'Squats' }] }),
+      'About me',
+    );
+    expect(about).toContain('- Exercises to include: Squats, Deadlifts');
   });
 
   it('says not to use supersets when the user said no', () => {
@@ -268,9 +284,172 @@ describe('buildSchedulePrompt', () => {
     expect(text.length).toBeLessThan(45_000);
   });
 
+  describe('the plan to build on', () => {
+    const plan: Plan = {
+      id: 'p1',
+      name: 'My PPL',
+      createdAt: '2026-05-01T10:00:00.000Z',
+      updatedAt: '2026-05-02T10:00:00.000Z',
+      days: [
+        {
+          id: 'd1',
+          name: 'Push',
+          exercises: [
+            {
+              id: 'e1',
+              exercise: { kind: 'catalog', exerciseId: 'dumbbell-press', name: 'Dumbbell Press' },
+              sets: 3,
+              reps: '8-12',
+              weightKg: 30,
+              restSec: 90,
+              supersetId: 's1',
+            },
+            {
+              id: 'e2',
+              exercise: { kind: 'custom', customExerciseId: 'c1', name: 'Landmine Press' },
+              sets: 3,
+              durationSec: 40,
+              supersetId: 's1',
+            },
+          ],
+          supersets: [{ id: 's1', restSec: 60 }],
+        },
+      ],
+    };
+    const custom: CustomExercise = {
+      id: 'c1',
+      name: 'Landmine Press',
+      notes: '',
+      equipment: 'barbell',
+      primaryMuscles: ['shoulders'],
+      secondaryMuscles: [],
+      instructions: ['Press the bar up.'],
+      createdAt: '2026-05-01T10:00:00.000Z',
+      updatedAt: '2026-05-01T10:00:00.000Z',
+    };
+    const withPlan = (answers: Partial<ScheduleAnswers> = {}) =>
+      prompt(
+        { ...FILLED, basePlanId: 'p1', ...answers },
+        { plans: [plan], customExercises: [custom] },
+      );
+
+    it('is left out when starting fresh, or when the plan is gone or has no days', () => {
+      expect(prompt(FILLED, { plans: [plan] })).not.toContain('My current plan');
+      expect(prompt({ basePlanId: 'deleted' }, { plans: [plan] })).not.toContain('My current plan');
+      expect(prompt({ basePlanId: 'p1' }, { plans: [{ ...plan, days: [] }] })).not.toContain(
+        'My current plan',
+      );
+    });
+
+    it('carries the plan in the reply format, without ids or timestamps', () => {
+      const text = withPlan();
+      const current = section(text, 'My current plan');
+      const json = /```json\n([\s\S]*?)```/.exec(current)?.[1];
+      expect(JSON.parse(json!)).toEqual({
+        plan: {
+          name: 'My PPL',
+          days: [
+            {
+              name: 'Push',
+              exercises: [
+                {
+                  exercise: {
+                    kind: 'catalog',
+                    exerciseId: 'dumbbell-press',
+                    name: 'Dumbbell Press',
+                  },
+                  sets: 3,
+                  reps: '8-12',
+                  weightKg: 30,
+                  restSec: 90,
+                  supersetId: 's1',
+                },
+                {
+                  exercise: { kind: 'custom', customExerciseId: 'c1', name: 'Landmine Press' },
+                  sets: 3,
+                  durationSec: 40,
+                  supersetId: 's1',
+                },
+              ],
+              supersets: [{ id: 's1', restSec: 60 }],
+            },
+          ],
+        },
+        customExercises: [
+          {
+            id: 'c1',
+            name: 'Landmine Press',
+            notes: '',
+            equipment: 'barbell',
+            primaryMuscles: ['shoulders'],
+            secondaryMuscles: [],
+            instructions: ['Press the bar up.'],
+          },
+        ],
+      });
+      expect(section(text, 'How to build the plan')).toContain(
+        '- Start from my current plan, and reply with the whole new plan, under a new name.',
+      );
+    });
+
+    it('says what to change, picked and typed', () => {
+      expect(
+        section(
+          withPlan({ planChanges: ['Progress the weights', 'Harder legs'] }),
+          'My current plan',
+        ),
+      ).toContain('What I want changed: Progress the weights, Harder legs.');
+      expect(section(withPlan(), 'My current plan')).not.toContain('What I want changed');
+    });
+
+    it('comes before the plan file format', () => {
+      const text = withPlan();
+      expect(text.indexOf('## My current plan')).toBeLessThan(text.indexOf('## Plan file format'));
+    });
+
+    it('does not import as a plan when the prompt is pasted back by mistake', () => {
+      expect(() => parsePastedPlan(withPlan())).toThrow(InvalidPlanFileError);
+    });
+
+    it('keeps the plan’s weights, and leaves the weights of new exercises to me', () => {
+      const rules = section(withPlan(), 'How to build the plan');
+      expect(rules).toContain(
+        '- Keep the `weightKg` my current plan gives an exercise, and change it only where my answers ask for it. For an exercise new to the plan, leave `weightKg` out: I will choose the weights in the app.',
+      );
+      expect(rules).not.toContain('- Leave `weightKg` out');
+    });
+
+    it('starts the weights of new exercises from logged lifts when there are some', () => {
+      const text = prompt(
+        { ...FILLED, basePlanId: 'p1' },
+        {
+          plans: [plan],
+          sessions: [
+            session('s1', '2026-05-20T10:00:00.000Z', 'Bench', [{ weightKg: 60, reps: 8 }]),
+          ],
+        },
+      );
+      expect(section(text, 'How to build the plan')).toContain(
+        '- Keep the `weightKg` my current plan gives an exercise, and change it only where my answers ask for it. For an exercise new to the plan, set `weightKg` only where my logged lifts give a sound starting weight. Otherwise leave it out, and I will choose the weight in the app.',
+      );
+    });
+
+    it('lets the assistant keep the plan’s own exercises', () => {
+      expect(section(withPlan(), 'How to build the plan')).toContain(
+        '- Never invent an `exerciseId`: use only the ids listed above, or ones my current plan already uses.',
+      );
+      expect(section(prompt(FILLED), 'How to build the plan')).toContain(
+        '- Never invent an `exerciseId`: use only the ids listed above.\n',
+      );
+    });
+  });
+
   describe('logged lifts', () => {
     it('leaves the section out without history', () => {
       expect(prompt()).not.toContain('logged lifts');
+      expect(section(prompt(), 'How to build the plan')).toContain(
+        '- Leave `weightKg` out: I will choose the weights in the app.',
+      );
     });
 
     it('gives the best recent set of each exercise, newest first, in the user unit', () => {

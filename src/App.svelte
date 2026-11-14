@@ -27,6 +27,7 @@
   import PlanEditor from './routes/PlanEditor.svelte';
   import PlansList from './routes/PlansList.svelte';
   import ScheduleCreator from './routes/ScheduleCreator.svelte';
+  import ScheduleCreatorExercises from './routes/ScheduleCreatorExercises.svelte';
   import ScheduleCreatorPaste from './routes/ScheduleCreatorPaste.svelte';
   import ScheduleCreatorPrompt from './routes/ScheduleCreatorPrompt.svelte';
   import ScheduleDetail from './routes/ScheduleDetail.svelte';
@@ -125,6 +126,8 @@
             <ScheduleDetail scheduleId={route.scheduleId} />
           {:else if route.name === 'schedule-creator'}
             <ScheduleCreator />
+          {:else if route.name === 'schedule-creator-exercises'}
+            <ScheduleCreatorExercises list={route.list} />
           {:else if route.name === 'schedule-creator-prompt'}
             <ScheduleCreatorPrompt />
           {:else if route.name === 'schedule-creator-paste'}
