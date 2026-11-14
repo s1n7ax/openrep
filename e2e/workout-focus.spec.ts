@@ -16,6 +16,7 @@ import {
   closeHistory,
   expectOffScreen,
   expectOnPage,
+  flingWorkout,
   openHistory,
   pickOption,
   scrollWorkout,
@@ -249,10 +250,64 @@ test('a page with 20 sets scrolls to all of them before moving on', async ({ pag
   await expectOffScreen(page, 1);
   await expect(page.getByTestId('workout-position')).toHaveText('1 of 2');
 
-  // …and only then snaps to the next exercise.
+  // …a swipe begun short of its bottom stops there…
+  await scrollWorkout(page, 1 / 3);
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '0');
+  await expectOffScreen(page, 1);
+
+  // …and only a swipe from its bottom snaps to the next exercise.
   await scrollWorkout(page, 1 / 3);
   await expectOnPage(page, 1);
   await expect(page.getByTestId('workout-position')).toHaveText('2 of 2');
+});
+
+test('a fling within a tall page stops at its edges; a swipe from an edge moves on', async ({
+  page,
+}) => {
+  // Dumbbell Bicep Curl, then a superset of Goblet Squat (20 sets) and Plank:
+  // 20 rounds, several screens tall; then the finish page.
+  await openApp(page);
+  await createPlan(page, 'Fling sets');
+  await addExercise(page, 0, 'dumbbell bicep curl', CURL.id);
+  await addExercise(page, 0, 'goblet squat', GOBLET.id);
+  await addExercise(page, 0, 'plank', PLANK.id);
+  const squat = page.getByTestId('edit-exercise').nth(1);
+  for (let count = 3; count < 20; count++) await squat.getByTestId('target-sets-inc').click();
+  await expect(squat.getByTestId('target-sets')).toHaveText('20');
+  await squat.getByTestId('exercise-superset-next').click();
+  await expect(page.getByTestId('edit-superset')).toBeVisible();
+  await page.getByTestId('editor-done').click();
+  await startDay(page, 0);
+  await expectOnPage(page, 0);
+  await scrollWorkout(page, 1 / 3);
+  await expectOnPage(page, 1);
+  const rounds = workoutPage(page, 1).getByTestId('workout-round');
+  await expect(rounds).toHaveCount(20);
+
+  // A hard fling begun within it, short of its bottom, stops there: it never
+  // moves on to the finish page (which may show for a slow frame).
+  await scrollWorkout(page, 0.7);
+  await page.waitForTimeout(1000);
+  await flingWorkout(page, 0.45);
+  await expect(rounds.last()).toBeInViewport();
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
+
+  // Likewise up, short of its top: it never moves back to Dumbbell Bicep Curl.
+  await scrollWorkout(page, -0.7);
+  await page.waitForTimeout(1000);
+  await flingWorkout(page, -0.45);
+  await expect(rounds.first()).toBeInViewport();
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
+
+  // From rest at its top, a short swipe up snaps back; a longer one moves on.
+  await scrollWorkout(page, -0.1);
+  await page.waitForTimeout(1000);
+  await expect(page.getByTestId('workout')).toHaveAttribute('data-page', '1');
+  await scrollWorkout(page, -1 / 3);
+  await expectOnPage(page, 0);
 });
 
 test('a superset is one page whose picture swipes between its exercises', async ({ page }) => {
