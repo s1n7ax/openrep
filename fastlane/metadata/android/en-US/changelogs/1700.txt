@@ -1,0 +1,7 @@
+Features
+• import a plan shared from Gemini (or pasted) with a preview
+• schedules: fill in the schedule creator by tapping, and build on a plan
+• schedules: send the prompt to an AI app from the share sheet
+
+Bug Fixes
+• workout: stop a fling within a tall exercise at its edge

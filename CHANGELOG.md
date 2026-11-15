@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.17.0](https://github.com/s1n7ax/openrep/compare/v0.16.0...v0.17.0) (2026-11-14)
+
+
+### Features
+
+* import a plan shared from Gemini (or pasted) with a preview ([#49](https://github.com/s1n7ax/openrep/issues/49)) ([c3c95af](https://github.com/s1n7ax/openrep/commit/c3c95af112bbe3ec12d16b229aab15e8639ca4d4))
+* **schedules:** fill in the schedule creator by tapping, and build on a plan ([#51](https://github.com/s1n7ax/openrep/issues/51)) ([60b8b98](https://github.com/s1n7ax/openrep/commit/60b8b9881048f36c8557b9cd24cfaf1ba2786fbf))
+* **schedules:** send the prompt to an AI app from the share sheet ([#48](https://github.com/s1n7ax/openrep/issues/48)) ([a3de545](https://github.com/s1n7ax/openrep/commit/a3de545d1020ebc4f5a9d159d50464e710aeabd5))
+
+
+### Bug Fixes
+
+* **workout:** stop a fling within a tall exercise at its edge ([#47](https://github.com/s1n7ax/openrep/issues/47)) ([7ed145e](https://github.com/s1n7ax/openrep/commit/7ed145e741eb72d99345dd203409885cc5a65fe6))
+
 ## [0.16.0](https://github.com/s1n7ax/openrep/compare/v0.15.0...v0.16.0) (2026-11-09)
 
 
