@@ -10,7 +10,7 @@ import type {
   UserData,
 } from '../schema/userData.ts';
 import { cleanTarget } from './plans.ts';
-import { lastTimeFor } from './selectors.ts';
+import { activeSession, findSession, lastTimeFor } from './selectors.ts';
 import { blockEntries, blockHasEntry, groupBlocks, supersetRounds } from './supersets.ts';
 import { plannedReps } from './targets.ts';
 
@@ -283,6 +283,43 @@ export function removeLastLoggedRound(
   });
 }
 
+/**
+ * `change`, which also stamps session `sessionId` with `now` as its
+ * `updatedAt` when it changed the session: a workout's last change is when
+ * it went idle (see `closeIdleWorkout`). Every change made while logging goes
+ * through it.
+ */
+export function logChange(
+  sessionId: string,
+  now: string,
+  change: (data: UserData) => UserData,
+): (data: UserData) => UserData {
+  return (data) => {
+    const next = change(data);
+    const session = findSession(next, sessionId);
+    if (!session || session === findSession(data, sessionId)) return next;
+    return updateSession(next, sessionId, (current) => ({ ...current, updatedAt: now }));
+  };
+}
+
+/** How long a workout in progress may go without a change before it is closed. */
+export const IDLE_LIMIT_MS = 10 * 60 * 60 * 1000;
+
+/**
+ * Closes the workout in progress when its last change (its `updatedAt`, or
+ * its start before the first) is more than `IDLE_LIMIT_MS` before `now`: it
+ * is finished as of that last change, or deleted when no set was ticked off,
+ * as nothing was logged. Returns the input unchanged otherwise.
+ */
+export function closeIdleWorkout(data: UserData, now: string): UserData {
+  const session = activeSession(data);
+  if (!session) return data;
+  const lastChange = session.updatedAt ?? session.startedAt;
+  if (Date.parse(now) - Date.parse(lastChange) <= IDLE_LIMIT_MS) return data;
+  const logged = session.exercises.some((exercise) => exercise.sets.some((set) => set.done));
+  return logged ? finishSession(data, session.id, lastChange) : deleteSession(data, session.id);
+}
+
 /** Marks a session finished; it is no longer the active session. */
 export function finishSession(data: UserData, sessionId: string, now: string): UserData {
   const next = updateSession(data, sessionId, (session) =>
@@ -314,7 +351,8 @@ function tickedSet(set: LoggedSet, target: PlanTarget): LoggedSet {
 
 /**
  * Ticks a set off (or un-ticks it), keeping the sets done in an unbroken
- * line from the first set of its exercise or superset. Ticking also ticks
+ * line from the first set of its exercise or superset. A tick records its
+ * exercise as the session's `lastTickedExerciseId`, where it resumes. Ticking also ticks
  * every set before it that is not done; un-ticking also un-ticks every set
  * after it that is. A superset's sets go in the order they are done: round
  * by round, A1 before A2 (see `supersetRounds`). Ticking fills empty reps
@@ -356,6 +394,8 @@ export function setLoggedSetDone(
           }
         : exercise,
     );
-    return { ...session, exercises };
+    return done
+      ? { ...session, exercises, lastTickedExerciseId: sessionExerciseId }
+      : { ...session, exercises };
   });
 }

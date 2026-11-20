@@ -140,6 +140,13 @@ export const sessionSchema = z.object({
   startedAt: timestampSchema,
   /** `null` while the session is in progress. */
   finishedAt: timestampSchema.nullable(),
+  /**
+   * The last change to its sets while in progress (see `logChange`); left
+   * out until the first one, and in sessions saved before it existed.
+   */
+  updatedAt: timestampSchema.optional(),
+  /** The exercise a set was last ticked off in; left out until one is. */
+  lastTickedExerciseId: localIdSchema.optional(),
   exercises: z.array(sessionExerciseSchema),
   /** The day's supersets when the session started; left out when it had none. */
   supersets: z.array(supersetSchema).optional(),

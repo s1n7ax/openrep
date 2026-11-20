@@ -23,9 +23,11 @@ import {
 import {
   addLoggedRound,
   addLoggedSet,
+  closeIdleWorkout,
   deleteSession,
   finishSession,
   addedSetValues,
+  logChange,
   removeLastLoggedRound,
   removeLastLoggedSet,
   setLoggedSetDone,
@@ -202,6 +204,94 @@ describe('sessions', () => {
     data = deleteSession(data, 's2');
     expect(data.activeSessionId).toBeNull();
     expect(data.sessions.map((session) => session.id)).toEqual(['s1']);
+  });
+});
+
+describe('activity and idle workouts', () => {
+  const HOUR = 60 * 60 * 1000;
+  const at = (hours: number) => new Date(Date.parse(T0) + hours * HOUR).toISOString();
+
+  function started(): UserData {
+    return startSession(
+      planData(),
+      { sessionId: 's1', planId: 'p1', dayId: 'd1' },
+      T0,
+      counter('id'),
+    );
+  }
+
+  function tickFirst(data: UserData, now: string): UserData {
+    const exercise = data.sessions[0]?.exercises[1];
+    return logChange('s1', now, (current) =>
+      setLoggedSetDone(current, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', true),
+    )(data);
+  }
+
+  it('records the exercise a set was last ticked off in, and keeps it on un-ticking', () => {
+    let data = started();
+    expect(data.sessions[0]?.lastTickedExerciseId).toBeUndefined();
+    const [squatEx, plankEx] = data.sessions[0]?.exercises ?? [];
+    data = setLoggedSetDone(data, 's1', plankEx?.id ?? '', plankEx?.sets[0]?.id ?? '', true);
+    expect(data.sessions[0]?.lastTickedExerciseId).toBe(plankEx?.id);
+    data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatEx?.sets[0]?.id ?? '', true);
+    data = setLoggedSetDone(data, 's1', squatEx?.id ?? '', squatEx?.sets[0]?.id ?? '', false);
+    expect(data.sessions[0]?.lastTickedExerciseId).toBe(squatEx?.id);
+    expect(userDataSchema.safeParse(data).success).toBe(true);
+  });
+
+  it('stamps a logged change with its time, and leaves a change that changes nothing alone', () => {
+    let data = started();
+    data = tickFirst(data, at(1));
+    expect(data.sessions[0]?.updatedAt).toBe(at(1));
+    expect(tickFirst(data, at(2))).toBe(data);
+    const exercise = data.sessions[0]?.exercises[0];
+    data = logChange('s1', at(3), (current) =>
+      setLoggedWeight(current, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', 90),
+    )(data);
+    expect(data.sessions[0]?.updatedAt).toBe(at(3));
+    expect(userDataSchema.safeParse(data).success).toBe(true);
+  });
+
+  it('keeps a workout idle for 10 hours or less', () => {
+    const data = tickFirst(started(), at(1));
+    expect(closeIdleWorkout(data, at(11))).toBe(data);
+    const untouched = started();
+    expect(closeIdleWorkout(untouched, at(10))).toBe(untouched);
+  });
+
+  it('finishes a workout idle for more than 10 hours as of its last change', () => {
+    const data = closeIdleWorkout(tickFirst(started(), at(1)), at(11.01));
+    expect(data.activeSessionId).toBeNull();
+    expect(history(data.sessions).map((session) => [session.id, session.finishedAt])).toEqual([
+      ['s1', at(1)],
+    ]);
+  });
+
+  it('times a workout without a logged change, as saved before changes were stamped, from its start', () => {
+    let data = started();
+    const exercise = data.sessions[0]?.exercises[0];
+    data = setLoggedSetDone(data, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', true);
+    expect(data.sessions[0]?.updatedAt).toBeUndefined();
+    expect(closeIdleWorkout(data, at(9))).toBe(data);
+    data = closeIdleWorkout(data, at(10.5));
+    expect(data.sessions[0]?.finishedAt).toBe(T0);
+    expect(data.activeSessionId).toBeNull();
+  });
+
+  it('deletes an idle workout with no set ticked off', () => {
+    let data = started();
+    const exercise = data.sessions[0]?.exercises[0];
+    data = logChange('s1', at(1), (current) =>
+      setLoggedWeight(current, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', 90),
+    )(data);
+    data = closeIdleWorkout(data, at(12));
+    expect(data.sessions).toEqual([]);
+    expect(data.activeSessionId).toBeNull();
+  });
+
+  it('changes nothing without a workout in progress', () => {
+    const data = finishSession(started(), 's1', T1);
+    expect(closeIdleWorkout(data, at(48))).toBe(data);
   });
 });
 
