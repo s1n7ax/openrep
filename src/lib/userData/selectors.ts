@@ -1,6 +1,7 @@
 /**
  * Read-only lookups over user data.
  */
+import { MUSCLES, type Muscle } from '../schema/common.ts';
 import type {
   CustomExercise,
   ExerciseRef,
@@ -142,5 +143,63 @@ export function planStats(plan: Plan): { days: number; exercises: number } {
   return {
     days: plan.days.length,
     exercises: plan.days.reduce((sum, day) => sum + day.exercises.length, 0),
+  };
+}
+
+/**
+ * The day of `plan` to do next: the one after the day of its most recently
+ * started finished workout, in plan order, back to the first after the last.
+ * A workout of a day since removed is passed over for the one before it;
+ * without any, it is the first day. Days without exercises (which cannot be
+ * started) are skipped; undefined when every day is one.
+ */
+export function nextPlanDay(plan: Plan, sessions: readonly Session[]): PlanDay | undefined {
+  const startable = (day: PlanDay) => day.exercises.length > 0;
+  for (const session of history(sessions)) {
+    if (session.planId !== plan.id) continue;
+    const index = plan.days.findIndex((day) => day.id === session.dayId);
+    if (index === -1) continue;
+    const after = [...plan.days.slice(index + 1), ...plan.days.slice(0, index + 1)];
+    return after.find(startable);
+  }
+  return plan.days.find(startable);
+}
+
+/** The muscles a day trains, each once, in the catalog's order. */
+export interface DayMuscles {
+  /** Primary muscles of any of its exercises. */
+  primary: Muscle[];
+  /** Secondary muscles of its exercises that are no exercise's primary. */
+  secondary: Muscle[];
+}
+
+interface Trains {
+  primaryMuscles: readonly Muscle[];
+  secondaryMuscles: readonly Muscle[];
+}
+
+/**
+ * The muscles the exercises of `day` train: catalog exercises found by
+ * `findExercise`, custom ones in `customExercises`. An exercise no longer
+ * there adds none.
+ */
+export function dayMuscles(
+  day: PlanDay,
+  findExercise: (id: string) => Trains | undefined,
+  customExercises: readonly CustomExercise[],
+): DayMuscles {
+  const primary = new Set<Muscle>();
+  const secondary = new Set<Muscle>();
+  for (const { exercise: ref } of day.exercises) {
+    const exercise =
+      ref.kind === 'catalog'
+        ? findExercise(ref.exerciseId)
+        : customExercises.find((custom) => custom.id === ref.customExerciseId);
+    for (const muscle of exercise?.primaryMuscles ?? []) primary.add(muscle);
+    for (const muscle of exercise?.secondaryMuscles ?? []) secondary.add(muscle);
+  }
+  return {
+    primary: MUSCLES.filter((muscle) => primary.has(muscle)),
+    secondary: MUSCLES.filter((muscle) => secondary.has(muscle) && !primary.has(muscle)),
   };
 }
