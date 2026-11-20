@@ -265,10 +265,9 @@ test("the countdown runs for the plan's rest, else the default rest from Setting
   await field.fill('120');
   await expect(page.getByTestId('default-rest-error')).toHaveCount(0);
 
+  // Resuming opens the flyes, where a set was last ticked.
   await page.getByTestId('tab-plans').click();
   await page.getByTestId('resume-workout').click();
-  await expectOnPage(page, 0);
-  await scrollWorkout(page, 1 / 3);
   await expectOnPage(page, 1);
   // Set 2, and with it set 1 before it.
   await tickSet(flyes, 1);
