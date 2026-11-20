@@ -11,7 +11,9 @@
   its circles have a line per exercise and a column per round. The last
   page finishes the workout into history. Back (the arrow or Android's back
   button) discards it, asking first when anything was entered. A workout
-  opens on the first exercise with sets left; the exercise name opens its
+  opens on the exercise a set was last ticked in while it has sets left,
+  else the next one with sets left after it (lib/userData/workoutPages.ts,
+  `resumePage`); the first before any tick. The exercise name opens its
   page, and the YouTube button by it opens videos of it outside the app. Ticking a set starts a rest countdown docked at the bottom, on every
   page (lib/userData/workoutTicks.ts says when and how long). Tapping a
   timed set counts its seconds down in the same place instead, and ticks it
@@ -68,6 +70,7 @@
   import {
     deleteSession,
     finishSession,
+    logChange,
     setLoggedSetDone,
     updateLoggedSet,
   } from '../lib/userData/sessions.ts';
@@ -85,11 +88,11 @@
     formatTargetWithRest,
   } from '../lib/userData/targets.ts';
   import {
-    firstOpenPage,
     hasEntries,
     hasSetsLeft,
     nextOpenPage,
     nextSupersetPosition,
+    resumePage,
   } from '../lib/userData/workoutPages.ts';
   import { tickOutcome } from '../lib/userData/workoutTicks.ts';
   import { sessionSetCounts } from '../lib/userData/workoutText.ts';
@@ -115,7 +118,10 @@
     return block ? blockKey(block) : FINISH;
   }
 
-  /** Back from an exercise's page: where the workout was; otherwise the first exercise with sets left. */
+  /**
+   * Back from an exercise's page: where the workout was; otherwise where it
+   * resumes, by the exercise last ticked in (see `resumePage`).
+   */
   function initialPage(): number {
     const remembered = lastPages.get(sessionId);
     if (router.state.direction === 'pop' && remembered !== undefined) {
@@ -123,7 +129,7 @@
       const index = blocks.findIndex((block) => blockKey(block) === remembered);
       if (index !== -1) return index;
     }
-    return firstOpenPage(blocks);
+    return resumePage(blocks, session?.lastTickedExerciseId);
   }
 
   /**
@@ -300,13 +306,15 @@
   function finishTimedSet(current: TimedSet, at: number, held?: number) {
     if (setTimer.current !== current) return;
     const { sessionExerciseId, setId } = current;
-    userData.update((data) => {
-      const logged =
-        held === undefined
-          ? data
-          : updateLoggedSet(data, sessionId, sessionExerciseId, setId, { durationSec: held });
-      return setLoggedSetDone(logged, sessionId, sessionExerciseId, setId, true);
-    });
+    userData.update(
+      logChange(sessionId, new Date(at).toISOString(), (data) => {
+        const logged =
+          held === undefined
+            ? data
+            : updateLoggedSet(data, sessionId, sessionExerciseId, setId, { durationSec: held });
+        return setLoggedSetDone(logged, sessionId, sessionExerciseId, setId, true);
+      }),
+    );
     onSetDone(sessionExerciseId, setId, true, at);
   }
 

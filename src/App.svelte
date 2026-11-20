@@ -1,19 +1,22 @@
 <!--
   App shell: loads user data and the catalog, routes the location hash to a
   screen, shows the bottom tab bar (not during a workout, which is full
-  screen) and app-wide notices, restores scroll positions on back, and saves
-  when the app goes to the background.
+  screen) and app-wide notices, restores scroll positions on back, saves
+  when the app goes to the background, and closes a workout left idle (see
+  `closeIdleWorkout`) once loaded, on coming back and every minute.
 -->
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import Icon from './components/Icon.svelte';
   import TabBar from './components/TabBar.svelte';
+  import { nowIso } from './lib/ids.ts';
   import { setupLifecycle } from './lib/native.ts';
   import { listenForShares } from './lib/shareTarget.ts';
   import { href, paths, router, tabOf, type Route } from './lib/router.ts';
   import { catalog } from './lib/stores/catalog.svelte.ts';
   import { sharedPlan } from './lib/stores/sharedPlan.svelte.ts';
   import { userData } from './lib/stores/userData.svelte.ts';
+  import { closeIdleWorkout } from './lib/userData/sessions.ts';
   import CustomExerciseDetail from './routes/CustomExerciseDetail.svelte';
   import CustomExerciseForm from './routes/CustomExerciseForm.svelte';
   import DevPose from './routes/DevPose.svelte';
@@ -43,18 +46,30 @@
   const screenKey = $derived(route.name === 'dev-pose' ? 'dev-pose' : JSON.stringify(route));
   const fullScreen = $derived(route.name === 'workout');
 
+  /** How often a workout left idle is looked for while the app is open. */
+  const IDLE_CHECK_MS = 60_000;
+
+  function closeIdle() {
+    if (userData.status === 'ready') userData.update((data) => closeIdleWorkout(data, nowIso()));
+  }
+
   onMount(() => {
-    const stopLifecycle = setupLifecycle({ onPause: () => void userData.flush() });
+    const stopLifecycle = setupLifecycle({
+      onPause: () => void userData.flush(),
+      onResume: closeIdle,
+    });
+    const idleChecks = setInterval(closeIdle, IDLE_CHECK_MS);
     const stopShares = listenForShares((text) => sharedPlan.receive(text));
     // The dev server serves the catalog built from `data/`: never replace it
     // with the published one, nor on the dev pose route used by tooling.
     const checkForUpdates = !import.meta.env.DEV && route.name !== 'dev-pose';
-    Promise.all([userData.load(), catalog.load()])
+    Promise.all([userData.load().then(closeIdle), catalog.load()])
       .then(() => (checkForUpdates ? catalog.checkOnLaunch() : null))
       .catch((error: unknown) => console.error('Start-up failed:', error));
     return () => {
       stopLifecycle();
       stopShares();
+      clearInterval(idleChecks);
     };
   });
 

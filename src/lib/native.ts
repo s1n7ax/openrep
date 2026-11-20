@@ -1,6 +1,6 @@
 /**
  * App lifecycle wiring with `@capacitor/app`: save when the app goes to the
- * background, and Android's hardware back button.
+ * background, notice it coming back, and Android's hardware back button.
  */
 import { App } from '@capacitor/app';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
@@ -9,18 +9,24 @@ import { router } from './router.ts';
 export interface LifecycleHandlers {
   /** The app is going to the background (or the page is being hidden / unloaded). */
   onPause: () => void;
+  /** The app is back in the foreground (or the page is shown again). */
+  onResume: () => void;
 }
 
 /**
  * Registers the lifecycle listeners. Returns a function removing them.
  *
  * - `pause` (native; on the web the plugin maps it to `visibilitychange`)
- *   and `pagehide` (web reloads) call `onPause`.
+ *   and `pagehide` (web reloads) call `onPause`; `resume` (likewise)
+ *   calls `onResume`.
  * - Android back closes the top dialog, exits at a tab root and otherwise
  *   goes back (see `router.handleBackButton`).
  */
-export function setupLifecycle({ onPause }: LifecycleHandlers): () => void {
-  const handles: Promise<PluginListenerHandle>[] = [App.addListener('pause', onPause)];
+export function setupLifecycle({ onPause, onResume }: LifecycleHandlers): () => void {
+  const handles: Promise<PluginListenerHandle>[] = [
+    App.addListener('pause', onPause),
+    App.addListener('resume', onResume),
+  ];
   if (Capacitor.isNativePlatform()) {
     handles.push(
       App.addListener('backButton', () =>

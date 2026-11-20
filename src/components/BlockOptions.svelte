@@ -13,7 +13,7 @@
 </script>
 
 <script lang="ts">
-  import { newId } from '../lib/ids.ts';
+  import { newId, nowIso } from '../lib/ids.ts';
   import type { LoggedSet, SessionExercise, Unit } from '../lib/schema/userData.ts';
   import { restTimer } from '../lib/stores/restTimer.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
@@ -23,6 +23,7 @@
     addLoggedSet,
     addedSetValues,
     lastSetsFor,
+    logChange,
     removeLastLoggedRound,
     removeLastLoggedSet,
     updateLoggedSet,
@@ -133,10 +134,12 @@
   function add() {
     if (block === null) return;
     const current = block;
-    userData.update((data) =>
-      current.kind === 'superset'
-        ? addLoggedRound(data, sessionId, current.superset.id, newId)
-        : addLoggedSet(data, sessionId, current.entry.id, newId()),
+    userData.update(
+      logChange(sessionId, nowIso(), (data) =>
+        current.kind === 'superset'
+          ? addLoggedRound(data, sessionId, current.superset.id, newId)
+          : addLoggedSet(data, sessionId, current.entry.id, newId()),
+      ),
     );
     onsheet(null);
   }
@@ -147,17 +150,23 @@
     // A countdown started by a set removed goes with it.
     const removed = rounds.at(-1) ?? [];
     if (removed.some(({ entry, set }) => restTimer.startedBy(entry.id, set.id))) restTimer.stop();
-    userData.update((data) =>
-      current.kind === 'superset'
-        ? removeLastLoggedRound(data, sessionId, current.superset.id)
-        : removeLastLoggedSet(data, sessionId, current.entry.id),
+    userData.update(
+      logChange(sessionId, nowIso(), (data) =>
+        current.kind === 'superset'
+          ? removeLastLoggedRound(data, sessionId, current.superset.id)
+          : removeLastLoggedSet(data, sessionId, current.entry.id),
+      ),
     );
     onsheet(null);
   }
 
   function changeAmount(entry: SessionExercise, set: LoggedSet, value: number | null) {
     const patch = amountKind(entry.target) === 'time' ? { durationSec: value } : { reps: value };
-    userData.update((data) => updateLoggedSet(data, sessionId, entry.id, set.id, patch));
+    userData.update(
+      logChange(sessionId, nowIso(), (data) =>
+        updateLoggedSet(data, sessionId, entry.id, set.id, patch),
+      ),
+    );
   }
 </script>
 
