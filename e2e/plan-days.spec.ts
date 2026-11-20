@@ -16,11 +16,9 @@ test.describe.configure({ timeout: 180_000 });
 
 /** Expects day `name` (and no other) to be marked Next. */
 async function expectNext(page: Page, name: string): Promise<void> {
-  const days = page.getByTestId('plan-day');
-  await expect(days.filter({ has: page.getByTestId('day-next') })).toHaveCount(1);
-  await expect(days.filter({ has: page.getByTestId('day-next') }).locator('.day-name')).toHaveText(
-    name,
-  );
+  const next = page.getByTestId('plan-day').filter({ has: page.getByTestId('day-next') });
+  await expect(next).toHaveCount(1);
+  await expect(next.locator('.day-name')).toHaveText(name);
   await expect(page.locator('[data-testid="plan-day"][data-next="true"]')).toHaveCount(1);
 }
 

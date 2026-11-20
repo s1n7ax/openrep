@@ -70,11 +70,7 @@ function richData(): UserData {
     's1',
     exercise?.id ?? '',
     exercise?.sets[0]?.id ?? '',
-    {
-      weightKg: 100.0109,
-      reps: 5,
-      done: true,
-    },
+    { weightKg: 100.0109, reps: 5, done: true },
     T0,
   );
   data = finishSession(data, 's1', T1);

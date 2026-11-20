@@ -363,9 +363,7 @@ describe('ticking sets in order', () => {
       's1',
       exercise?.id ?? '',
       exercise?.sets[2]?.id ?? '',
-      {
-        done: true,
-      },
+      { done: true },
       T0,
     );
     expect(ticks(tap(data, 0, 1, true))).toEqual(['✓✓✓', '··']);
@@ -673,11 +671,7 @@ describe('selectors', () => {
       's1',
       first?.id ?? '',
       first?.sets[0]?.id ?? '',
-      {
-        reps: 5,
-        weightKg: 60,
-        done: true,
-      },
+      { reps: 5, weightKg: 60, done: true },
       T0,
     );
     data = updateLoggedSet(
@@ -685,11 +679,7 @@ describe('selectors', () => {
       's1',
       first?.id ?? '',
       first?.sets[1]?.id ?? '',
-      {
-        reps: 4,
-        weightKg: 60,
-        done: false,
-      },
+      { reps: 4, weightKg: 60, done: false },
       T0,
     );
     data = finishSession(data, 's1', T1);
@@ -700,11 +690,7 @@ describe('selectors', () => {
       's2',
       second?.id ?? '',
       second?.sets[0]?.id ?? '',
-      {
-        reps: 5,
-        weightKg: 70,
-        done: true,
-      },
+      { reps: 5, weightKg: 70, done: true },
       T0,
     );
     return data;

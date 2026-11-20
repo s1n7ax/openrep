@@ -50,10 +50,11 @@
     <g transform={`translate(${index * (BODY_WIDTH + GAP)} 0)`}>
       <path class="outline" d={OUTLINE_PATH} />
       {#each MUSCLE_AREAS[side] as area (area.muscle)}
+        {@const lit = level(area.muscle)}
         <g
-          class={`muscle ${level(area.muscle)}`}
+          class={`muscle ${lit}`}
           data-testid={`${testid}-${area.muscle.replace(/\s+/g, '-')}-${side}`}
-          data-level={level(area.muscle)}
+          data-level={lit}
         >
           {#each musclePaths(area) as d, pathIndex (pathIndex)}
             <path {d} />
