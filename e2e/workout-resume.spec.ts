@@ -10,7 +10,14 @@ import type { Page } from '@playwright/test';
 import { goTo, openApp, readStoredUserData, reopen, waitForApp } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { copySchedule, startDay } from './support/plans.ts';
-import { expectOnPage, scrollWorkout, setCircle, tickSet, workoutPage } from './support/workout.ts';
+import {
+  expectOnPage,
+  scrollWorkout,
+  setCircle,
+  tickSet,
+  waitForPictures,
+  workoutPage,
+} from './support/workout.ts';
 
 test.use({ hasTouch: true });
 // Every page change starts 3D views, which takes seconds with software WebGL.
@@ -24,10 +31,10 @@ async function leaveWorkout(page: Page): Promise<void> {
   await expect(page.getByTestId('resume-workout')).toBeVisible();
 }
 
-/** Resumes the workout in progress from the Plans tab. */
+/** Resumes the workout in progress from the Plans tab; ends once its 3D views have started. */
 async function resumeWorkout(page: Page): Promise<void> {
   await page.getByTestId('resume-workout').click();
-  await expect(page.getByTestId('workout-page').first()).toBeVisible();
+  await waitForPictures(page);
 }
 
 test('a workout resumes after the exercise last worked on, not on a skipped one', async ({
