@@ -70,7 +70,6 @@
   import {
     deleteSession,
     finishSession,
-    logChange,
     setLoggedSetDone,
     updateLoggedSet,
   } from '../lib/userData/sessions.ts';
@@ -306,15 +305,14 @@
   function finishTimedSet(current: TimedSet, at: number, held?: number) {
     if (setTimer.current !== current) return;
     const { sessionExerciseId, setId } = current;
-    userData.update(
-      logChange(sessionId, new Date(at).toISOString(), (data) => {
-        const logged =
-          held === undefined
-            ? data
-            : updateLoggedSet(data, sessionId, sessionExerciseId, setId, { durationSec: held });
-        return setLoggedSetDone(logged, sessionId, sessionExerciseId, setId, true);
-      }),
-    );
+    const now = new Date(at).toISOString();
+    userData.update((data) => {
+      const logged =
+        held === undefined
+          ? data
+          : updateLoggedSet(data, sessionId, sessionExerciseId, setId, { durationSec: held }, now);
+      return setLoggedSetDone(logged, sessionId, sessionExerciseId, setId, true, now);
+    });
     onSetDone(sessionExerciseId, setId, true, at);
   }
 

@@ -254,7 +254,12 @@
                 >
                   <Icon name="play" size={18} /> Start
                 </button>
-                <span class="chevron-toggle" class:open={isOpen} aria-hidden="true">
+                <span
+                  class="chevron-toggle"
+                  class:open={isOpen}
+                  aria-hidden="true"
+                  data-testid="day-chevron"
+                >
                   <Icon name="chevron-down" size={22} />
                 </span>
               </div>
@@ -506,6 +511,8 @@
     display: grid;
     place-items: center;
     color: var(--text-3);
+    /* Rotated, it is painted above the toggle: taps go through it. */
+    pointer-events: none;
     transition: transform 160ms ease;
   }
 

@@ -28,7 +28,7 @@
     parseWeight,
     stepWeight,
   } from '../lib/units.ts';
-  import { logChange, setLoggedSetDone, setLoggedWeight } from '../lib/userData/sessions.ts';
+  import { setLoggedSetDone, setLoggedWeight } from '../lib/userData/sessions.ts';
   import {
     amountBase,
     amountKind,
@@ -120,11 +120,7 @@
   function changeWeight(kg: number | null) {
     if (!selected) return;
     const { entry, set } = selected;
-    userData.update(
-      logChange(sessionId, nowIso(), (data) =>
-        setLoggedWeight(data, sessionId, entry.id, set.id, kg),
-      ),
-    );
+    userData.update((data) => setLoggedWeight(data, sessionId, entry.id, set.id, kg, nowIso()));
   }
 
   function onWeightInput() {
@@ -162,11 +158,7 @@
       const left = places.slice(index + 1).some((other) => !other.set.done);
       chosen = left ? null : set.id;
     }
-    userData.update(
-      logChange(sessionId, nowIso(), (data) =>
-        setLoggedSetDone(data, sessionId, entry.id, set.id, done),
-      ),
-    );
+    userData.update((data) => setLoggedSetDone(data, sessionId, entry.id, set.id, done, nowIso()));
     ondone(entry.id, set.id, done);
   }
 </script>

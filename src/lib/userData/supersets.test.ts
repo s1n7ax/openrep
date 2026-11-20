@@ -420,11 +420,11 @@ describe('superset workouts', () => {
     // Ticking all six rows of the three rounds.
     for (const round of rounds(data)) {
       for (const row of round) {
-        data = setLoggedSetDone(data, 'w1', row.entry.id, row.set.id, true);
+        data = setLoggedSetDone(data, 'w1', row.entry.id, row.set.id, true, T0);
       }
     }
     expect(sessionSetCounts(activeSession(data)!)).toEqual({ done: 6, total: 12 });
-    data = addLoggedRound(data, 'w1', 's1', counter('r'));
+    data = addLoggedRound(data, 'w1', 's1', T0, counter('r'));
     expect(rounds(data)).toHaveLength(4);
     expect(rounds(data)[3]?.map((row) => [row.entry.id, row.set.id])).toEqual([
       ['x0', 'r0'],
@@ -432,13 +432,13 @@ describe('superset workouts', () => {
     ]);
     expect(rounds(data)[3]?.[0]?.set).toMatchObject({ weightKg: 60, reps: 8, done: false });
     expect(sessionSetCounts(activeSession(data)!)).toEqual({ done: 6, total: 14 });
-    expect(addLoggedRound(data, 'w1', 'nope', counter('q'))).toBe(data);
+    expect(addLoggedRound(data, 'w1', 'nope', T0, counter('q'))).toBe(data);
   });
 
   it('keeps rounds when a set of one exercise is removed', () => {
     let data = started();
     const session = activeSession(data)!;
-    data = removeLastLoggedSet(data, 'w1', session.exercises[1]!.id);
+    data = removeLastLoggedSet(data, 'w1', session.exercises[1]!.id, T0);
     const after = activeSession(data)!;
     const superset = groupBlocks(after.exercises, after.supersets)[0]!;
     expect(
@@ -450,7 +450,7 @@ describe('superset workouts', () => {
     let data = started();
     const session = activeSession(data)!;
     for (const exercise of session.exercises.slice(0, 2)) {
-      data = setLoggedSetDone(data, 'w1', exercise.id, exercise.sets[0]!.id, true);
+      data = setLoggedSetDone(data, 'w1', exercise.id, exercise.sets[0]!.id, true, T0);
     }
     data = finishSession(data, 'w1', T1);
     expect(lastTimeFor(data.sessions, bench)?.sets).toHaveLength(1);

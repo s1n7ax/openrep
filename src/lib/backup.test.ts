@@ -65,11 +65,18 @@ function richData(): UserData {
   );
   data = startSession(data, { sessionId: 's1', planId: 'p1', dayId: 'd1' }, T0, id);
   const exercise = data.sessions[0]?.exercises[0];
-  data = updateLoggedSet(data, 's1', exercise?.id ?? '', exercise?.sets[0]?.id ?? '', {
-    weightKg: 100.0109,
-    reps: 5,
-    done: true,
-  });
+  data = updateLoggedSet(
+    data,
+    's1',
+    exercise?.id ?? '',
+    exercise?.sets[0]?.id ?? '',
+    {
+      weightKg: 100.0109,
+      reps: 5,
+      done: true,
+    },
+    T0,
+  );
   data = finishSession(data, 's1', T1);
   data = setUnit(data, 'lb');
   data = setDefaultRest(data, 120);

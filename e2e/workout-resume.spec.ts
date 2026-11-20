@@ -118,8 +118,10 @@ test('an idle workout is closed when the app comes back to the foreground or ope
   await leaveWorkout(page);
   await reopen(page);
 
-  // Time stands still (no timer fires) while the app is in the background for 11 hours.
-  await page.clock.pauseAt(new Date(Date.parse(await clockNow(page)) + 1000));
+  // Time stands still (no timer fires) while the app is in the background for
+  // 11 hours. Pausing a minute ahead leaves room for a slow round trip (a
+  // pause in the past throws); the minute's idle check finds nothing to close.
+  await page.clock.pauseAt(new Date(Date.parse(await clockNow(page)) + 60_000));
   await page.clock.setSystemTime(new Date(Date.parse(await clockNow(page)) + 11 * 3600_000));
   await expect(page.getByTestId('resume-workout')).toBeVisible();
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));

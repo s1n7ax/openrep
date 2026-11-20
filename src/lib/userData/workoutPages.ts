@@ -1,9 +1,8 @@
 /**
  * The workout screen shows a session one block (exercise or superset) per
- * page, then a page to finish it. These helpers say where it opens (and
- * resumes), where it
- * moves on to once a block is done, which exercise of a superset is next,
- * and whether going back would lose anything.
+ * page, then a page to finish it. These helpers say where it opens and
+ * resumes, where it moves on to once a block is done, which exercise of a
+ * superset is next, and whether going back would lose anything.
  */
 import type { Session, SessionExercise } from '../schema/userData.ts';
 import { lastSetsFor, prefilledSet } from './sessions.ts';

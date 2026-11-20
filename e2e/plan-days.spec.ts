@@ -68,7 +68,9 @@ test('days show their name, muscles and Start, and their exercises only when tap
   await expect(pull.getByTestId('plan-exercise-name').first()).toHaveText('Barbell Deadlift');
   await expect(pull.getByTestId('plan-exercise-target').first()).toHaveText('3 × 5 · Rest 3 min');
   await expect(page.getByTestId('plan-exercise')).toHaveCount(6);
-  await pull.getByTestId('day-toggle').click();
+  // The chevron, turned up while the day is open, takes the tap through to the toggle.
+  const chevron = await pull.getByTestId('day-chevron').boundingBox();
+  await page.mouse.click(chevron!.x + chevron!.width / 2, chevron!.y + chevron!.height / 2);
   await expect(pull.getByTestId('day-toggle')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.getByTestId('plan-exercise')).toHaveCount(0);
 

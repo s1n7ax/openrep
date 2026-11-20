@@ -141,7 +141,7 @@ export const sessionSchema = z.object({
   /** `null` while the session is in progress. */
   finishedAt: timestampSchema.nullable(),
   /**
-   * The last change to its sets while in progress (see `logChange`); left
+   * The last change to its sets while in progress (see `sessions.ts`); left
    * out until the first one, and in sessions saved before it existed.
    */
   updatedAt: timestampSchema.optional(),
