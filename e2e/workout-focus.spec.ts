@@ -10,7 +10,7 @@
 import type { Page } from '@playwright/test';
 import { openApp, readStoredUserData, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
-import { addExercise, copySchedule, createPlan, startDay } from './support/plans.ts';
+import { addExercise, copySchedule, createPlan, showExercises, startDay } from './support/plans.ts';
 import {
   changeAmounts,
   closeHistory,
@@ -46,6 +46,7 @@ async function createFocusPlan(page: Page, name: string): Promise<void> {
   await addExercise(page, 0, 'dumbbell bicep curl', CURL.id);
   await addExercise(page, 0, 'plank', PLANK.id);
   await page.getByTestId('editor-done').click();
+  await showExercises(page);
   await expect(page.getByTestId('plan-exercise')).toHaveCount(3);
 }
 

@@ -1,11 +1,22 @@
 <!--
-  A plan (`#/plans/:id`): its days with exercises, supersets and targets,
-  "Start" per day (creates a session and opens the workout), Edit and Submit.
+  A plan (`#/plans/:id`): its days, each with its name, the muscles it
+  trains on a body figure and "Start" (creates a session and opens the
+  workout); the day to do next is marked. Tapping a day shows its exercises,
+  supersets and targets. Edit and Submit.
 -->
+<script module lang="ts">
+  /** The days shown open on each plan's page, kept while the app runs. */
+  // Not state: it is read once, when the page opens.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const openDaysByPlan = new Map<string, string[]>();
+</script>
+
 <script lang="ts">
+  import { untrack } from 'svelte';
   import Dialog from '../components/Dialog.svelte';
   import EmptyState from '../components/EmptyState.svelte';
   import Icon from '../components/Icon.svelte';
+  import MuscleFigure from '../components/MuscleFigure.svelte';
   import PageHeader from '../components/PageHeader.svelte';
   import SubmitCard from '../components/SubmitCard.svelte';
   import SupersetLabel from '../components/SupersetLabel.svelte';
@@ -23,7 +34,13 @@
   import { catalog } from '../lib/stores/catalog.svelte.ts';
   import { userData } from '../lib/stores/userData.svelte.ts';
   import { dayBlocks } from '../lib/userData/plans.ts';
-  import { activeSession, findPlan, planStats } from '../lib/userData/selectors.ts';
+  import {
+    activeSession,
+    dayMuscles,
+    findPlan,
+    nextPlanDay,
+    planStats,
+  } from '../lib/userData/selectors.ts';
   import { deleteSession, startSession } from '../lib/userData/sessions.ts';
   import { blockKey, supersetExerciseLabel } from '../lib/userData/supersets.ts';
   import {
@@ -37,6 +54,9 @@
   const plan = $derived(findPlan(userData.data, planId));
   const unit = $derived(userData.data.settings.unit);
   const active = $derived(activeSession(userData.data));
+  const nextDayId = $derived(plan ? nextPlanDay(plan, userData.data.sessions)?.id : undefined);
+  // The screen is remounted for another plan, so `planId` does not change here.
+  let openDays = $state<string[]>(untrack(() => openDaysByPlan.get(planId) ?? []));
   /** A day the user wants to start while another workout is in progress. */
   let pendingDay = $state<PlanDay | null>(null);
   let exporting = $state(false);
@@ -97,6 +117,13 @@
         suffix: randomSuffix(),
       }),
     );
+  }
+
+  function toggleDay(dayId: string) {
+    openDays = openDays.includes(dayId)
+      ? openDays.filter((id) => id !== dayId)
+      : [...openDays, dayId];
+    openDaysByPlan.set(planId, openDays);
   }
 
   function dayName(day: PlanDay, index: number): string {
@@ -171,71 +198,113 @@
   {:else}
     <div class="days">
       {#each plan.days as day, dayIndex (day.id)}
+        {@const isNext = day.id === nextDayId}
+        {@const isOpen = openDays.includes(day.id)}
+        {@const muscles = dayMuscles(
+          day,
+          (id) => catalog.exercise(id),
+          userData.data.customExercises,
+        )}
         <section
           class="day card"
+          class:next={isNext}
           data-testid="plan-day"
           data-day-id={day.id}
+          data-next={isNext}
           aria-labelledby={`day-${day.id}`}
         >
-          <header class="day-head">
-            <div class="day-titles">
-              <h2 id={`day-${day.id}`} class="day-name">{dayName(day, dayIndex)}</h2>
+          <div class="day-summary">
+            <div class="figure">
+              <MuscleFigure
+                primary={muscles.primary}
+                secondary={muscles.secondary}
+                testid="day-muscles"
+              />
+            </div>
+            <div class="day-text">
+              <h2 id={`day-${day.id}`} class="day-heading">
+                <!-- The whole summary toggles the exercises (see .day-toggle::after). -->
+                <button
+                  type="button"
+                  class="day-toggle"
+                  aria-expanded={isOpen}
+                  aria-controls={`day-exercises-${day.id}`}
+                  data-testid="day-toggle"
+                  onclick={() => toggleDay(day.id)}
+                >
+                  <span class="day-name">{dayName(day, dayIndex)}</span>
+                </button>
+                {#if isNext}
+                  <span class="badge next-badge" data-testid="day-next">Next</span>
+                {/if}
+              </h2>
               <p class="day-meta">
                 {day.exercises.length}
                 {day.exercises.length === 1 ? 'exercise' : 'exercises'}
               </p>
+              <div class="day-actions">
+                <button
+                  type="button"
+                  class="btn start"
+                  class:btn-primary={isNext}
+                  class:btn-outline={!isNext}
+                  data-testid="day-start"
+                  disabled={day.exercises.length === 0}
+                  onclick={() => start(day)}
+                >
+                  <Icon name="play" size={18} /> Start
+                </button>
+                <span class="chevron-toggle" class:open={isOpen} aria-hidden="true">
+                  <Icon name="chevron-down" size={22} />
+                </span>
+              </div>
             </div>
-            <button
-              type="button"
-              class="btn btn-primary start"
-              data-testid="day-start"
-              disabled={day.exercises.length === 0}
-              onclick={() => start(day)}
-            >
-              <Icon name="play" size={18} /> Start
-            </button>
-          </header>
+          </div>
 
-          {#if day.exercises.length === 0}
-            <p class="empty-day">No exercises on this day yet.</p>
-          {:else}
-            <ol class="exercises">
-              {#each dayBlocks(day) as block (blockKey(block))}
-                {#if block.kind === 'exercise'}
-                  {@render exerciseItem(
-                    block.entry,
-                    String(block.index + 1),
-                    formatTargetWithRest(block.entry, unit),
-                  )}
-                {:else}
-                  <li
-                    class="superset"
-                    data-testid="plan-superset"
-                    data-superset-id={block.superset.id}
-                  >
-                    <div class="superset-head">
-                      <SupersetLabel
-                        letter={block.letter}
-                        summary={formatSupersetSummary(
-                          block.entries[0]?.sets ?? 0,
-                          block.superset.restSec,
-                        )}
-                        testid="plan-superset-summary"
-                      />
-                    </div>
-                    <ol class="superset-exercises">
-                      {#each block.entries as entry, position (entry.id)}
-                        {@render exerciseItem(
-                          entry,
-                          supersetExerciseLabel(block.letter, position),
-                          formatSupersetExerciseTarget(entry, unit),
-                        )}
-                      {/each}
-                    </ol>
-                  </li>
-                {/if}
-              {/each}
-            </ol>
+          {#if isOpen}
+            <div class="day-exercises" id={`day-exercises-${day.id}`}>
+              {#if day.exercises.length === 0}
+                <p class="empty-day">No exercises on this day yet.</p>
+              {:else}
+                <ol class="exercises">
+                  {#each dayBlocks(day) as block (blockKey(block))}
+                    {#if block.kind === 'exercise'}
+                      {@render exerciseItem(
+                        block.entry,
+                        String(block.index + 1),
+                        formatTargetWithRest(block.entry, unit),
+                      )}
+                    {:else}
+                      <li
+                        class="superset"
+                        data-testid="plan-superset"
+                        data-superset-id={block.superset.id}
+                      >
+                        <div class="superset-head">
+                          <SupersetLabel
+                            letter={block.letter}
+                            summary={formatSupersetSummary(
+                              block.entries[0]?.sets ?? 0,
+                              block.superset.restSec,
+                            )}
+                            testid="plan-superset-summary"
+                          />
+                        </div>
+                        <ol class="superset-exercises">
+                          {#each block.entries as entry, position (entry.id)}
+                            {@render exerciseItem(
+                              entry,
+                              supersetExerciseLabel(block.letter, position),
+                              formatSupersetExerciseTarget(entry, unit),
+                            )}
+                          {/each}
+                        </ol>
+                      </li>
+                    {/if}
+                  {/each}
+                </ol>
+              {/if}
+            </div>
           {/if}
         </section>
       {/each}
@@ -341,25 +410,76 @@
     overflow: hidden;
   }
 
-  .day-head {
+  .day.next {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .day-summary {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    padding: var(--space-4);
-    border-bottom: 1px solid var(--border);
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
   }
 
-  .day-titles {
+  .figure {
+    flex: none;
+    width: min(40%, 150px);
+  }
+
+  .day-text {
+    display: flex;
     flex: 1;
+    flex-direction: column;
+    gap: var(--space-1);
     min-width: 0;
   }
 
+  .day-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .day-toggle {
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  /* The toggle covers the whole summary; Start sits above it. */
+  .day-toggle::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .day-toggle:focus-visible {
+    outline: none;
+  }
+
+  .day-toggle:focus-visible::after {
+    border-radius: var(--radius-lg);
+    box-shadow: inset 0 0 0 2.5px var(--focus);
+  }
+
+  .day-summary:active:has(.day-toggle:active) {
+    background: var(--surface-2);
+  }
+
   .day-name {
+    display: block;
     overflow: hidden;
     font-size: var(--text-lg);
     font-weight: 750;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .day-meta {
@@ -367,9 +487,40 @@
     font-size: var(--text-sm);
   }
 
+  .day-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
   .start {
+    position: relative;
+    z-index: 1;
     flex: none;
     min-width: 104px;
+  }
+
+  .chevron-toggle {
+    display: grid;
+    place-items: center;
+    color: var(--text-3);
+    transition: transform 160ms ease;
+  }
+
+  .chevron-toggle.open {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chevron-toggle {
+      transition: none;
+    }
+  }
+
+  .day-exercises {
+    border-top: 1px solid var(--border);
   }
 
   .empty-day {

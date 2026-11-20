@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { bundledCatalog, openApp } from './support/app.ts';
 import { APP_ORIGIN, REMOTE_CATALOG_ORIGIN, REMOTE_CATALOG_URL } from './support/env.ts';
 import { expect, test } from './support/fixtures.ts';
-import { copySchedule, startDay } from './support/plans.ts';
+import { copySchedule, showExercises, startDay } from './support/plans.ts';
 import { viewer, waitForFrameAfter } from './support/viewer.ts';
 import { tickSet, typeWeight } from './support/workout.ts';
 
@@ -34,6 +34,7 @@ test('a full flow only talks to the app itself and the catalog', async ({ page, 
   await copySchedule(page, 'beginner-full-body');
 
   // An exercise page with its 3D view and photos.
+  await showExercises(page);
   await page.getByTestId('plan-exercise').first().locator('a').click();
   await waitForFrameAfter(page, 0);
   await expect(viewer(page)).toHaveAttribute('data-animated', 'true');

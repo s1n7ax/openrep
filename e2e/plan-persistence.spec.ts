@@ -4,7 +4,7 @@
  */
 import { openApp, readStoredUserData, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
-import { addExercise, createPlan, openPlan, planDayTexts } from './support/plans.ts';
+import { addExercise, createPlan, openPlan, planDayTexts, showExercises } from './support/plans.ts';
 
 interface Entry {
   query: string;
@@ -122,6 +122,7 @@ test('a plan with 2 days × 3 exercises is unchanged after reopening the app', a
   await page.getByTestId('editor-done').click();
 
   // The plan as entered.
+  await showExercises(page);
   const days = page.getByTestId('plan-day');
   await expect(days).toHaveCount(2);
   for (const [dayIndex, day] of DAYS.entries()) {

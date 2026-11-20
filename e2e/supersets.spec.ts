@@ -22,7 +22,7 @@ import {
 import { REMOTE_CATALOG_URL } from './support/env.ts';
 import { openedUrl, recordOpenedWindows } from './support/external.ts';
 import { expect, test } from './support/fixtures.ts';
-import { addExercise, createPlan, openPlan, startDay } from './support/plans.ts';
+import { addExercise, createPlan, openPlan, showExercises, startDay } from './support/plans.ts';
 import {
   changeAmounts,
   openHistory,
@@ -61,6 +61,7 @@ async function groupFirstTwo(page: Page): Promise<void> {
   await expect(superset.getByTestId('superset-rest')).toHaveValue('90');
   await expect(superset.getByTestId('edit-exercise-label')).toHaveText(['A1', 'A2']);
   await page.getByTestId('editor-done').click();
+  await showExercises(page);
   await expect(page.getByTestId('plan-superset')).toBeVisible();
 }
 
@@ -91,6 +92,7 @@ test('a superset is shown on the plan, logged round by round and in history', as
   await groupFirstTwo(page);
 
   // The plan page: A1 and A2 in one group, Triceps Pushdown on its own.
+  await showExercises(page);
   const group = page.getByTestId('plan-superset');
   await expect(group.getByTestId('plan-superset-summary')).toHaveText(
     '3 rounds · rest 90 s after each round',
@@ -215,6 +217,7 @@ test('supersets can be extended, reordered, taken apart and ungrouped', async ({
   await expect(superset.getByTestId('edit-exercise')).toHaveCount(3);
   await expect(labels).toHaveText(['A1', 'A2', 'A3']);
   await page.getByTestId('editor-done').click();
+  await showExercises(page);
   await expect(page.getByTestId('plan-superset').getByTestId('plan-exercise-label')).toHaveText([
     'A1',
     'A2',
@@ -233,6 +236,7 @@ test('supersets can be extended, reordered, taken apart and ungrouped', async ({
   await expect(superset.getByTestId('superset-rounds')).toHaveText('4');
   await reopen(page);
   await openPlan(page, 'Tri-set');
+  await showExercises(page);
   await expect(page.getByTestId('plan-exercise-name')).toHaveText([
     BENCH.name,
     PUSHDOWN.name,
@@ -269,6 +273,7 @@ test('supersets can be extended, reordered, taken apart and ungrouped', async ({
   await expect(names).toHaveText([BENCH.name, FLYES.name, PUSHDOWN.name]);
   await expect(labels).toHaveText(['1', '2', '3']);
   await page.getByTestId('editor-done').click();
+  await showExercises(page);
   await expect(page.getByTestId('plan-superset')).toHaveCount(0);
   await expect(page.getByTestId('plan-exercise')).toHaveCount(3);
 });
@@ -363,6 +368,7 @@ test.describe('community schedules with supersets', () => {
 
     // Copying it creates a plan with the same superset.
     await page.getByTestId('schedule-copy').click();
+    await showExercises(page);
     const planGroup = page.getByTestId('plan-superset');
     await expect(planGroup.getByTestId('plan-superset-summary')).toHaveText(
       '3 rounds · rest 90 s after each round',
@@ -428,6 +434,7 @@ test('a backup keeps supersets of plans and workouts', async ({ page }) => {
   expect(await readStoredUserData(page)).toEqual(before);
 
   await openPlan(page, 'Backup supersets');
+  await showExercises(page);
   await expect(page.getByTestId('plan-superset').getByTestId('plan-exercise-label')).toHaveText([
     'A1',
     'A2',

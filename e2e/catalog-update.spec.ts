@@ -10,7 +10,7 @@ import type { Exercise } from '../src/lib/schema/exercise.ts';
 import { bundledCatalog, openApp, reopen } from './support/app.ts';
 import { REMOTE_CATALOG_URL } from './support/env.ts';
 import { expect, test } from './support/fixtures.ts';
-import { addExercise, createPlan, openPlan, startDay } from './support/plans.ts';
+import { addExercise, createPlan, openPlan, showExercises, startDay } from './support/plans.ts';
 import { changeAmounts, tickSet, typeWeight } from './support/workout.ts';
 
 const ZERCHER: Exercise = {
@@ -116,6 +116,7 @@ test('an update removing an exercise used in a plan keeps the plan working', asy
   await createPlan(page, 'Arms');
   await addExercise(page, 0, 'alternate hammer curl', removed.id);
   await page.getByTestId('editor-done').click();
+  await showExercises(page);
   await expect(page.getByTestId('plan-exercise-name')).toHaveText([removed.name]);
 
   served = remote;
@@ -124,6 +125,7 @@ test('an update removing an exercise used in a plan keeps the plan working', asy
 
   // The plan shows the stored name with a note.
   await openPlan(page, 'Arms');
+  await showExercises(page);
   const entry = page.getByTestId('plan-exercise');
   await expect(entry.getByTestId('plan-exercise-name')).toHaveText(removed.name);
   await expect(entry.getByTestId('missing-note')).toContainText('No longer in catalog');
