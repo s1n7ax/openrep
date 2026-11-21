@@ -1,0 +1,2 @@
+Features
+• plan days at a glance with the next day marked; close idle workouts and resume where you left off
