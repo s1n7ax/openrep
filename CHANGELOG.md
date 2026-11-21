@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/s1n7ax/openrep/compare/v0.17.0...v0.18.0) (2026-11-21)
+
+
+### Features
+
+* plan days at a glance with the next day marked; close idle workouts and resume where you left off ([#52](https://github.com/s1n7ax/openrep/issues/52)) ([0aa648a](https://github.com/s1n7ax/openrep/commit/0aa648acbdb748afe65071bd5aa67d0bf2057b35))
+
 ## [0.17.0](https://github.com/s1n7ax/openrep/compare/v0.16.0...v0.17.0) (2026-11-14)
 
 
