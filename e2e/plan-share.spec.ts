@@ -9,6 +9,7 @@ import type { PlanFile } from '../src/lib/schema/planFile.ts';
 import { asAndroid, shareToApp } from './support/android.ts';
 import { openApp, readStoredUserData } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
+import { showExercises } from './support/plans.ts';
 import { seedUserData } from './support/seed.ts';
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
@@ -108,6 +109,7 @@ test('exercises not in the catalog are imported by name', async ({ page }) => {
     'Backpack Step-Up',
     'Farmer Carry',
   ]);
+  await showExercises(page);
   await expect(page.getByTestId('plan-exercise-name')).toContainText(['Backpack Step-Up']);
 });
 

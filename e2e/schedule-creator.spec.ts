@@ -15,7 +15,7 @@ import { androidBack, asAndroid } from './support/android.ts';
 import { openApp, readStoredUserData, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
 import { closeShareSheet, endSharesAs, recordShares, sharedTexts } from './support/external.ts';
-import { copySchedule, startDay } from './support/plans.ts';
+import { copySchedule, showExercises, startDay } from './support/plans.ts';
 import { changeAmounts, tickSet, typeWeight } from './support/workout.ts';
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
@@ -192,6 +192,7 @@ test(
     await page.getByTestId('creator-import').click();
 
     await expect(page.getByTestId('page-title')).toHaveText('Dumbbell Upper/Lower');
+    await showExercises(page);
     await expect(page.getByTestId('plan-exercise-name')).toHaveText(['Dumbbell Flyes']);
     const stored = await readStoredUserData(page);
     expect(stored?.plans.map((plan) => plan.name)).toEqual(['Dumbbell Upper/Lower']);

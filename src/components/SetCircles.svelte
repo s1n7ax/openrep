@@ -13,6 +13,7 @@
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
+  import { nowIso } from '../lib/ids.ts';
   import {
     MAX_WEIGHT_KG,
     type LoggedSet,
@@ -119,7 +120,7 @@
   function changeWeight(kg: number | null) {
     if (!selected) return;
     const { entry, set } = selected;
-    userData.update((data) => setLoggedWeight(data, sessionId, entry.id, set.id, kg));
+    userData.update((data) => setLoggedWeight(data, sessionId, entry.id, set.id, kg, nowIso()));
   }
 
   function onWeightInput() {
@@ -157,7 +158,7 @@
       const left = places.slice(index + 1).some((other) => !other.set.done);
       chosen = left ? null : set.id;
     }
-    userData.update((data) => setLoggedSetDone(data, sessionId, entry.id, set.id, done));
+    userData.update((data) => setLoggedSetDone(data, sessionId, entry.id, set.id, done, nowIso()));
     ondone(entry.id, set.id, done);
   }
 </script>

@@ -8,7 +8,7 @@
  */
 import { openApp, serveAppFromDisk } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
-import { copySchedule, startDay } from './support/plans.ts';
+import { copySchedule, showExercises, startDay } from './support/plans.ts';
 import { viewer, waitForFrameAfter } from './support/viewer.ts';
 import { changeAmounts, tickSet, typeWeight } from './support/workout.ts';
 
@@ -25,6 +25,7 @@ test(
 
     // A plan.
     await copySchedule(page, 'beginner-full-body');
+    await showExercises(page);
     await expect(page.getByTestId('plan-exercise-name').first()).toHaveText('Goblet Squat');
 
     // An exercise page: the 3D view renders and the photos load.

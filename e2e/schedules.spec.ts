@@ -4,7 +4,7 @@
  */
 import { openApp, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
-import { copySchedule, openPlan } from './support/plans.ts';
+import { copySchedule, openPlan, showExercises } from './support/plans.ts';
 
 test(
   'copying Push/Pull/Legs gives a plan that can be edited',
@@ -23,6 +23,7 @@ test(
       'Pull',
       'Legs',
     ]);
+    await showExercises(page);
     const firstTarget = page.getByTestId('plan-exercise-target').first();
     await expect(firstTarget).toHaveText('4 × 6–8 · Rest 2 min 30 s');
 
@@ -45,6 +46,7 @@ test(
       'Pull',
       'Legs',
     ]);
+    await showExercises(page);
     await expect(page.getByTestId('plan-exercise-target').first()).toHaveText(
       '5 × 6–8 · Rest 2 min 30 s',
     );

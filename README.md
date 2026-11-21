@@ -11,7 +11,9 @@ works offline.
   sets, reps (a number or a range such as 8–12) or a time, optional weight,
   rest and notes. Edit, reorder and delete plans, days and exercises. Group
   two or more exercises into a superset (A1, A2, …) with one round count and
-  one rest after each round.
+  one rest after each round. A plan's page shows each day with the muscles
+  it trains on a body figure (tap a day to see its exercises) and marks the
+  day to do next: the one after the day you last finished.
 - **Exercise catalog**: over 870 exercises, from the public-domain
   [free-exercise-db](https://github.com/yuhonas/free-exercise-db) plus community
   contributions. Search by name or alternative name ("skull crusher" finds
@@ -37,7 +39,10 @@ works offline.
   30 s) counts its seconds down and ticks it off at zero, or at once with
   Done. Finishing an exercise plays a short
   celebration, then moves on to the next one. Supersets are logged round by
-  round on one screen, with the rest after each round. History lists past
+  round on one screen, with the rest after each round. Coming back to a
+  workout opens the exercise you last ticked a set in, or the next one after
+  it with sets left. A workout left untouched for more than 10 hours is
+  finished (or dropped, when no set was ticked). History lists past
   workouts. Weights in kg or lb.
 - **Community schedules**: browse schedules and copy one into your plans to
   edit it. Three starter schedules ship with the app: Beginner Full Body,

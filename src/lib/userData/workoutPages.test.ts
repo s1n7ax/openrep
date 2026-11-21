@@ -7,6 +7,7 @@ import {
   hasSetsLeft,
   nextOpenPage,
   nextSupersetPosition,
+  resumePage,
 } from './workoutPages.ts';
 
 function set(id: string, patch: Partial<LoggedSet> = {}): LoggedSet {
@@ -75,6 +76,57 @@ describe('firstOpenPage', () => {
   it('opens on the finish page when every set is ticked off', () => {
     const value = session([exercise('e1', [set('a', { done: true })])]);
     expect(firstOpenPage(blocks(value))).toBe(1);
+  });
+});
+
+describe('resumePage', () => {
+  const done = { done: true };
+
+  it('opens where a new workout opens before any set is ticked off', () => {
+    const value = session([exercise('e1', [set('a')]), exercise('e2', [set('b')])]);
+    expect(resumePage(blocks(value), undefined)).toBe(0);
+  });
+
+  it('resumes on the exercise last ticked in while it has sets left, past a skipped one', () => {
+    const value = session([
+      exercise('e1', [set('a'), set('b')]),
+      exercise('e2', [set('c')]),
+      exercise('e3', [set('d', done), set('e')]),
+      exercise('e4', [set('f')]),
+    ]);
+    expect(resumePage(blocks(value), 'e3')).toBe(2);
+  });
+
+  it('moves on from a completed exercise to the next one with sets left, not back to a skipped one', () => {
+    const value = session([
+      exercise('e1', [set('a')]),
+      exercise('e2', [set('b', done)]),
+      exercise('e3', [set('c', done)]),
+      exercise('e4', [set('d')]),
+    ]);
+    expect(resumePage(blocks(value), 'e2')).toBe(3);
+  });
+
+  it('resumes on the finish page when nothing is left after the completed exercise', () => {
+    const value = session([exercise('e1', [set('a')]), exercise('e2', [set('b', done)])]);
+    expect(resumePage(blocks(value), 'e2')).toBe(2);
+  });
+
+  it('resumes on the superset the exercise belongs to', () => {
+    const value = session(
+      [
+        exercise('e1', [set('a')]),
+        exercise('e2', [set('b', done), set('c')], { supersetId: 'x' }),
+        exercise('e3', [set('d', done), set('e')], { supersetId: 'x' }),
+      ],
+      ['x'],
+    );
+    expect(resumePage(blocks(value), 'e3')).toBe(1);
+  });
+
+  it('opens where a new workout opens when that exercise is gone', () => {
+    const value = session([exercise('e1', [set('a', done)]), exercise('e2', [set('b')])]);
+    expect(resumePage(blocks(value), 'gone')).toBe(1);
   });
 });
 

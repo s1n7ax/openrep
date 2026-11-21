@@ -1,5 +1,8 @@
 /**
- * Pure updates of workout sessions (see `plans.ts` for the conventions).
+ * Pure updates of workout sessions (see `plans.ts` for the conventions). A
+ * change made while logging takes the time it is made (`now`) and stamps the
+ * session's `updatedAt` with it when the session changed: a workout's last
+ * change is when it went idle (see `closeIdleWorkout`).
  */
 import type {
   ExerciseRef,
@@ -10,7 +13,7 @@ import type {
   UserData,
 } from '../schema/userData.ts';
 import { cleanTarget } from './plans.ts';
-import { lastTimeFor } from './selectors.ts';
+import { activeSession, lastTimeFor } from './selectors.ts';
 import { blockEntries, blockHasEntry, groupBlocks, supersetRounds } from './supersets.ts';
 import { plannedReps } from './targets.ts';
 
@@ -29,13 +32,28 @@ function updateSession(
   return changed ? { ...data, sessions } : data;
 }
 
-function updateSessionExercise(
+/** `updateSession` for a change made while logging at `now`: it stamps the session's `updatedAt`. */
+function logSession(
+  data: UserData,
+  sessionId: string,
+  now: string,
+  update: (session: Session) => Session,
+): UserData {
+  return updateSession(data, sessionId, (session) => {
+    const next = update(session);
+    return next === session ? session : { ...next, updatedAt: now };
+  });
+}
+
+/** `logSession` for one exercise of the session. */
+function logSessionExercise(
   data: UserData,
   sessionId: string,
   sessionExerciseId: string,
+  now: string,
   update: (exercise: SessionExercise) => SessionExercise,
 ): UserData {
-  return updateSession(data, sessionId, (session) => {
+  return logSession(data, sessionId, now, (session) => {
     let changed = false;
     const exercises = session.exercises.map((exercise) => {
       if (exercise.id !== sessionExerciseId) return exercise;
@@ -138,8 +156,9 @@ export function updateLoggedSet(
   sessionExerciseId: string,
   setId: string,
   patch: Partial<Omit<LoggedSet, 'id'>>,
+  now: string,
 ): UserData {
-  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
+  return logSessionExercise(data, sessionId, sessionExerciseId, now, (exercise) => {
     let changed = false;
     const sets = exercise.sets.map((set) => {
       if (set.id !== setId) return set;
@@ -162,8 +181,9 @@ export function setLoggedWeight(
   sessionExerciseId: string,
   setId: string,
   weightKg: number | null,
+  now: string,
 ): UserData {
-  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) => {
+  return logSessionExercise(data, sessionId, sessionExerciseId, now, (exercise) => {
     const index = exercise.sets.findIndex((set) => set.id === setId);
     const changedSet = exercise.sets[index];
     if (!changedSet) return exercise;
@@ -217,8 +237,9 @@ export function addLoggedSet(
   sessionId: string,
   sessionExerciseId: string,
   setId: string,
+  now: string,
 ): UserData {
-  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) =>
+  return logSessionExercise(data, sessionId, sessionExerciseId, now, (exercise) =>
     withNewSet(exercise, setId, lastSetsFor(data.sessions, exercise.exercise, sessionId)),
   );
 }
@@ -228,9 +249,10 @@ export function addLoggedRound(
   data: UserData,
   sessionId: string,
   supersetId: string,
+  now: string,
   newId: () => string,
 ): UserData {
-  return updateSession(data, sessionId, (session) => {
+  return logSession(data, sessionId, now, (session) => {
     let changed = false;
     const exercises = session.exercises.map((exercise) => {
       if (exercise.supersetId !== supersetId) return exercise;
@@ -250,8 +272,9 @@ export function removeLastLoggedSet(
   data: UserData,
   sessionId: string,
   sessionExerciseId: string,
+  now: string,
 ): UserData {
-  return updateSessionExercise(data, sessionId, sessionExerciseId, (exercise) =>
+  return logSessionExercise(data, sessionId, sessionExerciseId, now, (exercise) =>
     exercise.sets.length > 1 ? { ...exercise, sets: exercise.sets.slice(0, -1) } : exercise,
   );
 }
@@ -264,8 +287,9 @@ export function removeLastLoggedRound(
   data: UserData,
   sessionId: string,
   supersetId: string,
+  now: string,
 ): UserData {
-  return updateSession(data, sessionId, (session) => {
+  return logSession(data, sessionId, now, (session) => {
     const rounds = Math.max(
       0,
       ...session.exercises
@@ -281,6 +305,24 @@ export function removeLastLoggedRound(
     });
     return changed ? { ...session, exercises } : session;
   });
+}
+
+/** How long a workout in progress may go without a change before it is closed. */
+export const IDLE_LIMIT_MS = 10 * 60 * 60 * 1000;
+
+/**
+ * Closes the workout in progress when its last change (its `updatedAt`, or
+ * its start before the first) is more than `IDLE_LIMIT_MS` before `now`: it
+ * is finished as of that last change, or deleted when no set was ticked off,
+ * as nothing was logged. Returns the input unchanged otherwise.
+ */
+export function closeIdleWorkout(data: UserData, now: string): UserData {
+  const session = activeSession(data);
+  if (!session) return data;
+  const lastChange = session.updatedAt ?? session.startedAt;
+  if (Date.parse(now) - Date.parse(lastChange) <= IDLE_LIMIT_MS) return data;
+  const logged = session.exercises.some((exercise) => exercise.sets.some((set) => set.done));
+  return logged ? finishSession(data, session.id, lastChange) : deleteSession(data, session.id);
 }
 
 /** Marks a session finished; it is no longer the active session. */
@@ -320,7 +362,8 @@ function tickedSet(set: LoggedSet, target: PlanTarget): LoggedSet {
  * by round, A1 before A2 (see `supersetRounds`). Ticking fills empty reps
  * from the reps target, a range's low end ("10-12" → 10, see `plannedReps`),
  * and an empty duration from a timed target, so a set done as planned takes
- * one tap.
+ * one tap. A tick records its exercise as the session's
+ * `lastTickedExerciseId`, where the workout resumes.
  */
 export function setLoggedSetDone(
   data: UserData,
@@ -328,8 +371,9 @@ export function setLoggedSetDone(
   sessionExerciseId: string,
   setId: string,
   done: boolean,
+  now: string,
 ): UserData {
-  return updateSession(data, sessionId, (session) => {
+  return logSession(data, sessionId, now, (session) => {
     const block = groupBlocks(session.exercises, session.supersets).find((candidate) =>
       blockHasEntry(candidate, sessionExerciseId),
     );
@@ -356,6 +400,8 @@ export function setLoggedSetDone(
           }
         : exercise,
     );
-    return { ...session, exercises };
+    return done
+      ? { ...session, exercises, lastTickedExerciseId: sessionExerciseId }
+      : { ...session, exercises };
   });
 }

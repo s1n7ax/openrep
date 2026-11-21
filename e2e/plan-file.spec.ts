@@ -9,7 +9,7 @@ import type { Page } from '@playwright/test';
 import type { PlanFile } from '../src/lib/schema/planFile.ts';
 import { openApp, readStoredUserData, reopen } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
-import { openPlan } from './support/plans.ts';
+import { openPlan, showExercises } from './support/plans.ts';
 
 const file: PlanFile = {
   app: 'openrep',
@@ -102,6 +102,7 @@ test('importing a generated plan adds it as an editable plan', async ({ page }) 
 
   await expect(page.getByTestId('page-title')).toHaveText('AI Upper/Lower');
   await expect(page.getByTestId('plan-day').locator('.day-name')).toHaveText(['Upper', 'Lower']);
+  await showExercises(page);
   await expect(page.getByTestId('plan-exercise-target').first()).toHaveText(
     '4 × 5 · 72.5 kg · Rest 3 min',
   );
@@ -130,6 +131,7 @@ test('importing a generated plan adds it as an editable plan', async ({ page }) 
   // And it is saved: still there after reopening.
   await reopen(page);
   await openPlan(page, 'AI Upper/Lower');
+  await showExercises(page);
   await expect(page.getByTestId('plan-exercise-target').first()).toHaveText(
     '4 × 5 · 72.5 kg · Rest 3 min',
   );

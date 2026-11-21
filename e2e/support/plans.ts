@@ -63,7 +63,18 @@ export async function startDay(page: Page, dayIndex: number): Promise<void> {
   await waitForPictures(page);
 }
 
-/** Text of every day of the open plan (names, exercises, targets, notes). */
+/** On the open plan, taps every day whose exercises are hidden to show them. */
+export async function showExercises(page: Page): Promise<void> {
+  const days = page.getByTestId('plan-day');
+  await expect(days.first()).toBeVisible();
+  for (const toggle of await page.getByTestId('day-toggle').all()) {
+    if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  }
+}
+
+/** Text of every day of the open plan (names, exercises, targets, notes), shown first. */
 export async function planDayTexts(page: Page): Promise<string[]> {
+  await showExercises(page);
   return page.getByTestId('plan-day').allInnerTexts();
 }

@@ -4,7 +4,7 @@
  */
 import { openApp, readStoredUserData } from './support/app.ts';
 import { expect, test } from './support/fixtures.ts';
-import { createPlan } from './support/plans.ts';
+import { createPlan, showExercises } from './support/plans.ts';
 
 test(
   'searching "skull crusher" lists Lying Triceps Press first',
@@ -39,6 +39,7 @@ test('a name not in the catalog creates a custom exercise on the plan day', asyn
   await expect(added).toHaveCount(1);
   await expect(added.getByTestId('edit-exercise-name')).toHaveText(name);
   await page.getByTestId('editor-done').click();
+  await showExercises(page);
   await expect(page.getByTestId('plan-exercise-name')).toHaveText([name]);
 
   const stored = await readStoredUserData(page);
